@@ -1,5 +1,10 @@
 <template>
-  <div id="app" />
+  <v-app>
+    <v-main>
+      <div id="app" />
+    </v-main>
+    <v-footer app />
+  </v-app>
 </template>
 
 <script>
