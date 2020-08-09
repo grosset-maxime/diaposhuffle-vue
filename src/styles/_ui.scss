@@ -16,15 +16,7 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-.flex-col, .flex-row {
-  display: flex;
-  justify-content: center;
-  align-content: center;
-  align-items: center;
-}
 .flex-col {
-  flex-flow: column nowrap;
-}
-.flex-row {
-  flex-flow: row nowrap;
+  display: flex;
+  align-items: center;
 }

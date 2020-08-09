@@ -1,6 +1,6 @@
 <template>
   <v-navigation-drawer
-    v-model="drawer"
+    v-model="showMenu"
     :width="width"
     app
   >
@@ -11,7 +11,7 @@
         :to="item.path"
         link
       >
-        <v-list-item-action>
+        <v-list-item-action class="mr-4">
           <v-icon>{{ item.icon }}</v-icon>
         </v-list-item-action>
         <v-list-item-content>
@@ -33,6 +33,17 @@ export default {
     width: 200,
     items: [pages.diapoShuffle, pages.export, pages.settings],
   }),
+
+  computed: {
+    showMenu: {
+      get() {
+        return this.$store.state.showTheLeftMenu;
+      },
+      set(value) {
+        this.$store.commit('showTheLeftMenu', value);
+      },
+    },
+  },
 };
 </script>
 

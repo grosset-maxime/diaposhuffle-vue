@@ -1,6 +1,6 @@
 <template>
   <v-app id="app">
-    <TheLeftMenuNavigationDrawer />
+    <TheLeftMenu />
 
     <v-main>
       <router-view />
@@ -19,16 +19,15 @@
 
 <script>
 import StartButton from './components/StartButton.vue';
-import TheLeftMenuNavigationDrawer from './components/TheLeftMenuNavigationDrawer.vue';
+import TheLeftMenu from './components/TheLeftMenu.vue';
 
 export default {
   name: 'App',
   components: {
-    TheLeftMenuNavigationDrawer,
+    TheLeftMenu,
     StartButton,
   },
   data: () => ({
-    drawer: [],
   }),
 };
 </script>

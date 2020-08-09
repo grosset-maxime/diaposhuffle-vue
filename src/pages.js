@@ -14,6 +14,11 @@ const pages = {
     title: 'Settings',
     icon: 'mdi-cog',
   },
+
+  getPageFromPath(path) {
+    const pageName = Object.keys(pages).find((key) => pages[key].path === path);
+    return pages[pageName];
+  },
 };
 
 export default pages;
