@@ -23,25 +23,15 @@
 </template>
 
 <script>
+import pages from '../pages';
+
 export default {
   name: 'TheLeftMenuNavigationDrawer',
 
   data: () => ({
     drawer: true,
     width: 200,
-    items: [{
-      title: 'DiapoShuffle',
-      icon: 'mdi-shuffle-variant',
-      path: '/',
-    }, {
-      title: 'Export',
-      icon: 'mdi-database-export',
-      path: '/export',
-    }, {
-      title: 'Settings',
-      icon: 'mdi-cog',
-      path: '/settings',
-    }],
+    items: [pages.diapoShuffle, pages.export, pages.settings],
   }),
 };
 </script>
