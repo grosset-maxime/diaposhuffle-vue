@@ -1,33 +1,21 @@
 <template>
   <v-navigation-drawer
     v-model="drawer"
+    :width="width"
     app
   >
     <v-list dense>
-      <v-list-item link>
+      <v-list-item
+        v-for="item in items"
+        :key="item.title"
+        :to="item.path"
+        link
+      >
         <v-list-item-action>
-          <v-icon>mdi-shuffle-variant</v-icon>
+          <v-icon>{{ item.icon }}</v-icon>
         </v-list-item-action>
         <v-list-item-content>
-          <v-list-item-title>DiapoShuffle</v-list-item-title>
-        </v-list-item-content>
-      </v-list-item>
-
-      <v-list-item link>
-        <v-list-item-action>
-          <v-icon>mdi-database-export</v-icon>
-        </v-list-item-action>
-        <v-list-item-content>
-          <v-list-item-title>Export</v-list-item-title>
-        </v-list-item-content>
-      </v-list-item>
-
-      <v-list-item link>
-        <v-list-item-action>
-          <v-icon>mdi-cog</v-icon>
-        </v-list-item-action>
-        <v-list-item-content>
-          <v-list-item-title>Settings</v-list-item-title>
+          <v-list-item-title>{{ item.title }}</v-list-item-title>
         </v-list-item-content>
       </v-list-item>
     </v-list>
@@ -35,9 +23,26 @@
 </template>
 
 <script>
-
 export default {
   name: 'TheLeftMenuNavigationDrawer',
+
+  data: () => ({
+    drawer: true,
+    width: 200,
+    items: [{
+      title: 'DiapoShuffle',
+      icon: 'mdi-shuffle-variant',
+      path: '/',
+    }, {
+      title: 'Export',
+      icon: 'mdi-database-export',
+      path: '/export',
+    }, {
+      title: 'Settings',
+      icon: 'mdi-cog',
+      path: '/settings',
+    }],
+  }),
 };
 </script>
 

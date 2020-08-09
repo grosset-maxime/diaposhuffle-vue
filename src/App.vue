@@ -3,7 +3,7 @@
     <TheLeftMenuNavigationDrawer />
 
     <v-main>
-      <div />
+      <router-view />
     </v-main>
 
     <v-footer
