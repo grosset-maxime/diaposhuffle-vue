@@ -1,0 +1,139 @@
+/* OVERFLOW ==================================== */
+
+@mixin text-overflow() {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Hyphenation ------------------ */
+@mixin hyphens($mode: auto) {
+  overflow-wrap: break-word; // Break non-CJK
+  word-wrap: break-word;
+  line-break: strict;
+  word-break: keep-all;  // Preserve CJK
+  hyphens: $mode;
+}
+
+/* Clearfix ---------------------*/
+@mixin clearfix() {
+  &::after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+}
+
+/* COMPONENTS ==================================== */
+
+/* Dropdown --------------------- */
+@mixin dropdown-style() {
+  background-color: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.175);
+}
+/* Card ------------------ */
+
+@mixin card-variant($color) {
+  background-color: $color;
+  border-color: $color;
+}
+
+/* Tooltip ---------------- */
+@mixin inverted-floating-arrow($name, $position, $border-color, $after-border-color) {
+  &.#{$position} .#{$name}-arrow {
+    border-#{$position}-color: $border-color;
+
+    &:after {
+      border-#{$position}-color: $after-border-color;
+    }
+  }
+}
+
+@mixin inverted-tooltip-arrow($position) {
+  @include inverted-floating-arrow("tooltip", $position, $grey-0, $grey-7);
+}
+
+/* Popover ---------------- */
+@mixin inverted-popover-arrow($position) {
+  @include inverted-floating-arrow("popover", $position, $grey-7, $grey-7);
+}
+
+/* Progress --------------- */
+@mixin native-progress-bar-color($color) {
+  &::-webkit-progress-value {
+    background-color: $color;
+  }
+  &::-moz-progress-bar {
+    background-color: $color;
+  }
+  &::-ms-fill {
+    background-color: $color;
+  }
+}
+
+@mixin native-progress-bar-transition($transition...) {
+  &::-webkit-progress-value {
+    transition: $transition;
+  }
+  &::-moz-progress-bar {
+    transition: $transition;
+  }
+  &::-ms-fill {
+    transition: $transition;
+  }
+}
+
+@mixin progress-bar-color($color) {
+  > .progress-bar {
+    background-color: $color;
+  }
+}
+
+@mixin progress-width() {
+  @for $i from 0 to 21 {
+    $increment: $i * 5;
+    $width: $increment * 1%;
+    &.w-#{$increment}-percent > .progress-bar,
+    &.stacked .progress-bar.w-#{$increment}-percent {
+      width: $width;
+    }
+  }
+}
+
+@mixin placeholder-none() {
+  &::-moz-placeholder {
+    color: transparent;
+  }
+
+  &:-ms-input-placeholder{
+    color: transparent;
+  }
+
+  &::-webkit-input-placeholder {
+    color: transparent;
+  }
+
+  &.placeholder {
+    color: transparent;
+  }
+}
+
+@mixin placeholder() {
+  &::-moz-placeholder {
+   opacity: 1;
+   color: $grey-5;
+  }
+  
+  &:-ms-input-placeholder {
+    color: $grey-5;
+  }
+  
+  &::-webkit-input-placeholder {
+    color: $grey-5;
+  }
+  
+  &.placeholder {
+    color: $grey-5;
+  }
+}

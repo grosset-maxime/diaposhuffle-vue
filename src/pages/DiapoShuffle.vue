@@ -15,6 +15,7 @@
         <v-btn
           class="help"
           icon
+          @click="showTheHelp"
         >
           <v-icon>mdi-help-circle-outline</v-icon>
         </v-btn>
@@ -172,6 +173,9 @@ export default {
     },
     toggleTheLeftMenu() {
       this.$store.commit('showTheLeftMenu', !this.$store.state.showTheLeftMenu);
+    },
+    showTheHelp() {
+      this.$store.commit('showTheHelp', !this.$store.state.showTheHelp);
     },
   },
 };

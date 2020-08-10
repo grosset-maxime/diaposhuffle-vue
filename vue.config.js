@@ -4,7 +4,12 @@ module.exports = {
   css: {
     loaderOptions: {
       scss: {
-        prependData: '@import "@/styles/_myVariables.scss";',
+        prependData: [
+          '@/styles/_variables.uikit',
+          '@/styles/_mixins.uikit',
+          '@/styles/_variables',
+          '@/styles/_mixins',
+        ].map((v) => `@import "${v}.scss";`).join(''),
       },
     },
   },

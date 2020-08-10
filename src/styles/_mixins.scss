@@ -1,0 +1,27 @@
+
+@mixin w-scrollbar {
+  $w-scroll-bg-color: #33333380;
+  $w-scroll-raduis: 15px;
+  $w-scroll-size-x: 8px;
+  $w-scroll-size-y: 6px;
+
+  // Specific for FireFox:
+  scrollbar-color: $grey-2 $w-scroll-bg-color;
+  scrollbar-width: thin;
+
+  // Specific for webkit:
+  &::-webkit-scrollbar-track {
+    border-radius: $w-scroll-raduis;
+    background-color: $w-scroll-bg-color;
+  }
+  &::-webkit-scrollbar {
+    border-radius: $w-scroll-raduis;
+    width: $w-scroll-size-y;
+    height: $w-scroll-size-x;
+    background-color: $w-scroll-bg-color;
+  }
+  &::-webkit-scrollbar-thumb {
+    border-radius: $w-scroll-raduis;
+    background-color: $grey-4;
+  }
+}
