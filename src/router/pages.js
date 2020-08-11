@@ -2,16 +2,19 @@ const pages = {
   diapoShuffle: {
     path: '/',
     title: 'DiapoShuffle',
+    name: 'diaposhuffle',
     icon: 'mdi-shuffle-variant',
   },
   export: {
     path: '/export',
     title: 'Export',
+    name: 'export',
     icon: 'mdi-database-export',
   },
   settings: {
     path: '/settings',
     title: 'Settings',
+    name: 'settings',
     icon: 'mdi-cog',
   },
 

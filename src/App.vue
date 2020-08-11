@@ -3,7 +3,9 @@
     <TheLeftMenu />
 
     <v-main>
-      <router-view />
+      <v-container class="main-ctn">
+        <router-view />
+      </v-container>
     </v-main>
 
     <v-footer
@@ -54,6 +56,12 @@ export default {
 
 <style lang="scss">
 @import "./styles/_ui.scss";
+
+$footer-height: 48px;
+
+.main-ctn {
+  height: calc(100vh - #{$footer-height});
+}
 
 .the-footer {
   display: flex;

@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import pages from '../pages';
+import pages from '../router/pages';
 import HelpDiapoShuffle from './HelpDiapoShuffle.vue';
 
 const pageHelpComponent = {};

@@ -7,7 +7,7 @@
     <v-list dense>
       <v-list-item
         v-for="item in items"
-        :key="item.title"
+        :key="item.name"
         :to="item.path"
         link
       >
@@ -23,7 +23,7 @@
 </template>
 
 <script>
-import pages from '../pages';
+import pages from '../router/pages';
 
 export default {
   name: 'TheLeftMenuNavigationDrawer',
