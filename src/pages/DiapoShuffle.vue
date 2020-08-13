@@ -142,6 +142,10 @@
 
 <script>
 import pages from '../router/pages';
+import {
+  SHOW_THE_LEFT_MENU,
+  SHOW_THE_HELP,
+} from '../store/mutations-types';
 
 export default {
   name: 'DiapoShuffle',
@@ -171,10 +175,10 @@ export default {
       this.interval = 3;
     },
     toggleTheLeftMenu() {
-      this.$store.commit('showTheLeftMenu', !this.$store.state.showTheLeftMenu);
+      this.$store.commit(SHOW_THE_LEFT_MENU, !this.$store.getters.showTheLeftMenu);
     },
     showTheHelp() {
-      this.$store.commit('showTheHelp', !this.$store.state.showTheHelp);
+      this.$store.commit(SHOW_THE_HELP, !this.$store.getters.showTheHelp);
     },
   },
 };

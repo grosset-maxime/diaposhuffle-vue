@@ -3,7 +3,7 @@
     <TheLeftMenu />
 
     <v-main>
-      <v-container class="main-ctn">
+      <v-container class="the-main-ctn">
         <router-view />
       </v-container>
     </v-main>
@@ -19,8 +19,9 @@
 
     <v-overlay
       z-index="10"
-      :value="showWindowOverlay"
+      :value="showTheOverlay"
       opacity="0.9"
+      class="the-overlay"
     >
       <TheHelp v-if="showTheHelp" />
     </v-overlay>
@@ -44,11 +45,11 @@ export default {
   }),
 
   computed: {
-    showWindowOverlay() {
-      return this.$store.state.showWindowOverlay;
+    showTheOverlay() {
+      return this.$store.getters.showTheOverlay;
     },
     showTheHelp() {
-      return this.$store.state.showTheHelp;
+      return this.$store.getters.showTheHelp;
     },
   },
 };
@@ -59,7 +60,7 @@ export default {
 
 $footer-height: 48px;
 
-.main-ctn {
+.the-main-ctn {
   height: calc(100vh - #{$footer-height});
 }
 

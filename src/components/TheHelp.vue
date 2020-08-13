@@ -9,7 +9,7 @@
     </v-btn>
     <v-container class="help-component-ctn">
       <v-card-title class="main-title">
-        {{ pageTitle }} - Help
+        Help - {{ pageTitle }}
       </v-card-title>
       <component :is="currentHelp" />
     </v-container>
@@ -18,6 +18,7 @@
 
 <script>
 import pages from '../router/pages';
+import { SHOW_THE_HELP } from '../store/mutations-types';
 import HelpDiapoShuffle from './HelpDiapoShuffle.vue';
 
 const pageHelpComponent = {};
@@ -43,7 +44,7 @@ export default {
   },
   methods: {
     closeTheHelp() {
-      this.$store.commit('showTheHelp', false);
+      this.$store.commit(SHOW_THE_HELP, false);
     },
   },
 };

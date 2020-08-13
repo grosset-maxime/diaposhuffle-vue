@@ -24,6 +24,7 @@
 
 <script>
 import pages from '../router/pages';
+import { SHOW_THE_LEFT_MENU } from '../store/mutations-types';
 
 export default {
   name: 'TheLeftMenuNavigationDrawer',
@@ -37,10 +38,10 @@ export default {
   computed: {
     showMenu: {
       get() {
-        return this.$store.state.showTheLeftMenu;
+        return this.$store.getters.showTheLeftMenu;
       },
       set(value) {
-        this.$store.commit('showTheLeftMenu', value);
+        this.$store.commit(SHOW_THE_LEFT_MENU, value);
       },
     },
   },
