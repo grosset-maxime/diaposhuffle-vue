@@ -1,0 +1,22 @@
+{
+  // Project settings
+  // ----------------
+  "editor.insertSpaces": true,
+  "editor.tabSize": 2,
+
+  "files.trimFinalNewlines": true,
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+
+  // Settings to set only on .code-workspace file.
+  // ---------------------------------------------
+  // Personal settings
+  // ~~~~~~~~~~~~~~~~~
+  // "workbench.editor.highlightModifiedTabs": true,
+  // "breadcrumbs.enabled": true,
+  // "editor.acceptSuggestionOnEnter": "smart",
+  // "editor.rulers": [100],
+  // "editor.formatOnPaste": false,
+  // "editor.minimap.showSlider": "always",
+  // "editor.minimap.renderCharacters": false,
+}

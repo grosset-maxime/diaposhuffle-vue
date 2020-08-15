@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
 
-import pages from './pages';
+import { pages } from './pages';
 
 const DiapoShuffle = () => import('../pages/DiapoShuffle.vue');
 const Export = () => import('../pages/Export.vue');

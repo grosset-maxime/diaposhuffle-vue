@@ -17,8 +17,8 @@
 </template>
 
 <script>
-import pages from '../router/pages';
-import { SHOW_THE_HELP } from '../store/mutations-types';
+import { pages, getPageFromPath } from '../router/pages';
+import { INDEX_M_SHOW_THE_HELP } from '../store/types';
 import HelpDiapoShuffle from './HelpDiapoShuffle.vue';
 
 const pageHelpComponent = {};
@@ -32,19 +32,19 @@ export default {
   data: () => ({
   }),
   computed: {
-    routePath() {
+    routePath () {
       return this.$route.path;
     },
-    currentHelp() {
+    currentHelp () {
       return pageHelpComponent[this.routePath];
     },
-    pageTitle() {
-      return (pages.getPageFromPath(this.routePath) || {}).title || '';
+    pageTitle () {
+      return (getPageFromPath(this.routePath) || {}).title || '';
     },
   },
   methods: {
-    closeTheHelp() {
-      this.$store.commit(SHOW_THE_HELP, false);
+    closeTheHelp () {
+      this.$store.commit(INDEX_M_SHOW_THE_HELP, false);
     },
   },
 };

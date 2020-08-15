@@ -20,10 +20,14 @@
     <v-overlay
       z-index="10"
       :value="showTheOverlay"
-      opacity="0.9"
+      :opacity="theOverlayOpacity"
       class="the-overlay"
     >
       <TheHelp v-if="showTheHelp" />
+      <ThePlayer
+        v-if="showThePlayer"
+        :start="startPlayer"
+      />
     </v-overlay>
   </v-app>
 </template>
@@ -32,6 +36,14 @@
 import StartButton from './components/StartButton.vue';
 import TheLeftMenu from './components/TheLeftMenu.vue';
 import TheHelp from './components/TheHelp.vue';
+import ThePlayer from './components/ThePlayer.vue';
+import {
+  PLAYER_G_START,
+  INDEX_G_SHOW_THE_OVERLAY,
+  INDEX_G_THE_OVERLAY_OPACITY,
+  INDEX_G_SHOW_THE_HELP,
+  INDEX_G_SHOW_THE_PLAYER,
+} from './store/types';
 
 export default {
   name: 'App',
@@ -39,18 +51,18 @@ export default {
     TheLeftMenu,
     StartButton,
     TheHelp,
+    ThePlayer,
   },
 
   data: () => ({
   }),
 
   computed: {
-    showTheOverlay() {
-      return this.$store.getters.showTheOverlay;
-    },
-    showTheHelp() {
-      return this.$store.getters.showTheHelp;
-    },
+    showTheOverlay () { return this.$store.getters[INDEX_G_SHOW_THE_OVERLAY] },
+    theOverlayOpacity () { return this.$store.getters[INDEX_G_THE_OVERLAY_OPACITY] },
+    showTheHelp () { return this.$store.getters[INDEX_G_SHOW_THE_HELP] },
+    showThePlayer () { return this.$store.getters[INDEX_G_SHOW_THE_PLAYER] },
+    startPlayer () { return this.$store.getters[`player/${PLAYER_G_START}`] },
   },
 };
 </script>

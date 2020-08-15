@@ -2,18 +2,20 @@
   <v-btn
     class="start-btn"
     :color="bgColor"
+    @click="action"
   >
     {{ content }}
   </v-btn>
 </template>
 
 <script>
-import pages from '../router/pages';
+import { pages } from '../router/pages';
+import { INDEX_A_START_PLAYING } from '../store/types';
 
 const pagesInfo = {};
 pagesInfo[pages.diapoShuffle.name] = {
   content: 'Start',
-  action: '',
+  action: INDEX_A_START_PLAYING,
   bgColor: 'primary',
 };
 pagesInfo[pages.export.name] = {
@@ -33,30 +35,19 @@ export default {
     pagesInfo,
   }),
   computed: {
-    currentPagePath() {
-      return this.$route.path;
+    pageInfo () {
+      return this.pagesInfo[this.$route.name] || {};
     },
-    currentPageName() {
-      return this.$route.name;
+    content () {
+      return this.pageInfo.content || '';
     },
-    isDiapoShufflePage() {
-      return this.currentPageName === pages.diapoShuffle.name;
-    },
-    isExportPage() {
-      return this.currentPageName === pages.export.name;
-    },
-    isSettingsPage() {
-      return this.currentPageName === pages.settings.name;
-    },
-    content() {
-      return (this.pagesInfo[this.currentPageName] || {}).content || '';
-    },
-    bgColor() {
-      return (this.pagesInfo[this.currentPageName] || {}).bgColor || '';
+    bgColor () {
+      return this.pageInfo.bgColor || '';
     },
   },
   methods: {
-    action() {
+    action () {
+      this.$store.dispatch(this.pageInfo.action);
     },
   },
 };

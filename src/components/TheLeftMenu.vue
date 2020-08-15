@@ -23,8 +23,8 @@
 </template>
 
 <script>
-import pages from '../router/pages';
-import { SHOW_THE_LEFT_MENU } from '../store/mutations-types';
+import { pages } from '../router/pages';
+import { INDEX_M_SHOW_THE_LEFT_MENU } from '../store/types';
 
 export default {
   name: 'TheLeftMenuNavigationDrawer',
@@ -37,11 +37,11 @@ export default {
 
   computed: {
     showMenu: {
-      get() {
+      get () {
         return this.$store.getters.showTheLeftMenu;
       },
-      set(value) {
-        this.$store.commit(SHOW_THE_LEFT_MENU, value);
+      set (value) {
+        this.$store.commit(INDEX_M_SHOW_THE_LEFT_MENU, value);
       },
     },
   },

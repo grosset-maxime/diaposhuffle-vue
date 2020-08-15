@@ -141,14 +141,17 @@
 </template>
 
 <script>
-import pages from '../router/pages';
+import { getPageFromPath } from '../router/pages';
 import {
-  SHOW_THE_LEFT_MENU,
-  SHOW_THE_HELP,
-} from '../store/mutations-types';
+  INDEX_G_SHOW_THE_LEFT_MENU,
+  INDEX_G_SHOW_THE_HELP,
+  INDEX_M_SHOW_THE_LEFT_MENU,
+  INDEX_M_SHOW_THE_HELP,
+} from '../store/types';
 
 export default {
   name: 'DiapoShuffle',
+
   data: () => ({
     selectedFolders: [],
     selectedTags: [],
@@ -165,20 +168,23 @@ export default {
       required: (value) => !!value || 'Required',
     },
   }),
+
   computed: {
-    pageTitle() {
-      return (pages.getPageFromPath(this.$route.path) || {}).title || '';
-    },
+    pageTitle () { return (getPageFromPath(this.$route.path) || {}).title || '' },
   },
+
   methods: {
-    resetInterval() {
-      this.interval = 3;
+    resetInterval () { this.interval = 3 },
+
+    toggleTheLeftMenu () {
+      this.$store.commit(
+        INDEX_M_SHOW_THE_LEFT_MENU,
+        !this.$store.getters[INDEX_G_SHOW_THE_LEFT_MENU],
+      );
     },
-    toggleTheLeftMenu() {
-      this.$store.commit(SHOW_THE_LEFT_MENU, !this.$store.getters.showTheLeftMenu);
-    },
-    showTheHelp() {
-      this.$store.commit(SHOW_THE_HELP, !this.$store.getters.showTheHelp);
+
+    showTheHelp () {
+      this.$store.commit(INDEX_M_SHOW_THE_HELP, !this.$store.getters[INDEX_G_SHOW_THE_HELP]);
     },
   },
 };
