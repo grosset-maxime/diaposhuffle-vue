@@ -57,11 +57,13 @@ const mutations = {
   [PLAYER_M_START] (state) {
     state.start = true;
     state.stop = false;
+    state.pause = false;
   },
 
   [PLAYER_M_STOP] (state) {
     state.stop = true;
     state.start = false;
+    state.pause = false;
   },
 
   [PLAYER_M_PAUSE] (state) {
@@ -85,7 +87,11 @@ const mutations = {
   },
 };
 
-const actions = {};
+const actions = {
+  // [PLAYER_A_STOP_PLAYING]({rootState}){
+  //   // rootState.
+  // }
+};
 
 export default {
   namespaced: true,

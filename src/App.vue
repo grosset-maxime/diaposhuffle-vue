@@ -26,8 +26,6 @@
       <TheHelp v-if="showTheHelp" />
       <ThePlayer
         v-if="showThePlayer"
-        :start="startPlayer"
-        :pause="pausePlayer"
       />
     </v-overlay>
   </v-app>
@@ -43,9 +41,6 @@ import {
   INDEX_G_THE_OVERLAY_OPACITY,
   INDEX_G_SHOW_THE_HELP,
   INDEX_G_SHOW_THE_PLAYER,
-
-  PLAYER_G_START,
-  PLAYER_G_PAUSE,
 } from './store/types';
 
 export default {
@@ -65,9 +60,6 @@ export default {
     theOverlayOpacity () { return this.$store.getters[INDEX_G_THE_OVERLAY_OPACITY] },
     showTheHelp () { return this.$store.getters[INDEX_G_SHOW_THE_HELP] },
     showThePlayer () { return this.$store.getters[INDEX_G_SHOW_THE_PLAYER] },
-
-    startPlayer () { return this.$store.getters[`player/${PLAYER_G_START}`] },
-    pausePlayer () { return this.$store.getters[`player/${PLAYER_G_PAUSE}`] },
   },
 };
 </script>

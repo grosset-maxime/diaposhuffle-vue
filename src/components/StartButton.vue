@@ -10,12 +10,12 @@
 
 <script>
 import { pages } from '../router/pages';
-import { INDEX_A_START_PLAYING } from '../store/types';
+import { INDEX_A_PLAYER_START } from '../store/types';
 
 const pagesInfo = {};
 pagesInfo[pages.diapoShuffle.name] = {
   content: 'Start',
-  action: INDEX_A_START_PLAYING,
+  action: INDEX_A_PLAYER_START,
   bgColor: 'primary',
 };
 pagesInfo[pages.export.name] = {
