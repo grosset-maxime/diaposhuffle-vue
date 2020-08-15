@@ -24,7 +24,7 @@
 
 <script>
 import { pages } from '../router/pages';
-import { INDEX_M_SHOW_THE_LEFT_MENU } from '../store/types';
+import { INDEX_M_SHOW_THE_LEFT_MENU, INDEX_G_SHOW_THE_LEFT_MENU } from '../store/types';
 
 export default {
   name: 'TheLeftMenuNavigationDrawer',
@@ -38,10 +38,10 @@ export default {
   computed: {
     showMenu: {
       get () {
-        return this.$store.getters.showTheLeftMenu;
+        return this.$store.getters[INDEX_G_SHOW_THE_LEFT_MENU];
       },
-      set (value) {
-        this.$store.commit(INDEX_M_SHOW_THE_LEFT_MENU, value);
+      set (show) {
+        this.$store.commit(INDEX_M_SHOW_THE_LEFT_MENU, show);
       },
     },
   },

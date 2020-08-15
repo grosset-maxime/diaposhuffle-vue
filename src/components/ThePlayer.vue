@@ -15,8 +15,17 @@ export default {
       type: Boolean,
       default: false,
     },
+    pause: {
+      type: Boolean,
+      default: false,
+    },
   },
   computed: {
+  },
+  mounted () {
+    if (this.start) {
+      this.startPlaying();
+    }
   },
 };
 </script>

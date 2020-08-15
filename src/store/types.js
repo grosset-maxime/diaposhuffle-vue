@@ -19,7 +19,13 @@ export const INDEX_A_STOP_PLAYING = 'Stop playing';
 export const PLAYER_G_START = 'Start';
 export const PLAYER_G_STOP = 'Stop';
 export const PLAYER_G_PAUSE = 'Pause';
+export const PLAYER_G_FILTER_FILE_TYPES = 'Filter file types';
+export const PLAYER_G_FILTERS = 'Filters';
+export const PLAYER_G_OPTIONS = 'Options';
 
 export const PLAYER_M_START = 'Start';
 export const PLAYER_M_STOP = 'Stop';
 export const PLAYER_M_PAUSE = 'Pause';
+export const PLAYER_M_FILTERS = 'Filters';
+export const PLAYER_M_OPTIONS = 'Options';
+export const PLAYER_M_RESET_INTERVAL = 'Reset Options - Interval';
