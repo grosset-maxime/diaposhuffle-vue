@@ -15,9 +15,6 @@ import {
 
   INDEX_A_PLAYER_START,
   INDEX_A_PLAYER_STOP,
-
-  PLAYER_M_START,
-  PLAYER_M_STOP,
 } from './types';
 
 import diaposhuffle from './modules/diaposhuffle';
@@ -69,11 +66,9 @@ const store = new Vuex.Store({
   actions: {
     [INDEX_A_PLAYER_START] ({ commit }) {
       commit(INDEX_M_SHOW_THE_PLAYER, true);
-      commit(`player/${PLAYER_M_START}`);
     },
     [INDEX_A_PLAYER_STOP] ({ commit }) {
       commit(INDEX_M_SHOW_THE_PLAYER, false);
-      commit(`player/${PLAYER_M_STOP}`);
     },
   },
 

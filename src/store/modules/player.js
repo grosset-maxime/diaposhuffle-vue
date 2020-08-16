@@ -3,28 +3,21 @@
 import Vue from 'vue';
 
 import {
-  PLAYER_G_START,
-  PLAYER_G_STOP,
-  PLAYER_G_PAUSE,
   PLAYER_G_FILTER_FILE_TYPES,
   PLAYER_G_FILTERS,
   PLAYER_G_OPTIONS,
 
-  PLAYER_M_START,
-  PLAYER_M_STOP,
-  PLAYER_M_PAUSE,
   PLAYER_M_FILTERS,
   PLAYER_M_OPTIONS,
   PLAYER_M_RESET_INTERVAL,
+  PLAYER_M_SET_NEXT,
+
+  PLAYER_A_FETCH_NEXT,
 } from '../types';
 
 const INTERVAL_DEFAULT = 3; // seconds
 
 const state = () => ({
-  start: false,
-  stop: true,
-  pause: false,
-
   filterFileTypes: ['JPEG', 'GIF', 'PNG', 'WEBM', 'MP4', 'MKV'],
 
   filters: {
@@ -45,31 +38,12 @@ const state = () => ({
 });
 
 const getters = {
-  [PLAYER_G_START]: (state) => state.start,
-  [PLAYER_G_STOP]: (state) => state.stop,
-  [PLAYER_G_PAUSE]: (state) => state.pause,
   [PLAYER_G_FILTER_FILE_TYPES]: (state) => state.filterFileTypes,
   [PLAYER_G_FILTERS]: (state) => state.filters,
   [PLAYER_G_OPTIONS]: (state) => state.options,
 };
 
 const mutations = {
-  [PLAYER_M_START] (state) {
-    state.start = true;
-    state.stop = false;
-    state.pause = false;
-  },
-
-  [PLAYER_M_STOP] (state) {
-    state.stop = true;
-    state.start = false;
-    state.pause = false;
-  },
-
-  [PLAYER_M_PAUSE] (state) {
-    state.pause = true;
-  },
-
   [PLAYER_M_FILTERS] (state, filters) {
     Object.keys(filters).forEach((keys) => {
       Vue.set(state.filters, keys, filters[keys]);
@@ -85,12 +59,38 @@ const mutations = {
   [PLAYER_M_RESET_INTERVAL] (state) {
     state.options.interval = INTERVAL_DEFAULT;
   },
+
+  [PLAYER_M_SET_NEXT] (state, next) {
+    state.next = next;
+  },
 };
 
+let i = 0;
+function wait (time) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, time * 1000);
+  });
+}
 const actions = {
-  // [PLAYER_A_STOP_PLAYING]({rootState}){
-  //   // rootState.
-  // }
+  async [PLAYER_A_FETCH_NEXT] ({ commit }) {
+    const imgs = [
+      '/pic/test/bbb/5718897981_10faa45ac3_b-640x624.jpg',
+      '/pic/test/bbb/a.gif',
+      '/pic/test/bbb/DSCF2336.jpg',
+      '/pic/test/bbb/i-B7D3LH9-L.jpg',
+      '/pic/test/bbb/test.jpg',
+    ];
+    let next = imgs[i];
+    if (!next) {
+      i = 0;
+      next = imgs[i];
+    } else {
+      i += 1;
+    }
+    await wait(1);
+    commit(PLAYER_M_SET_NEXT, next);
+    return next;
+  },
 };
 
 export default {
