@@ -87,9 +87,25 @@ const actions = {
     } else {
       i += 1;
     }
+
+    // {"success":true,
+    // "pic":{
+    // eslint-disable-next-line max-len
+    //   "src":"/pic/test/bbb/5718897981_10faa45ac3_b-640x624.jpg",
+    //   "randomPublicPath":"/test/bbb/",
+    //   "customFolderPath":"",
+    //   "name":"5718897981_10faa45ac3_b-640x624.jpg",
+    //   "extension":"jpg",
+    //   "width":1465,
+    //   "height":2160,
+    //   "tags":[],
+    //   "useCache":false,
+    //   "warning":""
+    // }}
+
     await wait(1);
-    commit(PLAYER_M_SET_NEXT, next);
-    return next;
+    commit(PLAYER_M_SET_NEXT, { src: next });
+    return { src: next };
   },
 };
 

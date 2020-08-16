@@ -24,14 +24,33 @@
     </v-btn>
 
     <div
-      class="img-ctn"
+      class="items-ctn"
       @click="pausePlaying(!pause)"
     >
-      <img
-        v-if="next"
-        :src="next"
-        class="img"
+      <div
+        class="item1 item-ctn transition"
+        :style="item1Styles"
+        ref="item1"
       >
+        <img
+          v-show="item1"
+          :src="(item1 || {}).src"
+          class="item img"
+          @load="onLoadItem1"
+        >
+      </div>
+      <div
+        class="item2 item-ctn transition"
+        :style="item2Styles"
+        ref="item2"
+      >
+        <img
+          v-show="item2"
+          :src="(item2 || {}).src"
+          class="item img"
+          @load="onLoadItem2"
+        >
+      </div>
     </div>
   </div>
 </template>
@@ -63,7 +82,18 @@ export default {
     pause: false,
     stop: true,
 
-    next: null,
+    item1: null,
+    item2: null,
+    item1Styles: { transfrom: 'translateY(0)' },
+    item2Styles: {
+      transform: 'translateY(100vh)',
+    },
+    // showItem: 'item1',
+    // showItem1: true,
+    // showItem2: false,
+    nextItemPromise: null,
+    currentItemName: 'item1',
+
     keyboardShortcuts: () => {},
   }),
 
@@ -87,8 +117,14 @@ export default {
       this.stop = false;
       this.pause = false;
 
-      this.fetchNext().then((next) => {
-        this.next = next;
+      this.fetchFirstItem().then((item) => {
+        this.item1 = item;
+        this.currentItemName = 'item1';
+        this.showItem = this.currentItemName;
+        this.nextItemPromise = this.fetchNextItem();
+
+        console.log('show item: ', this.currentItemName);
+        console.log('show item:', this[this.currentItemName]);
         this.loop();
       });
     },
@@ -99,7 +135,7 @@ export default {
       this.$store.dispatch(`${INDEX_A_PLAYER_STOP}`);
     },
 
-    pausePlaying (pause) {
+    pausePlaying (pause = true) {
       this.pause = pause;
       this.clearLoop();
 
@@ -125,14 +161,28 @@ export default {
         setTimeout(() => {
           this.progress.value = 0;
 
-          setTimeout(() => {
-            this.fetchNext().then((next) => {
-              // console.log(next);
-              this.next = next;
+          this.toggleProgressIndeterminate(true);
+
+          (this.nextItemPromise || this.fetchNextItem()).then((nextItem) => {
+            const nextItemName = this.currentItemName === 'item1' ? 'item2' : 'item1';
+            this.nextItemPromise = null;
+
+            // const nextItemRef = this.$refs[nextItemName];
+            // nextItemRef.addEventListener()
+            this[nextItemName] = nextItem;
+
+            this.toggleProgressIndeterminate(false);
+
+            this.animateItems({ nextItemName }).then(() => {
+              this.currentItemName = nextItemName;
+              this.nextItemPromise = this.fetchNextItem();
+
+              // console.log('show item: ', this.currentItemName);
+              // console.log('show item:', this[this.currentItemName]);
               this.loop();
             });
-          }, 500);
-        }, 500);
+          });
+        }, 200);
       }, this.LOOP_STEP);
     },
 
@@ -141,19 +191,77 @@ export default {
       this.loopId = null;
     },
 
-    async fetchNext () {
+    async animateItems ({ nextItemName }) {
+      // let nextItemPromiseResolve;
+      let currentItemPromiseResolve;
+
+      // const nextItemPromise = new Promise(
+      //   (resolveNext) => { nextItemPromiseResolve = resolveNext },
+      // );
+      const currentItemPromise = new Promise(
+        (resolveCurrent) => { currentItemPromiseResolve = resolveCurrent },
+      );
+
+      // const nextItemRef = this.$refs[nextItemName];
+      const currentItemRef = this.$refs[this.currentItemName];
+
+      // const onTransitionEndNextItem = () => {
+      //   nextItemRef.removeEventListener('transitionend', onTransitionEndNextItem);
+      //   nextItemPromiseResolve();
+      // };
+
+      const onTransitionEndCurrentItem = () => {
+        this[`${this.currentItemName}Styles`] = {
+          ...this[`${this.currentItemName}Styles`],
+          transform: 'translateY(100vh)',
+          zindex: 0,
+          opacity: 0,
+        };
+        currentItemRef.removeEventListener('transitionend', onTransitionEndCurrentItem);
+        currentItemPromiseResolve();
+      };
+
+      // nextItemRef.addEventListener('transitionend', onTransitionEndNextItem, false);
+      currentItemRef.addEventListener('transitionend', onTransitionEndCurrentItem, false);
+
+      this[`${nextItemName}Styles`] = {
+        transform: 'translateY(0)',
+        zindex: 500,
+        opacity: 1,
+      };
+      this[`${this.currentItemName}Styles`] = {
+        transform: 'translateY(-100vh)',
+        zindex: 500,
+        opacity: 1,
+      };
+
+      await currentItemPromise;
+    },
+
+    async fetchFirstItem () {
       this.toggleProgressIndeterminate(true);
 
-      const next = await this.$store.dispatch(`${this.NS}/${PLAYER_A_FETCH_NEXT}`);
+      const item = await this.$store.dispatch(`${this.NS}/${PLAYER_A_FETCH_NEXT}`);
 
       this.toggleProgressIndeterminate(false);
 
+      return item;
+    },
+
+    async fetchNextItem () {
+      const next = await this.$store.dispatch(`${this.NS}/${PLAYER_A_FETCH_NEXT}`);
       return next;
     },
 
-    resetProgressValue () {
-      this.progress.value = 0;
+    onLoadItem1 () {
+      // this.
     },
+
+    onLoadItem2 () {
+      console.log('onLoadItem2');
+    },
+
+    resetProgressValue () { this.progress.value = 0 },
 
     toggleProgressIndeterminate (state = null) {
       const shouldSetInderminate = state !== null
@@ -202,11 +310,16 @@ export default {
   width: 100vw;
   height: 100vh;
 
+  .progress-loop {
+    z-index: 1000;
+  }
+
   .pause-btn {
     position: absolute;
     top: 5px;
     right: 5px;
     color: $grey-0;
+    z-index: 1000;
 
     .pause-icon {
       display: flex;
@@ -223,17 +336,30 @@ export default {
     }
   }
 
-  .img-ctn {
+  .items-ctn {
     width: 100%;
     height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    position: relative;
 
-    .img {
-      object-fit: contain;
+    .item-ctn {
       width: 100%;
       height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: absolute;
+      top: 0;
+      left: 0;
+
+      &.transition {
+        transition: transform 500ms linear;
+      }
+
+      .item {
+        object-fit: contain;
+        width: 100%;
+        height: 100%;
+      }
     }
   }
 }
