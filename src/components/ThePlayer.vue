@@ -8,6 +8,7 @@
       top
       :indeterminate="progress.indeterminate"
       :striped="progress.striped"
+      @click="resetProgressValue(true)"
     />
 
     <v-btn
@@ -17,15 +18,15 @@
       icon
     >
       <div class="pause-icon">
-        <div class="first-bar bar" />
-        <div class="second-bar bar" />
+        <div class="stick" />
+        <div class="stick" />
       </div>
-      <!-- <v-icon class="pause-icon">
-        mdi-motion-pause
-      </v-icon> -->
     </v-btn>
 
-    <div class="img-ctn">
+    <div
+      class="img-ctn"
+      @click="pausePlaying(!pause)"
+    >
       <img
         v-if="next"
         :src="next"
@@ -150,6 +151,10 @@ export default {
       return next;
     },
 
+    resetProgressValue () {
+      this.progress.value = 0;
+    },
+
     toggleProgressIndeterminate (state = null) {
       const shouldSetInderminate = state !== null
         ? state : !this.progress.indeterminate;
@@ -208,7 +213,7 @@ export default {
       justify-content: center;
       align-items: center;
 
-      .bar {
+      .stick {
         width: 5px;
         height: 16px;
         margin: auto 1px;
