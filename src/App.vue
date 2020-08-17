@@ -65,7 +65,7 @@ export default {
 </script>
 
 <style lang="scss">
-@import "./styles/_ui.scss";
+@import './styles/_ui.scss';
 
 $footer-height: 48px;
 

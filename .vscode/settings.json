@@ -9,15 +9,60 @@
   "files.insertFinalNewline": true,
   "files.trimTrailingWhitespace": true,
 
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+
+  "npm.packageManager": "yarn",
+
+  "eslint.packageManager": "yarn",
+  // "eslint.workingDirectories": ["DirA/DirB/src"],
+  "eslint.validate": ["javascript", "javascriptreact", "vue", "html"],
+
+  "[vue]": {
+    "editor.defaultFormatter": "octref.vetur",
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": false
+  },
+
+  "[javascript]": {
+    "editor.formatOnSave": false,
+    "editor.formatOnPaste": false
+  }
+
   // Settings to set only on .code-workspace file.
   // ---------------------------------------------
   // Personal settings
   // ~~~~~~~~~~~~~~~~~
   // "workbench.editor.highlightModifiedTabs": true,
+
   // "breadcrumbs.enabled": true,
+
+  // "editor.formatOnSave": false,
+  // "editor.formatOnPaste": false,
   // "editor.acceptSuggestionOnEnter": "smart",
   // "editor.rulers": [100],
-  // "editor.formatOnPaste": false,
   // "editor.minimap.showSlider": "always",
   // "editor.minimap.renderCharacters": false,
+
+  // Set default terminal location:
+  // "terminal.integrated.cwd": "./DirA/DirB.m/src/",
+
+  // To format scss vue files part with prettier:
+  // "vetur.format.defaultFormatter.scss": "prettier",
+
+  // To NOT format html vue filse part with prettier:
+  // "vetur.format.defaultFormatter.html": "none",
+
+  // To NOT format html vue filse part with prettier:
+  // "vetur.format.defaultFormatter.js": "none",
+
+  // "breadcrumbs.enabled": true,
+  // Set rulers color to red.
+  // "workbench.colorCustomizations": {
+  //   "[Monokai]": {
+  //     "editorRuler.foreground": "#ff333344"
+  //   },
+  //   "editorRuler.foreground": "#ff333344"
+  // }
 }
