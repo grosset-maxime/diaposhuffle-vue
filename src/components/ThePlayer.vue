@@ -84,14 +84,18 @@ export default {
 
     item1: null,
     item2: null,
-    item1Styles: { transfrom: 'translateY(0)' },
-    item2Styles: {
-      transform: 'translateY(100vh)',
+    item1Styles: {
+      /* transfrom: 'translateY(0)' */
+      opacity: 1,
     },
-    // showItem: 'item1',
-    // showItem1: true,
-    // showItem2: false,
-    nextItemPromise: null,
+    item2Styles: {
+      /* transform: 'translateY(100vh)' */
+      opacity: 0,
+    },
+    item1LoadResolve: null,
+    item2LoadResolve: null,
+
+    fetchNextItemPromise: null,
     currentItemName: 'item1',
 
     keyboardShortcuts: () => {},
@@ -105,6 +109,8 @@ export default {
     intervalOptions () { return this.options.interval * 1000 },
 
     progressLoopPercent () { return (this.progress.value * 100) / this.intervalOptions },
+
+    nextItemName () { return this.currentItemName === 'item1' ? 'item2' : 'item1' },
   },
 
   mounted () {
@@ -118,14 +124,12 @@ export default {
       this.pause = false;
 
       this.fetchFirstItem().then((item) => {
-        this.item1 = item;
         this.currentItemName = 'item1';
-        this.showItem = this.currentItemName;
-        this.nextItemPromise = this.fetchNextItem();
+        const item1LoadPromise = this.createLoadItemPromise(this.currentItemName);
+        this.item1 = item; // Item will start to load.
+        this.fetchNextItemPromise = this.fetchNextItem();
 
-        console.log('show item: ', this.currentItemName);
-        console.log('show item:', this[this.currentItemName]);
-        this.loop();
+        item1LoadPromise.then(() => { this.loop() });
       });
     },
 
@@ -163,24 +167,18 @@ export default {
 
           this.toggleProgressIndeterminate(true);
 
-          (this.nextItemPromise || this.fetchNextItem()).then((nextItem) => {
-            const nextItemName = this.currentItemName === 'item1' ? 'item2' : 'item1';
-            this.nextItemPromise = null;
-
-            // const nextItemRef = this.$refs[nextItemName];
-            // nextItemRef.addEventListener()
-            this[nextItemName] = nextItem;
+          (this.fetchNextItemPromise || this.fetchNextItem()).then(() => {
+            this.fetchNextItemPromise = null;
 
             this.toggleProgressIndeterminate(false);
 
-            this.animateItems({ nextItemName }).then(() => {
-              this.currentItemName = nextItemName;
-              this.nextItemPromise = this.fetchNextItem();
+            this.animateItems()
+              .then(() => {
+                this.currentItemName = this.nextItemName;
+                this.fetchNextItemPromise = this.fetchNextItem();
 
-              // console.log('show item: ', this.currentItemName);
-              // console.log('show item:', this[this.currentItemName]);
-              this.loop();
-            });
+                this.loop();
+              });
           });
         }, 200);
       }, this.LOOP_STEP);
@@ -191,48 +189,43 @@ export default {
       this.loopId = null;
     },
 
-    async animateItems ({ nextItemName }) {
-      // let nextItemPromiseResolve;
+    async animateItems () {
+      if (this.stop) { return }
+
       let currentItemPromiseResolve;
 
-      // const nextItemPromise = new Promise(
-      //   (resolveNext) => { nextItemPromiseResolve = resolveNext },
-      // );
       const currentItemPromise = new Promise(
         (resolveCurrent) => { currentItemPromiseResolve = resolveCurrent },
       );
 
-      // const nextItemRef = this.$refs[nextItemName];
       const currentItemRef = this.$refs[this.currentItemName];
 
-      // const onTransitionEndNextItem = () => {
-      //   nextItemRef.removeEventListener('transitionend', onTransitionEndNextItem);
-      //   nextItemPromiseResolve();
-      // };
-
       const onTransitionEndCurrentItem = () => {
-        this[`${this.currentItemName}Styles`] = {
-          ...this[`${this.currentItemName}Styles`],
-          transform: 'translateY(100vh)',
-          zindex: 0,
-          opacity: 0,
-        };
+        // this[`${this.currentItemName}Styles`] = {
+        //   ...this[`${this.currentItemName}Styles`],
+        //   transform: 'translateY(0vh)',
+        //   zindex: 0,
+        //   opacity: 0,
+        // };
+        // this[`${this.nextItemName}Styles`] = {
+        //   ...this[`${this.nextItemName}Styles`],
+        //   transform: 'translateY(0)',
+        // };
         currentItemRef.removeEventListener('transitionend', onTransitionEndCurrentItem);
         currentItemPromiseResolve();
       };
 
-      // nextItemRef.addEventListener('transitionend', onTransitionEndNextItem, false);
       currentItemRef.addEventListener('transitionend', onTransitionEndCurrentItem, false);
 
-      this[`${nextItemName}Styles`] = {
-        transform: 'translateY(0)',
+      this[`${this.nextItemName}Styles`] = {
+        // transform: 'translateY(0)',
         zindex: 500,
         opacity: 1,
       };
       this[`${this.currentItemName}Styles`] = {
-        transform: 'translateY(-100vh)',
-        zindex: 500,
-        opacity: 1,
+        // transform: 'translateY(-100vh)',
+        zindex: 1,
+        opacity: 0,
       };
 
       await currentItemPromise;
@@ -249,16 +242,24 @@ export default {
     },
 
     async fetchNextItem () {
-      const next = await this.$store.dispatch(`${this.NS}/${PLAYER_A_FETCH_NEXT}`);
-      return next;
+      const nextItem = await this.$store.dispatch(`${this.NS}/${PLAYER_A_FETCH_NEXT}`);
+
+      const loadNextItemPromise = this.createLoadItemPromise(this.nextItemName);
+      this[this.nextItemName] = nextItem; // Next item will start to load.
+
+      return loadNextItemPromise;
+    },
+
+    createLoadItemPromise (itemName) {
+      return new Promise((resolve) => { this[`${itemName}LoadResolve`] = resolve });
     },
 
     onLoadItem1 () {
-      // this.
+      this.item1LoadResolve();
     },
 
     onLoadItem2 () {
-      console.log('onLoadItem2');
+      this.item2LoadResolve();
     },
 
     resetProgressValue () { this.progress.value = 0 },
@@ -352,7 +353,7 @@ export default {
       left: 0;
 
       &.transition {
-        transition: transform 500ms linear;
+        transition: opacity 500ms linear;
       }
 
       .item {

@@ -81,9 +81,10 @@ const actions = {
       '/pic/test/bbb/test.jpg',
     ];
     let next = imgs[i];
+
     if (!next) {
-      i = 0;
-      next = imgs[i];
+      i = 1;
+      [next] = imgs;
     } else {
       i += 1;
     }
