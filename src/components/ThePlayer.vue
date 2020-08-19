@@ -25,7 +25,6 @@
 
     <div
       class="items-ctn"
-      @click="pausePlaying(!pause)"
     >
       <div
         class="item1 item-ctn transition"
@@ -34,10 +33,21 @@
       >
         <img
           v-show="item1"
+          v-if="isItem1Img"
           :src="(item1 || {}).src"
           class="item img"
           @load="onLoadItem1"
         >
+        <video
+          v-show="item1"
+          v-if="isItem1Vid"
+          :src="(item1 || {}).src"
+          class="item vid"
+          :autoplay="item1VideoOptions.autoplay"
+          :loop="item1VideoOptions.loop"
+          :controls="item1VideoOptions.controls"
+          @canplay="onLoadItem1"
+        />
       </div>
       <div
         class="item2 item-ctn transition"
@@ -46,10 +56,21 @@
       >
         <img
           v-show="item2"
+          v-if="isItem2Img"
           :src="(item2 || {}).src"
           class="item img"
           @load="onLoadItem2"
         >
+        <video
+          v-show="item2"
+          v-if="isItem2Vid"
+          :src="(item2 || {}).src"
+          class="item vid"
+          :autoplay="item2VideoOptions.autoplay"
+          :loop="item2VideoOptions.loop"
+          :controls="item2VideoOptions.controls"
+          @canplay="onLoadItem2"
+        />
       </div>
     </div>
   </div>
@@ -74,7 +95,7 @@ export default {
 
     progress: {
       value: 0,
-      indeterminate: false,
+      indeterminate: true,
       color: 'primary',
       striped: false,
     },
@@ -94,6 +115,16 @@ export default {
     },
     item1LoadResolve: null,
     item2LoadResolve: null,
+    item1VideoOptions: {
+      autoplay: false,
+      loop: true,
+      controls: true,
+    },
+    item2VideoOptions: {
+      autoplay: false,
+      loop: true,
+      controls: true,
+    },
 
     fetchNextItemPromise: null,
     currentItemName: 'item1',
@@ -111,6 +142,11 @@ export default {
     progressLoopPercent () { return (this.progress.value * 100) / this.intervalOptions },
 
     nextItemName () { return this.currentItemName === 'item1' ? 'item2' : 'item1' },
+
+    isItem1Img () { return this.isItemImage(this.item1) },
+    isItem2Img () { return this.isItemImage(this.item2) },
+    isItem1Vid () { return this.isItemVideo(this.item1) },
+    isItem2Vid () { return this.isItemVideo(this.item2) },
   },
 
   mounted () {
@@ -262,6 +298,16 @@ export default {
       this.item2LoadResolve();
     },
 
+    isItemImage (item) {
+      return !this.isItemVideo(item);
+    },
+
+    isItemVideo (item) {
+      const vidExtensions = ['webm', 'mp4', 'mkv'];
+      const itemExt = ((item || {}).extension || '').toLowerCase();
+      return vidExtensions.includes(itemExt);
+    },
+
     resetProgressValue () { this.progress.value = 0 },
 
     toggleProgressIndeterminate (state = null) {
@@ -360,6 +406,7 @@ export default {
         object-fit: contain;
         width: 100%;
         height: 100%;
+        outline: none;
       }
     }
   }
