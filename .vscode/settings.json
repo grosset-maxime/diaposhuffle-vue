@@ -1,14 +1,16 @@
 {
-  // Project settings
-  // ----------------
-  "editor.insertSpaces": true,
-  "editor.tabSize": 2,
+  // Mandatory VS Code Extensions:
+  // -----------------------------
+  // # Vetur (Vue tooling for VS Code) (octref.vetur)
+  // # ESLint (Integrates ESLint JavaScript into VS Code) (dbaeumer.vscode-eslint)
+  // # Prettier - Code formatter (Code formatter using prettier) (esbenp.prettier-vscode)
 
   "files.eol": "\n",
-  "files.trimFinalNewlines": true,
   "files.insertFinalNewline": true,
   "files.trimTrailingWhitespace": true,
+  "files.trimFinalNewlines": true,
 
+  "editor.tabSize": 2,
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
   },
@@ -16,53 +18,72 @@
   "npm.packageManager": "yarn",
 
   "eslint.packageManager": "yarn",
-  // "eslint.workingDirectories": ["DirA/DirB/src"],
+  // "eslint.workingDirectories": ["DirA/DirB.m/src"],
   "eslint.validate": ["javascript", "javascriptreact", "vue", "html"],
 
   "[vue]": {
     "editor.defaultFormatter": "octref.vetur",
+    "editor.formatOnSave": true, // Needed to enable prettier to format scss part.
+    "editor.formatOnPaste": false
+  },
+  "[scss]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true,
     "editor.formatOnPaste": false
   },
-
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": false
+  },
   "[javascript]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint",
     "editor.formatOnSave": false,
+    "editor.formatOnPaste": false
+  },
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features",
+    "editor.formatOnSave": true,
     "editor.formatOnPaste": false
   }
 
-  // Settings to set only on .code-workspace file.
+  // Settings to copy in your own .code-workspace:
   // ---------------------------------------------
-  // Personal settings
-  // ~~~~~~~~~~~~~~~~~
-  // "workbench.editor.highlightModifiedTabs": true,
+  // "settings": {
 
-  // "breadcrumbs.enabled": true,
+  // Mandatory settings: (Commented because not accepted here, only enabled on .code-workspace)
+  // ------------------------------------------------------------------------------------------
+  // To ENABLE format scss vue file part with prettier:
+  // "vetur.format.defaultFormatter.scss": "prettier",
 
+  // To NOT format html vue file part with prettier:
+  // "vetur.format.defaultFormatter.html": "none",
+
+  // To NOT format javascript vue file part with prettier:
+  // "vetur.format.defaultFormatter.js": "none",
+
+  // Optional settings:
+  // ------------------
   // "editor.formatOnSave": false,
   // "editor.formatOnPaste": false,
-  // "editor.acceptSuggestionOnEnter": "smart",
-  // "editor.rulers": [100],
+  // "editor.acceptSuggestionOnEnter": "on",
   // "editor.minimap.showSlider": "always",
   // "editor.minimap.renderCharacters": false,
+  // "editor.rulers": [100],
 
   // Set default terminal location:
   // "terminal.integrated.cwd": "./DirA/DirB.m/src/",
 
-  // To format scss vue files part with prettier:
-  // "vetur.format.defaultFormatter.scss": "prettier",
-
-  // To NOT format html vue filse part with prettier:
-  // "vetur.format.defaultFormatter.html": "none",
-
-  // To NOT format html vue filse part with prettier:
-  // "vetur.format.defaultFormatter.js": "none",
-
   // "breadcrumbs.enabled": true,
+
+  // "workbench.editor.highlightModifiedTabs": true,
+
   // Set rulers color to red.
   // "workbench.colorCustomizations": {
   //   "[Monokai]": {
   //     "editorRuler.foreground": "#ff333344"
   //   },
   //   "editorRuler.foreground": "#ff333344"
+  // }
   // }
 }
