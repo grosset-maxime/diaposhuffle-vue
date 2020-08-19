@@ -15,6 +15,8 @@ import {
   PLAYER_A_FETCH_NEXT,
 } from '../types';
 
+const BASE_URL = process.env.VUE_APP_BASE_URL || '';
+
 const INTERVAL_DEFAULT = 3; // seconds
 
 const state = () => ({
@@ -65,48 +67,45 @@ const mutations = {
   },
 };
 
-let i = 0;
-function wait (time) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, time * 1000);
-  });
-}
+// function wait (time) {
+//   return new Promise((resolve) => {
+//     setTimeout(resolve, time * 1000);
+//   });
+// }
 const actions = {
+
   async [PLAYER_A_FETCH_NEXT] ({ commit }) {
-    const imgs = [
-      '/pic/test/bbb/5718897981_10faa45ac3_b-640x624.jpg',
-      '/pic/test/bbb/a.gif',
-      '/pic/test/bbb/DSCF2336.jpg',
-      '/pic/test/bbb/i-B7D3LH9-L.jpg',
-      '/pic/test/bbb/test.jpg',
-    ];
-    let next = imgs[i];
+    const url = `${BASE_URL}/api/getRandomPic`;
+    const opts = {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        customFolders: [],
+      }),
+    };
 
-    if (!next) {
-      i = 1;
-      [next] = imgs;
-    } else {
-      i += 1;
-    }
+    const next = await fetch(url, opts)
+      .then((response) => response.json().then((json) => {
+        console.log(json);
+        if (json.success) {
+          // commit('onGetRandom', json);
+          commit(PLAYER_M_SET_NEXT, json.pic);
+          return json.pic;
+        }
+        return json;
+        // commit('onGetRandomError', json.error);
+      }))
+      .catch((/* error */) => {
+        // console.error(error);
+        // const e = { publicMessage: error.toString() };
+        // commit('onGetRandomError', e);
+      });
 
-    // {"success":true,
-    // "pic":{
-    // eslint-disable-next-line max-len
-    //   "src":"/pic/test/bbb/5718897981_10faa45ac3_b-640x624.jpg",
-    //   "randomPublicPath":"/test/bbb/",
-    //   "customFolderPath":"",
-    //   "name":"5718897981_10faa45ac3_b-640x624.jpg",
-    //   "extension":"jpg",
-    //   "width":1465,
-    //   "height":2160,
-    //   "tags":[],
-    //   "useCache":false,
-    //   "warning":""
-    // }}
-
-    await wait(1);
-    commit(PLAYER_M_SET_NEXT, { src: next });
-    return { src: next };
+    // await wait(1);
+    return next;
   },
 };
 
