@@ -74,7 +74,7 @@
       <v-col>
         <v-switch
           v-model="showPath"
-          label="Show path picture"
+          label="Show path"
           class="ma-0 pa-0"
           hide-details
         />

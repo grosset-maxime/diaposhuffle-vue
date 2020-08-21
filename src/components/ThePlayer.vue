@@ -257,7 +257,13 @@ export default {
     },
 
     async fetchNextItem () {
-      const nextItemData = await this.$store.dispatch(`${this.NS}/${PLAYER_A_FETCH_NEXT}`);
+      const nextItemData = await this.$store.dispatch(
+        `${this.NS}/${PLAYER_A_FETCH_NEXT}`,
+      );
+
+      // To force item.data.src to be always different from previous item
+      // even if it is the same item src.
+      nextItemData.src = `${nextItemData.src}?b=${Date.now()}`;
 
       const loadNextItemPromise = this.createLoadItemPromise(this.nextItemName);
       this[this.nextItemName].data = nextItemData; // Next item will start to load.
