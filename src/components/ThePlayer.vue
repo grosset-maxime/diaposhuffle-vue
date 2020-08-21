@@ -27,49 +27,28 @@
       class="items-ctn"
     >
       <div
-        class="item1 item-ctn transition"
-        :style="item1Styles"
-        ref="item1"
+        v-for="itemName in ['item1', 'item2']"
+        :key="itemName"
+        :ref="itemName"
+        :class="['item-ctn transition', itemName]"
+        :style="that[itemName].styles"
       >
         <img
-          v-show="item1"
-          v-if="isItem1Img"
-          :src="(item1 || {}).src"
+          v-show="that[itemName].data"
+          v-if="that[`${itemName}IsImg`]"
+          :src="(that[itemName].data || {}).src"
           class="item img"
-          @load="onLoadItem1"
+          @load="that[itemName].onLoad"
         >
         <video
-          v-show="item1"
-          v-if="isItem1Vid"
-          :src="(item1 || {}).src"
+          v-show="that[itemName].data"
+          v-if="that[`${itemName}IsVid`]"
+          :src="(that[itemName].data || {}).src"
           class="item vid"
-          :autoplay="item1VideoOptions.autoplay"
-          :loop="item1VideoOptions.loop"
-          :controls="item1VideoOptions.controls"
-          @canplay="onLoadItem1"
-        />
-      </div>
-      <div
-        class="item2 item-ctn transition"
-        :style="item2Styles"
-        ref="item2"
-      >
-        <img
-          v-show="item2"
-          v-if="isItem2Img"
-          :src="(item2 || {}).src"
-          class="item img"
-          @load="onLoadItem2"
-        >
-        <video
-          v-show="item2"
-          v-if="isItem2Vid"
-          :src="(item2 || {}).src"
-          class="item vid"
-          :autoplay="item2VideoOptions.autoplay"
-          :loop="item2VideoOptions.loop"
-          :controls="item2VideoOptions.controls"
-          @canplay="onLoadItem2"
+          :autoplay="that[itemName].videoOptions.autoplay"
+          :loop="that[itemName].videoOptions.loop"
+          :controls="that[itemName].videoOptions.controls"
+          @canplay="that[itemName].onLoad"
         />
       </div>
     </div>
@@ -103,27 +82,34 @@ export default {
     pause: false,
     stop: true,
 
-    item1: null,
-    item2: null,
-    item1Styles: {
+    item1: {
+      data: null,
+      styles: {
       /* transfrom: 'translateY(0)' */
-      opacity: 1,
+        opacity: 1,
+      },
+      videoOptions: {
+        autoplay: false,
+        loop: true,
+        controls: true,
+      },
+      onLoadResolve: null,
+      onLoad: () => {},
     },
-    item2Styles: {
+
+    item2: {
+      data: null,
+      styles: {
       /* transform: 'translateY(100vh)' */
-      opacity: 0,
-    },
-    item1LoadResolve: null,
-    item2LoadResolve: null,
-    item1VideoOptions: {
-      autoplay: false,
-      loop: true,
-      controls: true,
-    },
-    item2VideoOptions: {
-      autoplay: false,
-      loop: true,
-      controls: true,
+        opacity: 0,
+      },
+      videoOptions: {
+        autoplay: false,
+        loop: true,
+        controls: true,
+      },
+      onLoadResolve: null,
+      onLoad: () => {},
     },
 
     fetchNextItemPromise: null,
@@ -133,6 +119,8 @@ export default {
   }),
 
   computed: {
+    that () { return this },
+
     NS () { return 'player' },
 
     options () { return this.$store.getters[`${this.NS}/${PLAYER_G_OPTIONS}`] },
@@ -143,13 +131,16 @@ export default {
 
     nextItemName () { return this.currentItemName === 'item1' ? 'item2' : 'item1' },
 
-    isItem1Img () { return this.isItemImage(this.item1) },
-    isItem2Img () { return this.isItemImage(this.item2) },
-    isItem1Vid () { return this.isItemVideo(this.item1) },
-    isItem2Vid () { return this.isItemVideo(this.item2) },
+    item1IsImg () { return this.isItemImage(this.item1) },
+    item2IsImg () { return this.isItemImage(this.item2) },
+
+    item1IsVid () { return this.isItemVideo(this.item1) },
+    item2IsVid () { return this.isItemVideo(this.item2) },
   },
 
   mounted () {
+    this.item1.onLoad = this.onLoadItem1;
+    this.item2.onLoad = this.onLoadItem2;
     this.attachKeyboardShortcuts();
     this.startPlaying();
   },
@@ -159,10 +150,10 @@ export default {
       this.stop = false;
       this.pause = false;
 
-      this.fetchFirstItem().then((item) => {
+      this.fetchFirstItem().then((itemData) => {
         this.currentItemName = 'item1';
         const item1LoadPromise = this.createLoadItemPromise(this.currentItemName);
-        this.item1 = item; // Item will start to load.
+        this.item1.data = itemData; // Item will start to load.
         this.fetchNextItemPromise = this.fetchNextItem();
 
         item1LoadPromise.then(() => { this.loop() });
@@ -234,32 +225,20 @@ export default {
         (resolveCurrent) => { currentItemPromiseResolve = resolveCurrent },
       );
 
-      const currentItemRef = this.$refs[this.currentItemName];
+      const currentItemRef = this.$refs[this.currentItemName][0];
 
       const onTransitionEndCurrentItem = () => {
-        // this[`${this.currentItemName}Styles`] = {
-        //   ...this[`${this.currentItemName}Styles`],
-        //   transform: 'translateY(0vh)',
-        //   zindex: 0,
-        //   opacity: 0,
-        // };
-        // this[`${this.nextItemName}Styles`] = {
-        //   ...this[`${this.nextItemName}Styles`],
-        //   transform: 'translateY(0)',
-        // };
         currentItemRef.removeEventListener('transitionend', onTransitionEndCurrentItem);
         currentItemPromiseResolve();
       };
 
       currentItemRef.addEventListener('transitionend', onTransitionEndCurrentItem, false);
 
-      this[`${this.nextItemName}Styles`] = {
-        // transform: 'translateY(0)',
+      this[this.nextItemName].styles = {
         zindex: 500,
         opacity: 1,
       };
-      this[`${this.currentItemName}Styles`] = {
-        // transform: 'translateY(-100vh)',
+      this[this.currentItemName].styles = {
         zindex: 1,
         opacity: 0,
       };
@@ -270,32 +249,34 @@ export default {
     async fetchFirstItem () {
       this.toggleProgressIndeterminate(true);
 
-      const item = await this.$store.dispatch(`${this.NS}/${PLAYER_A_FETCH_NEXT}`);
+      const itemData = await this.$store.dispatch(`${this.NS}/${PLAYER_A_FETCH_NEXT}`);
 
       this.toggleProgressIndeterminate(false);
 
-      return item;
+      return itemData;
     },
 
     async fetchNextItem () {
-      const nextItem = await this.$store.dispatch(`${this.NS}/${PLAYER_A_FETCH_NEXT}`);
+      const nextItemData = await this.$store.dispatch(`${this.NS}/${PLAYER_A_FETCH_NEXT}`);
 
       const loadNextItemPromise = this.createLoadItemPromise(this.nextItemName);
-      this[this.nextItemName] = nextItem; // Next item will start to load.
+      this[this.nextItemName].data = nextItemData; // Next item will start to load.
 
       return loadNextItemPromise;
     },
 
     createLoadItemPromise (itemName) {
-      return new Promise((resolve) => { this[`${itemName}LoadResolve`] = resolve });
+      return new Promise(
+        (resolve) => { this[itemName].onLoadResolve = resolve },
+      );
     },
 
     onLoadItem1 () {
-      this.item1LoadResolve();
+      this.item1.onLoadResolve();
     },
 
     onLoadItem2 () {
-      this.item2LoadResolve();
+      this.item2.onLoadResolve();
     },
 
     isItemImage (item) {
@@ -304,8 +285,12 @@ export default {
 
     isItemVideo (item) {
       const vidExtensions = ['webm', 'mp4', 'mkv'];
-      const itemExt = ((item || {}).extension || '').toLowerCase();
+      const itemExt = ((item.data || {}).extension || '').toLowerCase();
       return vidExtensions.includes(itemExt);
+    },
+
+    getItemStyles (itemName) {
+      return this[`${itemName}Styles`];
     },
 
     resetProgressValue () { this.progress.value = 0 },
