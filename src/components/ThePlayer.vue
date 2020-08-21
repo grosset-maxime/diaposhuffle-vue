@@ -202,6 +202,9 @@ export default {
             this.animateItems()
               .then(() => {
                 this.currentItemName = this.nextItemName;
+
+                this.startPlayingItem(this.currentItemName);
+
                 this.fetchNextItemPromise = this.fetchNextItem();
 
                 this.loop();
@@ -283,6 +286,13 @@ export default {
 
     onLoadItem2 () {
       this.item2.onLoadResolve();
+    },
+
+    startPlayingItem (itemName) {
+      if (this[`${itemName}IsVid`]) {
+        const videoEl = this.$refs[itemName][0].querySelector('.item.vid');
+        videoEl.play();
+      }
     },
 
     isItemImage (item) {
