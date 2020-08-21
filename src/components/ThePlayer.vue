@@ -68,7 +68,7 @@ export default {
   name: 'ThePlayer',
 
   data: () => ({
-    LOOP_STEP: 100, // milli-seconds
+    LOOP_STEP: 100, // in ms.
 
     loopId: null,
 
@@ -84,10 +84,7 @@ export default {
 
     item1: {
       data: null,
-      styles: {
-      /* transfrom: 'translateY(0)' */
-        opacity: 1,
-      },
+      styles: { opacity: 1 },
       videoOptions: {
         autoplay: false,
         loop: true,
@@ -99,10 +96,7 @@ export default {
 
     item2: {
       data: null,
-      styles: {
-      /* transform: 'translateY(100vh)' */
-        opacity: 0,
-      },
+      styles: { opacity: 0 },
       videoOptions: {
         autoplay: false,
         loop: true,
@@ -114,6 +108,7 @@ export default {
 
     fetchNextItemPromise: null,
     currentItemName: 'item1',
+    itemCustomInterval: 0, // in ms.
 
     keyboardShortcuts: () => {},
   }),
@@ -127,14 +122,16 @@ export default {
 
     intervalOptions () { return this.options.interval * 1000 },
 
-    progressLoopPercent () { return (this.progress.value * 100) / this.intervalOptions },
+    progressLoopPercent () { return (this.progress.value * 100) / this.progressEnd },
+
+    progressEnd () { return this.itemCustomInterval || this.intervalOptions },
 
     nextItemName () { return this.currentItemName === 'item1' ? 'item2' : 'item1' },
 
     item1IsImg () { return this.isItemImage(this.item1) },
-    item2IsImg () { return this.isItemImage(this.item2) },
-
     item1IsVid () { return this.isItemVideo(this.item1) },
+
+    item2IsImg () { return this.isItemImage(this.item2) },
     item2IsVid () { return this.isItemVideo(this.item2) },
   },
 
@@ -150,14 +147,8 @@ export default {
       this.stop = false;
       this.pause = false;
 
-      this.fetchFirstItem().then((itemData) => {
-        this.currentItemName = 'item1';
-        const item1LoadPromise = this.createLoadItemPromise(this.currentItemName);
-        this.item1.data = itemData; // Item will start to load.
-        this.fetchNextItemPromise = this.fetchNextItem();
-
-        item1LoadPromise.then(() => { this.loop() });
-      });
+      this.currentItemName = 'item1';
+      this.onLoopEnd();
     },
 
     stopPlaying () {
@@ -184,34 +175,38 @@ export default {
       this.loopId = setTimeout(() => {
         this.progress.value += this.LOOP_STEP;
 
-        if (this.progress.value <= this.intervalOptions) {
+        // If loop has not yet reach its end, continue to loop.
+        if (this.progress.value <= this.progressEnd) {
           this.loop();
           return;
         }
 
-        setTimeout(() => {
-          this.progress.value = 0;
-
-          this.toggleProgressIndeterminate(true);
-
-          (this.fetchNextItemPromise || this.fetchNextItem()).then(() => {
-            this.fetchNextItemPromise = null;
-
-            this.toggleProgressIndeterminate(false);
-
-            this.animateItems()
-              .then(() => {
-                this.currentItemName = this.nextItemName;
-
-                this.startPlayingItem(this.currentItemName);
-
-                this.fetchNextItemPromise = this.fetchNextItem();
-
-                this.loop();
-              });
-          });
-        }, 200);
+        // Add timeout to have feeling that progress reach the end.
+        setTimeout(() => { this.onLoopEnd() }, 200);
       }, this.LOOP_STEP);
+    },
+
+    async onLoopEnd () {
+      this.progress.value = 0;
+      this.stopPlayingItem(this.currentItemName);
+
+      this.toggleProgressIndeterminate(true);
+
+      await (this.fetchNextItemPromise || this.fetchNextItem()).then(() => {
+        this.fetchNextItemPromise = null;
+
+        this.toggleProgressIndeterminate(false);
+
+        return this.animateItems().then(() => {
+          this.currentItemName = this.nextItemName;
+
+          this.startPlayingItem(this.currentItemName);
+
+          this.fetchNextItemPromise = this.fetchNextItem();
+
+          this.loop();
+        });
+      });
     },
 
     clearLoop () {
@@ -228,7 +223,7 @@ export default {
         (resolveCurrent) => { currentItemPromiseResolve = resolveCurrent },
       );
 
-      const currentItemRef = this.$refs[this.currentItemName][0];
+      const currentItemRef = this.getItemRef(this.currentItemName);
 
       const onTransitionEndCurrentItem = () => {
         currentItemRef.removeEventListener('transitionend', onTransitionEndCurrentItem);
@@ -247,16 +242,6 @@ export default {
       };
 
       await currentItemPromise;
-    },
-
-    async fetchFirstItem () {
-      this.toggleProgressIndeterminate(true);
-
-      const itemData = await this.$store.dispatch(`${this.NS}/${PLAYER_A_FETCH_NEXT}`);
-
-      this.toggleProgressIndeterminate(false);
-
-      return itemData;
     },
 
     async fetchNextItem () {
@@ -289,9 +274,21 @@ export default {
     },
 
     startPlayingItem (itemName) {
-      if (this[`${itemName}IsVid`]) {
-        const videoEl = this.$refs[itemName][0].querySelector('.item.vid');
+      if (this.isItemVideo(this[itemName])) {
+        const itemRef = this.getItemRef(itemName);
+        const videoEl = itemRef.querySelector('.item.vid');
         videoEl.play();
+        this.itemCustomInterval = Math.max(videoEl.duration * 1000, this.intervalOptions);
+      }
+    },
+
+    stopPlayingItem (itemName) {
+      this.itemCustomInterval = 0;
+
+      if (this.isItemVideo(this[itemName])) {
+        const itemRef = this.getItemRef(itemName);
+        const videoEl = itemRef.querySelector('.item.vid');
+        videoEl.pause();
       }
     },
 
@@ -305,9 +302,9 @@ export default {
       return vidExtensions.includes(itemExt);
     },
 
-    getItemStyles (itemName) {
-      return this[`${itemName}Styles`];
-    },
+    getItemStyles (itemName) { return this[itemName].styles },
+
+    getItemRef (itemName) { return this.$refs[itemName][0] },
 
     resetProgressValue () { this.progress.value = 0 },
 
@@ -400,7 +397,7 @@ export default {
       left: 0;
 
       &.transition {
-        transition: opacity 500ms linear;
+        transition: opacity 300ms linear;
       }
 
       .item {
