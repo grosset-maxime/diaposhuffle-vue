@@ -1,5 +1,9 @@
 <template>
-  <div class="the-player">
+  <div
+    :class="['the-player', {
+      'opts-show-path': options.showPath
+    }]"
+  >
     <v-progress-linear
       class="progress-loop"
       :value="progressLoopPercent"
@@ -47,10 +51,26 @@
           class="item vid"
           :autoplay="that[itemName].videoOptions.autoplay"
           :loop="that[itemName].videoOptions.loop"
+          :muted="that[itemName].videoOptions.muted"
           :controls="that[itemName].videoOptions.controls"
+          :controlsList="that[itemName].videoOptions.controlsList"
           @canplay="that[itemName].onLoad"
+          disablePictureInPicture
         />
       </div>
+    </div>
+
+    <div
+      class="path-ctn"
+      v-show="hasCurrentItemData"
+      v-if="options.showPath"
+    >
+      <span class="selected-path">
+        {{ currentItemSelectedPath }}
+      </span>
+      <span class="random-path">
+        {{ currentItemRandomPath }}
+      </span>
     </div>
   </div>
 </template>
@@ -63,6 +83,14 @@ import {
 
   PLAYER_A_FETCH_NEXT,
 } from '../store/types';
+
+const defaultVideoOptions = {
+  autoplay: false,
+  loop: true,
+  muted: true,
+  controls: true,
+  controlsList: ['nofullscreen', 'nodownload', 'noremoteplayback'].join(' '),
+};
 
 export default {
   name: 'ThePlayer',
@@ -84,24 +112,16 @@ export default {
 
     item1: {
       data: null,
-      styles: { opacity: 1 },
-      videoOptions: {
-        autoplay: false,
-        loop: true,
-        controls: true,
-      },
+      styles: { opacity: 1, 'z-index': 500 },
+      videoOptions: { ...defaultVideoOptions },
       onLoadResolve: null,
       onLoad: () => {},
     },
 
     item2: {
       data: null,
-      styles: { opacity: 0 },
-      videoOptions: {
-        autoplay: false,
-        loop: true,
-        controls: true,
-      },
+      styles: { opacity: 0, 'z-index': 1 },
+      videoOptions: { ...defaultVideoOptions },
       onLoadResolve: null,
       onLoad: () => {},
     },
@@ -128,6 +148,14 @@ export default {
 
     nextItemName () { return this.currentItemName === 'item1' ? 'item2' : 'item1' },
 
+    currentItemData () { return this[this.currentItemName].data || {} },
+
+    hasCurrentItemData () { return !!Object.keys(this.currentItemData).length },
+
+    currentItemSelectedPath () { return this.currentItemData.customFolderPath },
+
+    currentItemRandomPath () { return this.currentItemData.randomPublicPath },
+
     item1IsImg () { return this.isItemImage(this.item1) },
     item1IsVid () { return this.isItemVideo(this.item1) },
 
@@ -138,6 +166,9 @@ export default {
   mounted () {
     this.item1.onLoad = this.onLoadItem1;
     this.item2.onLoad = this.onLoadItem2;
+    this.item1.videoOptions.muted = this.options.muteVideo;
+    this.item2.videoOptions.muted = this.options.muteVideo;
+
     this.attachKeyboardShortcuts();
     this.startPlaying();
   },
@@ -233,11 +264,11 @@ export default {
       currentItemRef.addEventListener('transitionend', onTransitionEndCurrentItem, false);
 
       this[this.nextItemName].styles = {
-        zindex: 500,
+        'z-index': 500,
         opacity: 1,
       };
       this[this.currentItemName].styles = {
-        zindex: 1,
+        'z-index': 1,
         opacity: 0,
       };
 
@@ -406,7 +437,51 @@ export default {
         height: 100%;
         outline: none;
       }
+
+      .item.vid {
+        &::-webkit-media-controls-fullscreen-button,
+        &::-webkit-media-controls-download-button {
+          display: none;
+        }
+      }
     }
+  }
+
+  &.opts-show-path {
+    .item.vid {
+      &::-webkit-media-controls-panel {
+        transition: transform 0.2s ease;
+        transform: translateY(0);
+      }
+      &:hover {
+        &::-webkit-media-controls-panel {
+          transform: translateY(-60px);
+        }
+      }
+    }
+  }
+}
+
+.path-ctn {
+  bottom: 5px;
+  right: 5px;
+  word-break: break-all;
+  position: absolute;
+  z-index: 1000;
+  color: $grey-8;
+  background-color: $grey-6#{80};
+  padding: 5px;
+  border-radius: 5px;
+  transition: transform 0.2s ease;
+
+  .selected-path {
+    font-size: 1em;
+    margin-right: 4px;
+  }
+
+  .random-path {
+    font-size: 1.5em;
+    font-weight: bold;
   }
 }
 </style>
