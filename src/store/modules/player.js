@@ -1,7 +1,7 @@
 /* eslint-disable no-shadow */
 /* eslint-disable no-param-reassign */
 import Vue from 'vue';
-
+import { createItem } from '../../models/item';
 import {
   PLAYER_G_FILTER_FILE_TYPES,
   PLAYER_G_FILTERS,
@@ -89,11 +89,11 @@ const actions = {
 
     const next = await fetch(url, opts)
       .then((response) => response.json().then((json) => {
-        console.log(json);
         if (json.success) {
           // commit('onGetRandom', json);
-          commit(PLAYER_M_SET_NEXT, json.pic);
-          return json.pic;
+          const item = createItem(json.pic);
+          commit(PLAYER_M_SET_NEXT, item);
+          return item;
         }
         return json;
         // commit('onGetRandomError', json.error);
@@ -103,6 +103,8 @@ const actions = {
         // const e = { publicMessage: error.toString() };
         // commit('onGetRandomError', e);
       });
+
+    console.log(next);
 
     // await wait(1);
     return next;

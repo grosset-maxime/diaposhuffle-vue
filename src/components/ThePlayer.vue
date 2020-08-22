@@ -38,15 +38,13 @@
         :style="that[itemName].styles"
       >
         <img
-          v-show="that[itemName].data"
-          v-if="that[`${itemName}IsImg`]"
+          v-if="that[itemName].data && that[`${itemName}IsImg`]"
           :src="(that[itemName].data || {}).src"
           class="item img"
           @load="that[itemName].onLoad"
         >
         <video
-          v-show="that[itemName].data"
-          v-if="that[`${itemName}IsVid`]"
+          v-if="that[itemName].data && that[`${itemName}IsVid`]"
           :src="(that[itemName].data || {}).src"
           class="item vid"
           :autoplay="that[itemName].videoOptions.autoplay"
@@ -62,8 +60,7 @@
 
     <div
       class="path-ctn"
-      v-show="hasCurrentItemData"
-      v-if="options.showPath"
+      v-if="options.showPath && hasCurrentItemData"
     >
       <span class="selected-path">
         {{ currentItemSelectedPath }}
