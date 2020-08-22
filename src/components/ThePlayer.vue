@@ -38,13 +38,13 @@
         :style="that[itemName].styles"
       >
         <img
-          v-if="that[itemName].data && that[`${itemName}IsImg`]"
+          v-if="that[itemName].data && (that[itemName].data || {}).isImage"
           :src="(that[itemName].data || {}).src"
           class="item img"
           @load="that[itemName].onLoad"
         >
         <video
-          v-if="that[itemName].data && that[`${itemName}IsVid`]"
+          v-if="that[itemName].data && (that[itemName].data || {}).isVideo"
           :src="(that[itemName].data || {}).src"
           class="item vid"
           :autoplay="that[itemName].videoOptions.autoplay"
@@ -153,12 +153,6 @@ export default {
     currentItemSelectedPath () { return this.currentItemData.customFolderPath },
 
     currentItemRandomPath () { return this.currentItemData.randomPublicPath },
-
-    item1IsImg () { return this.isItemImage(this.item1) },
-    item1IsVid () { return this.isItemVideo(this.item1) },
-
-    item2IsImg () { return this.isItemImage(this.item2) },
-    item2IsVid () { return this.isItemVideo(this.item2) },
   },
 
   mounted () {
@@ -318,7 +312,7 @@ export default {
     },
 
     startPlayingItem (itemName) {
-      if (this.isItemVideo(this[itemName])) {
+      if (this.isItemVideo(itemName)) {
         const itemRef = this.getItemRef(itemName);
         const videoEl = itemRef.querySelector('.item.vid');
         videoEl.play();
@@ -329,21 +323,19 @@ export default {
     stopPlayingItem (itemName) {
       this.itemCustomInterval = 0;
 
-      if (this.isItemVideo(this[itemName])) {
+      if (this.isItemVideo(itemName)) {
         const itemRef = this.getItemRef(itemName);
         const videoEl = itemRef.querySelector('.item.vid');
         videoEl.pause();
       }
     },
 
-    isItemImage (item) {
-      return !this.isItemVideo(item);
+    isItemImage (itemName) {
+      return !this.isItemVideo(itemName);
     },
 
-    isItemVideo (item) {
-      const vidExtensions = ['webm', 'mp4', 'mkv'];
-      const itemExt = ((item.data || {}).extension || '').toLowerCase();
-      return vidExtensions.includes(itemExt);
+    isItemVideo (itemName) {
+      return (this[itemName].data || {}).isVideo;
     },
 
     getItemStyles (itemName) { return this[itemName].styles },
