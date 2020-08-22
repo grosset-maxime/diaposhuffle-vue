@@ -125,6 +125,7 @@ export default {
 
     fetchNextItemPromise: null,
     currentItemName: 'item1',
+    goingToNextitem: true,
     itemCustomInterval: 0, // in ms.
 
     keyboardShortcuts: () => {},
@@ -214,8 +215,17 @@ export default {
       }, this.LOOP_STEP);
     },
 
+    goToLoopEnd () {
+      console.log('### Go to loop end.');
+      this.progress.value = this.progressEnd;
+    },
+
     async onLoopEnd () {
+      console.log('>>> On loop end.');
+
+      // Reset progress here to reset the progress UI before starting next loop.
       this.progress.value = 0;
+
       this.stopPlayingItem(this.currentItemName);
 
       this.toggleProgressIndeterminate(true);
@@ -231,6 +241,12 @@ export default {
           this.startPlayingItem(this.currentItemName);
 
           this.fetchNextItemPromise = this.fetchNextItem();
+
+          console.log('@@@ Start looping :', this.currentItemName);
+
+          // Reset progress value here to force staring a new loop from begining.
+          this.progress.value = 0;
+          this.goingToNextitem = false;
 
           this.loop();
         });
@@ -334,6 +350,13 @@ export default {
 
     getItemRef (itemName) { return this.$refs[itemName][0] },
 
+    goToNextItem () {
+      if (!this.goingToNextitem) {
+        this.goingToNextitem = true;
+        this.goToLoopEnd();
+      }
+    },
+
     resetProgressValue () { this.progress.value = 0 },
 
     toggleProgressIndeterminate (state = null) {
@@ -351,15 +374,23 @@ export default {
 
     attachKeyboardShortcuts () {
       this.keyboardShortcuts = (e) => {
-        // console.log(`code: ${e.code}`);
+        console.log(`code: ${e.code}`);
         switch (e.code) {
           case 'Space':
           case 'Enter':
+          case 'ArrowDown':
             this.pausePlaying(!this.pause);
             break;
 
           case 'Escape':
             this.stopPlaying();
+            break;
+
+          case 'ArrowRight':
+            this.goToNextItem();
+            break;
+
+          case 'ArrowLeft':
             break;
           default:
         }

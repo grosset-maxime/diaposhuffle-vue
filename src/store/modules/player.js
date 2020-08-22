@@ -67,11 +67,11 @@ const mutations = {
   },
 };
 
-// function wait (time) {
-//   return new Promise((resolve) => {
-//     setTimeout(resolve, time * 1000);
-//   });
-// }
+function wait (time) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, time * 1000);
+  });
+}
 const actions = {
 
   async [PLAYER_A_FETCH_NEXT] ({ commit }) {
@@ -104,9 +104,9 @@ const actions = {
         // commit('onGetRandomError', e);
       });
 
-    console.log(next);
+    // console.log(next);
 
-    // await wait(1);
+    await wait(5);
     return next;
   },
 };
