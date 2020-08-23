@@ -19,6 +19,7 @@ module.exports = {
     'max-len': ['error', { 'code': 100, 'ignoreUrls': true }],
     'prefer-template': 'error',
     'operator-linebreak': ['error', 'before'],
+    'no-warning-comments': "warn",
     'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'warn',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
   },
