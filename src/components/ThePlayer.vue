@@ -78,6 +78,13 @@ import {
   INDEX_A_PLAYER_STOP,
 
   PLAYER_G_OPTIONS,
+  PLAYER_G_HISTORY,
+  PLAYER_G_HISTORY_INDEX,
+  PLAYER_G_HISTORY_LENGTH,
+  PLAYER_G_HISTORY_ITEM,
+
+  PLAYER_M_SET_HISTORY_INDEX,
+  PLAYER_M_ADD_HISTORY_ITEM,
 
   PLAYER_A_FETCH_NEXT,
 } from '../store/types';
@@ -129,11 +136,6 @@ export default {
     goingToNextitem: true,
     itemCustomInterval: 0, // in ms.
 
-    history: {
-      items: [],
-      index: 0,
-    },
-
     keyboardShortcuts: () => {},
   }),
 
@@ -161,6 +163,15 @@ export default {
     currentItemSelectedPath () { return this.currentItemData.customFolderPath },
 
     currentItemRandomPath () { return this.currentItemData.randomPublicPath },
+
+    history () { return this.$store.getters[`${this.NS}/${PLAYER_G_HISTORY}`] },
+
+    historyLength () { return this.$store.getters[`${this.NS}/${PLAYER_G_HISTORY_LENGTH}`] },
+
+    historyIndex: {
+      get () { return this.$store.getters[`${this.NS}/${PLAYER_G_HISTORY_INDEX}`] },
+      set (index) { this.$store.commit(`${this.NS}/${PLAYER_M_SET_HISTORY_INDEX}`, index) },
+    },
   },
 
   mounted () {
@@ -177,6 +188,9 @@ export default {
     startLooping () {
       this.stop = false;
       this.pause = false;
+
+      // Reset history index.
+      this.historyIndex = this.historyLength - 1;
 
       this.currentItemName = 'item1';
       this.onLoopEnd();
@@ -226,15 +240,13 @@ export default {
     goToLoopStart () { this.loop.value = 0 },
 
     onLoopEnd () {
-      const { history } = this;
-
       // Reset loop here to reset the loop UI before starting next loop.
       this.goToLoopStart();
 
-      if (history.items.length
-        && history.index < history.items.length - 1
+      if (this.historyLength
+        && this.historyIndex < this.historyLength - 1
       ) {
-        return wait(100).then(() => { this.goToNextItem() });
+        return wait(100).then(() => this.goToNextItem());
       }
 
       this.stopPlayingItem(this.currentItemName);
@@ -251,8 +263,8 @@ export default {
 
           this.startPlayingItem(this.currentItemName);
 
-          this.history.items.push(this.currentItemData);
-          this.history.index = this.history.items.length - 1;
+          this.addHistoryItem(this.currentItemData);
+          this.historyIndex = this.historyLength - 1;
 
           this.fetchNextItemPromise = this.fetchNextItem();
 
@@ -363,12 +375,11 @@ export default {
 
     goToNextItem ({ pause = false } = {}) {
       const itemName = this.currentItemName;
-      const { history } = this;
 
       this.clearItemOnLoad(itemName);
 
-      if (history.items.length
-        && history.index < history.items.length - 1
+      if (this.historyLength
+        && this.historyIndex < this.historyLength - 1
       ) {
         this.goToLoopStart();
         if (pause) { this.pauseLooping() }
@@ -405,16 +416,25 @@ export default {
 
     goToHistoryItem (direction) {
       const itemName = this.currentItemName;
-      const { history } = this;
 
-      history.index += (direction === 'next' ? 1 : -1);
+      this.historyIndex += (direction === 'next' ? 1 : -1);
 
-      if (history.index < 0) {
-        history.index = 0;
+      if (this.historyIndex < 0) {
+        this.historyIndex = 0;
         return Promise.resolve();
       }
 
-      return this.setItemData(itemName, history.items[history.index]);
+      this.toggleProgressIndeterminate(true);
+      return this.setItemData(itemName, this.getHistoryItem(this.historyIndex))
+        .then(() => { this.toggleProgressIndeterminate(false) });
+    },
+
+    getHistoryItem (index) {
+      return this.$store.getters[`${this.NS}/${PLAYER_G_HISTORY_ITEM}`](index);
+    },
+
+    addHistoryItem (item) {
+      return this.$store.commit(`${this.NS}/${PLAYER_M_ADD_HISTORY_ITEM}`, item);
     },
 
     resetProgressValue () { this.loop.value = 0 },

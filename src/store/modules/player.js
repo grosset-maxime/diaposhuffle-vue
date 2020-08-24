@@ -7,11 +7,16 @@ import {
   PLAYER_G_FILTER_FILE_TYPES,
   PLAYER_G_FILTERS,
   PLAYER_G_OPTIONS,
+  PLAYER_G_HISTORY,
+  PLAYER_G_HISTORY_LENGTH,
+  PLAYER_G_HISTORY_INDEX,
+  PLAYER_G_HISTORY_ITEM,
 
   PLAYER_M_FILTERS,
   PLAYER_M_OPTIONS,
   PLAYER_M_RESET_INTERVAL,
-  PLAYER_M_SET_NEXT,
+  PLAYER_M_SET_HISTORY_INDEX,
+  PLAYER_M_ADD_HISTORY_ITEM,
 
   PLAYER_A_FETCH_NEXT,
 } from '../types';
@@ -38,12 +43,21 @@ const state = () => ({
     showTags: true,
     muteVideo: true,
   },
+
+  history: {
+    items: [],
+    index: 0,
+  },
 });
 
 const getters = {
   [PLAYER_G_FILTER_FILE_TYPES]: (state) => state.filterFileTypes,
   [PLAYER_G_FILTERS]: (state) => state.filters,
   [PLAYER_G_OPTIONS]: (state) => state.options,
+  [PLAYER_G_HISTORY]: (state) => state.history,
+  [PLAYER_G_HISTORY_LENGTH]: (state) => state.history.items.length,
+  [PLAYER_G_HISTORY_INDEX]: (state) => state.history.index,
+  [PLAYER_G_HISTORY_ITEM]: (state) => (index) => state.history.items[index],
 };
 
 const mutations = {
@@ -59,18 +73,16 @@ const mutations = {
     });
   },
 
-  [PLAYER_M_RESET_INTERVAL] (state) {
-    state.options.interval = INTERVAL_DEFAULT;
-  },
+  [PLAYER_M_RESET_INTERVAL] (state) { state.options.interval = INTERVAL_DEFAULT },
 
-  [PLAYER_M_SET_NEXT] (state, next) {
-    state.next = next;
-  },
+  [PLAYER_M_SET_HISTORY_INDEX] (state, index) { state.history.index = index },
+
+  [PLAYER_M_ADD_HISTORY_ITEM] (state, item) { state.history.items.push(item) },
 };
 
 const actions = {
 
-  async [PLAYER_A_FETCH_NEXT] ({ commit }) {
+  async [PLAYER_A_FETCH_NEXT] () {
     const url = `${BASE_URL}/api/getRandomPic`;
     const opts = {
       method: 'POST',
@@ -88,9 +100,9 @@ const actions = {
         if (json.success) {
           // commit('onGetRandom', json);
           const item = createItem(json.pic);
-          commit(PLAYER_M_SET_NEXT, item);
           return item;
         }
+        // TODO: Manage fetch next error.
         return json;
         // commit('onGetRandomError', json.error);
       }))
