@@ -1,6 +1,7 @@
 /* eslint-disable no-shadow */
 /* eslint-disable no-param-reassign */
 import Vue from 'vue';
+// import { wait } from '../../utils/utils';
 import { createItem } from '../../models/item';
 import {
   PLAYER_G_FILTER_FILE_TYPES,
@@ -67,11 +68,6 @@ const mutations = {
   },
 };
 
-function wait (time) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, time * 1000);
-  });
-}
 const actions = {
 
   async [PLAYER_A_FETCH_NEXT] ({ commit }) {
@@ -106,7 +102,7 @@ const actions = {
 
     // console.log(next);
 
-    await wait(5);
+    // await wait(0);
     return next;
   },
 };
