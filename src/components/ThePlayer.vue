@@ -31,28 +31,28 @@
       class="items-ctn"
     >
       <div
-        v-for="itemName in ['item1', 'item2']"
-        :key="itemName"
-        :ref="itemName"
-        :class="['item-ctn transition', itemName]"
-        :style="that[itemName].styles"
+        v-for="item in getItems()"
+        :key="item.name"
+        :ref="item.name"
+        :class="['item-ctn transition', item.name]"
+        :style="item.styles"
       >
         <img
-          v-if="that[itemName].data && (that[itemName].data || {}).isImage"
-          :src="(that[itemName].data || {}).src"
+          v-if="item.data && (item.data || {}).isImage"
+          :src="(item.data || {}).src"
           class="item img"
-          @load="that[itemName].onLoad"
+          @load="item.onLoad"
         >
         <video
-          v-if="that[itemName].data && (that[itemName].data || {}).isVideo"
-          :src="(that[itemName].data || {}).src"
+          v-if="item.data && (item.data || {}).isVideo"
+          :src="(item.data || {}).src"
           class="item vid"
-          :autoplay="that[itemName].videoOptions.autoplay"
-          :loop="that[itemName].videoOptions.loop"
-          :muted="that[itemName].videoOptions.muted"
-          :controls="that[itemName].videoOptions.controls"
-          :controlsList="that[itemName].videoOptions.controlsList"
-          @canplay="that[itemName].onLoad"
+          :autoplay="item.videoOptions.autoplay"
+          :loop="item.videoOptions.loop"
+          :muted="item.videoOptions.muted"
+          :controls="item.videoOptions.controls"
+          :controlsList="item.videoOptions.controlsList"
+          @canplay="item.onLoad"
           disablePictureInPicture
         />
       </div>
@@ -104,6 +104,9 @@ export default {
 
   data: () => ({
 
+    // TODO: display remaining time in loop progress bar.
+    // TODO: display history index and length
+
     loop: {
       id: null,
       value: 0,
@@ -116,6 +119,7 @@ export default {
     stop: true,
 
     item1: {
+      name: 'item1',
       data: null,
       styles: { opacity: 1, 'z-index': 500 },
       videoOptions: { ...defaultVideoOptions },
@@ -124,6 +128,7 @@ export default {
     },
 
     item2: {
+      name: 'item2',
       data: null,
       styles: { opacity: 0, 'z-index': 1 },
       videoOptions: { ...defaultVideoOptions },
@@ -140,8 +145,6 @@ export default {
   }),
 
   computed: {
-    that () { return this },
-
     NS () { return 'player' },
 
     options () { return this.$store.getters[`${this.NS}/${PLAYER_G_OPTIONS}`] },
@@ -358,6 +361,8 @@ export default {
     isItemVideo (itemName) { return (this[itemName].data || {}).isVideo },
 
     getItem (itemName) { return this[itemName] },
+
+    getItems () { return [this.item1, this.item2] },
 
     getItemStyles (itemName) { return this[itemName].styles },
 
