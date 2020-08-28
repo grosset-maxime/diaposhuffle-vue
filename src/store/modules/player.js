@@ -1,7 +1,7 @@
 /* eslint-disable no-shadow */
 /* eslint-disable no-param-reassign */
 import Vue from 'vue';
-// import { wait } from '../../utils/utils';
+import { getHeaders } from '../../utils/utils';
 import { createItem } from '../../models/item';
 import {
   PLAYER_G_FILTER_FILE_TYPES,
@@ -17,8 +17,10 @@ import {
   PLAYER_M_RESET_INTERVAL,
   PLAYER_M_SET_HISTORY_INDEX,
   PLAYER_M_ADD_HISTORY_ITEM,
+  PLAYER_M_DELETE_HISTORY_ITEM,
 
   PLAYER_A_FETCH_NEXT,
+  PLAYER_A_DELETE_ITEM,
 } from '../types';
 
 const BASE_URL = process.env.VUE_APP_BASE_URL || '';
@@ -78,6 +80,12 @@ const mutations = {
   [PLAYER_M_SET_HISTORY_INDEX] (state, index) { state.history.index = index },
 
   [PLAYER_M_ADD_HISTORY_ITEM] (state, item) { state.history.items.push(item) },
+
+  [PLAYER_M_DELETE_HISTORY_ITEM] (state, itemSrc) {
+    state.history.items = state.history.items.filter(
+      (item) => item.src !== itemSrc,
+    );
+  },
 };
 
 const actions = {
@@ -86,10 +94,7 @@ const actions = {
     const url = `${BASE_URL}/api/getRandomPic`;
     const opts = {
       method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
+      headers: getHeaders(),
       body: JSON.stringify({
         customFolders: [],
       }),
@@ -115,6 +120,40 @@ const actions = {
     // console.log(next);
 
     // await wait(0);
+    return next;
+  },
+
+  async [PLAYER_A_DELETE_ITEM] (context, itemSrc) {
+    const url = `${BASE_URL}/api/deletePic`;
+    const opts = {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({
+        picPath: itemSrc,
+        continueIfNotExist: false,
+        deleteOnlyFromBdd: false,
+      }),
+    };
+
+    const next = await fetch(url, opts)
+      .then((response) => response.json().then((json) => {
+        if (json.success) {
+          console.log('delete success');
+          console.log(json);
+        } else {
+          console.error(json);
+        }
+
+        // TODO: Manage error.
+        return json;
+        // commit('onGetRandomError', json.error);
+      }))
+      .catch((/* error */) => {
+        // console.error(error);
+        // const e = { publicMessage: error.toString() };
+        // commit('onGetRandomError', e);
+      });
+
     return next;
   },
 };

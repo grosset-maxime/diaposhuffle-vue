@@ -27,9 +27,26 @@
       </div>
     </v-btn>
 
-    <div
-      class="items-ctn"
+    <v-dialog
+      content-class="delete-modal"
+      v-model="deleteModal"
     >
+      <div>Delete this item ?</div>
+      <v-btn
+        class="modal-btn"
+        @click="hideDeleteModal({ deleteItem: false })"
+      >
+        Cancel
+      </v-btn>
+      <v-btn
+        class="modal-btn primary"
+        @click="hideDeleteModal({ deleteItem: true })"
+      >
+        Delete
+      </v-btn>
+    </v-dialog>
+
+    <div class="items-ctn">
       <div
         v-for="item in getItems()"
         :key="item.name"
@@ -38,14 +55,14 @@
         :style="item.styles"
       >
         <img
-          v-if="item.data && (item.data || {}).isImage"
-          :src="(item.data || {}).src"
+          v-if="item.src && (item.data || {}).isImage"
+          :src="item.src"
           class="item img"
           @load="item.onLoad"
         >
         <video
-          v-if="item.data && (item.data || {}).isVideo"
-          :src="(item.data || {}).src"
+          v-if="item.src && (item.data || {}).isVideo"
+          :src="item.src"
           class="item vid"
           :autoplay="item.videoOptions.autoplay"
           :loop="item.videoOptions.loop"
@@ -87,6 +104,8 @@ import {
   PLAYER_M_ADD_HISTORY_ITEM,
 
   PLAYER_A_FETCH_NEXT,
+  PLAYER_A_DELETE_ITEM,
+  PLAYER_M_DELETE_HISTORY_ITEM,
 } from '../store/types';
 
 const defaultVideoOptions = {
@@ -120,6 +139,7 @@ export default {
 
     item1: {
       name: 'item1',
+      src: '',
       data: null,
       styles: { opacity: 1, 'z-index': 500 },
       videoOptions: { ...defaultVideoOptions },
@@ -129,6 +149,7 @@ export default {
 
     item2: {
       name: 'item2',
+      src: '',
       data: null,
       styles: { opacity: 0, 'z-index': 1 },
       videoOptions: { ...defaultVideoOptions },
@@ -141,7 +162,12 @@ export default {
     goingToNextitem: true,
     itemCustomInterval: 0, // in ms.
 
-    keyboardShortcuts: () => {},
+    deleteModal: false,
+
+    keyboardShortcuts: {
+      player: () => {},
+      deleteModal: () => {},
+    },
   }),
 
   computed: {
@@ -183,7 +209,7 @@ export default {
     this.item1.videoOptions.muted = this.options.muteVideo;
     this.item2.videoOptions.muted = this.options.muteVideo;
 
-    this.attachKeyboardShortcuts();
+    this.attachKeyboardPlayerShortcuts();
     this.startLooping();
   },
 
@@ -254,12 +280,12 @@ export default {
 
       this.stopPlayingItem(this.currentItemName);
 
-      this.toggleProgressIndeterminate(true);
+      this.toggleLoopIndeterminate(true);
 
       return (this.fetchNextItemPromise || this.fetchNextItem()).then(() => {
         this.fetchNextItemPromise = null;
 
-        this.toggleProgressIndeterminate(false);
+        this.toggleLoopIndeterminate(false);
 
         return this.animateItems().then(() => {
           this.currentItemName = this.nextItemName;
@@ -300,11 +326,11 @@ export default {
 
       currentItemRef.addEventListener('transitionend', onTransitionEndCurrentItem, false);
 
-      this[this.nextItemName].styles = {
+      this.getItem(this.nextItemName).styles = {
         'z-index': 500,
         opacity: 1,
       };
-      this[this.currentItemName].styles = {
+      this.getItem(this.currentItemName).styles = {
         'z-index': 1,
         opacity: 0,
       };
@@ -317,17 +343,13 @@ export default {
         `${this.NS}/${PLAYER_A_FETCH_NEXT}`,
       );
 
-      // To force item.data.src to be always different from previous item
-      // even if it is the same item src.
-      nextItemData.src = `${nextItemData.src}?b=${Date.now()}`;
-
       // Next item will start to load.
       await this.setItemData(this.nextItemName, nextItemData);
     },
 
     createLoadItemPromise (itemName) {
       return new Promise(
-        (resolve) => { this[itemName].onLoadResolve = resolve },
+        (resolve) => { this.getItem(itemName).onLoadResolve = resolve },
       );
     },
 
@@ -358,25 +380,31 @@ export default {
 
     isItemImage (itemName) { return !this.isItemVideo(itemName) },
 
-    isItemVideo (itemName) { return (this[itemName].data || {}).isVideo },
+    isItemVideo (itemName) { return (this.getItemData(itemName) || {}).isVideo },
 
     getItem (itemName) { return this[itemName] },
 
     getItems () { return [this.item1, this.item2] },
 
-    getItemStyles (itemName) { return this[itemName].styles },
+    getItemStyles (itemName) { return this.getItem(itemName).styles },
 
     getItemRef (itemName) { return this.$refs[itemName][0] },
 
     setItemData (itemName, data) {
       const promise = this.createLoadItemPromise(itemName);
-      this[itemName].data = data;
+      const item = this.getItem(itemName);
+
+      // To force item.data.src to be always different from previous item
+      // even if it is the same item src.
+      item.src = `${data.src}?b=${Date.now()}`;
+      item.data = data;
+
       return promise;
     },
 
-    getItemData (itemName) { return this[itemName].data },
+    getItemData (itemName) { return this.getItem(itemName).data },
 
-    clearItemOnLoad (itemName) { this[itemName].onLoadResolve = null },
+    clearItemOnLoad (itemName) { this.getItem(itemName).onLoadResolve = null },
 
     goToNextItem ({ pause = false } = {}) {
       const itemName = this.currentItemName;
@@ -429,9 +457,9 @@ export default {
         return Promise.resolve();
       }
 
-      this.toggleProgressIndeterminate(true);
+      this.toggleLoopIndeterminate(true);
       return this.setItemData(itemName, this.getHistoryItem(this.historyIndex))
-        .then(() => { this.toggleProgressIndeterminate(false) });
+        .then(() => { this.toggleLoopIndeterminate(false) });
     },
 
     getHistoryItem (index) {
@@ -444,7 +472,7 @@ export default {
 
     resetProgressValue () { this.loop.value = 0 },
 
-    toggleProgressIndeterminate (state = null) {
+    toggleLoopIndeterminate (state = null) {
       const shouldSetInderminate = state !== null
         ? state : !this.loop.indeterminate;
 
@@ -457,9 +485,35 @@ export default {
       }
     },
 
-    attachKeyboardShortcuts () {
-      this.keyboardShortcuts = (e) => {
-        // console.log(`code: ${e.code}`);
+    showDeleteModal () {
+      this.pauseLooping();
+      this.removeKeyboardPlayerShortcuts();
+      this.deleteModal = true;
+      this.attachKeyboardDeleteModalShortcuts();
+    },
+
+    hideDeleteModal ({ deleteItem = false } = {}) {
+      this.removeKeyboardDeleteModalShortcuts();
+      this.deleteModal = false;
+      this.attachKeyboardPlayerShortcuts();
+
+      if (deleteItem) { this.deleteItem(this.currentItemData.src) }
+    },
+
+    async deleteItem (itemSrc) {
+      if (!itemSrc) { return Promise.resolve() }
+
+      this.$store.commit(`${this.NS}/${PLAYER_M_DELETE_HISTORY_ITEM}`, itemSrc);
+
+      this.goToLoopEnd();
+      this.resumeLooping();
+
+      return this.$store.dispatch(`${this.NS}/${PLAYER_A_DELETE_ITEM}`, itemSrc);
+    },
+
+    attachKeyboardPlayerShortcuts () {
+      this.keyboardShortcuts.player = (e) => {
+        console.log(`code: ${e.code}`);
         switch (e.code) {
           case 'Space':
           case 'Enter':
@@ -482,18 +536,46 @@ export default {
           case 'ArrowLeft':
             this.goToPreviousItem({ pause: true });
             break;
+
+          case 'Delete':
+            if (this.loop.value < this.loopEndValue) {
+              this.showDeleteModal();
+            }
+            break;
           default:
         }
       };
 
-      window.addEventListener('keyup', this.keyboardShortcuts);
+      window.addEventListener('keyup', this.keyboardShortcuts.player);
     },
 
-    removeKeyboardShortcuts () { window.removeEventListener('keyup', this.keyboardShortcuts) },
+    attachKeyboardDeleteModalShortcuts () {
+      this.keyboardShortcuts.deleteModal = (e) => {
+        switch (e.code) {
+          case 'Enter':
+            this.hideDeleteModal({ deleteItem: true });
+            break;
+
+          case 'Escape':
+            this.hideDeleteModal({ deleteItem: false });
+            break;
+          default:
+        }
+      };
+
+      window.addEventListener('keyup', this.keyboardShortcuts.deleteModal);
+    },
+
+    removeKeyboardPlayerShortcuts () {
+      window.removeEventListener('keyup', this.keyboardShortcuts.player);
+    },
+    removeKeyboardDeleteModalShortcuts () {
+      window.removeEventListener('keyup', this.keyboardShortcuts.deleteModal);
+    },
   },
 
   beforeDestroy () {
-    this.removeKeyboardShortcuts();
+    this.removeKeyboardPlayerShortcuts();
     this.stopLooping();
   },
 };
@@ -600,6 +682,23 @@ export default {
   .random-path {
     font-size: 1.5em;
     font-weight: bold;
+  }
+}
+</style>
+
+<style lang="scss">
+.delete-modal {
+  position: absolute;
+  top: 0;
+  display: flex;
+  align-items: center;
+  background: $grey-7#{AA};
+  padding: 15px;
+  width: 400px;
+
+  .modal-btn {
+    width: 100px;
+    margin-left: 20px;
   }
 }
 </style>
