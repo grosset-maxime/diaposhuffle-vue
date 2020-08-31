@@ -147,12 +147,14 @@ const actions = {
       return error;
     };
 
-    await fetch(url, opts)
+    const response = await fetch(url, opts)
       .then((response) => response.json().then((json) => {
         if (json.error) { onError(json) }
         return json;
       }))
       .catch((error) => onError({ error: true, publicMessage: error.toString() }));
+
+    return response;
   },
 };
 

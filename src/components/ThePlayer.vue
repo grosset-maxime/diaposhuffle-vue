@@ -34,6 +34,7 @@
       dismissible
       prominent
       transition="slide-x-transition"
+      @input="alert.show = false"
     >
       {{ alert.content }}
     </v-alert>
@@ -533,7 +534,7 @@ export default {
       this.deleteModal = false;
       this.attachKeyboardPlayerShortcuts();
 
-      if (deleteItem) { this.deleteItem(this.currentItemData.src) }
+      if (deleteItem) { this.deleteItem(this.currentItemData.src).catch(() => {}) }
     },
 
     async deleteItem (itemSrc) {
@@ -544,7 +545,25 @@ export default {
       this.goToLoopEnd();
       this.resumeLooping();
 
-      return this.$store.dispatch(`${this.NS}/${PLAYER_A_DELETE_ITEM}`, itemSrc);
+      let response;
+      try {
+        response = await this.$store.dispatch(`${this.NS}/${PLAYER_A_DELETE_ITEM}`, itemSrc);
+      } catch (e) {
+        response = { error: true, publicMessage: e };
+      }
+
+      if (response.error) {
+        this.pauseLooping();
+        this.goToLoopStart();
+        this.showAlert({
+          content: response.error.publicMessage,
+          severity: response.error.severity,
+        });
+
+        throw new Error('deleteItem');
+      }
+
+      return response;
     },
 
     showAlert ({ content = 'Unknow error.', severity = 'error' } = {}) {
