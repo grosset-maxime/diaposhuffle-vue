@@ -30,6 +30,7 @@ export const PLAYER_M_RESET_INTERVAL = 'Reset Options - Interval';
 export const PLAYER_M_SET_HISTORY_INDEX = 'Set History - Index';
 export const PLAYER_M_ADD_HISTORY_ITEM = 'Add History - Item';
 export const PLAYER_M_DELETE_HISTORY_ITEM = 'Delete History - Item';
+export const PLAYER_M_ADD_ERROR = 'Add Error';
 
 export const PLAYER_A_FETCH_NEXT = 'Fetch Next Item';
 export const PLAYER_A_DELETE_ITEM = 'Delete Item';

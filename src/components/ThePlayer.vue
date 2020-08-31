@@ -27,6 +27,17 @@
       </div>
     </v-btn>
 
+    <v-alert
+      :value="alert.show"
+      class="alert"
+      :type="alert.severity"
+      dismissible
+      prominent
+      transition="slide-x-transition"
+    >
+      {{ alert.content }}
+    </v-alert>
+
     <v-dialog
       content-class="delete-modal"
       v-model="deleteModal"
@@ -102,10 +113,10 @@ import {
 
   PLAYER_M_SET_HISTORY_INDEX,
   PLAYER_M_ADD_HISTORY_ITEM,
+  PLAYER_M_DELETE_HISTORY_ITEM,
 
   PLAYER_A_FETCH_NEXT,
   PLAYER_A_DELETE_ITEM,
-  PLAYER_M_DELETE_HISTORY_ITEM,
 } from '../store/types';
 
 const defaultVideoOptions = {
@@ -167,6 +178,12 @@ export default {
     keyboardShortcuts: {
       player: () => {},
       deleteModal: () => {},
+    },
+
+    alert: {
+      show: false,
+      content: '',
+      severity: 'error',
     },
   }),
 
@@ -295,7 +312,7 @@ export default {
           this.addHistoryItem(this.currentItemData);
           this.historyIndex = this.historyLength - 1;
 
-          this.fetchNextItemPromise = this.fetchNextItem();
+          this.fetchNextItemPromise = this.fetchNextItem().catch(() => {});
 
           // Reset loop value here to force staring a new loop from begining.
           this.goToLoopStart();
@@ -303,7 +320,7 @@ export default {
 
           this.looop();
         });
-      });
+      }).catch(() => {});
     },
 
     clearLoop () { clearTimeout(this.loop.id); this.loop.id = null },
@@ -339,12 +356,31 @@ export default {
     },
 
     async fetchNextItem () {
-      const nextItemData = await this.$store.dispatch(
-        `${this.NS}/${PLAYER_A_FETCH_NEXT}`,
-      );
+      let response;
+      let nextItemData;
+
+      try {
+        response = await this.$store.dispatch(
+          `${this.NS}/${PLAYER_A_FETCH_NEXT}`,
+        );
+      } catch (e) {
+        response = { error: true, publicMessage: e };
+      }
+
+      if (response.success) {
+        nextItemData = response.item;
+      } else {
+        this.pauseLooping();
+        this.showAlert({
+          content: response.error.publicMessage,
+          severity: response.error.severity,
+        });
+
+        throw new Error('fetchNextItem');
+      }
 
       // Next item will start to load.
-      await this.setItemData(this.nextItemName, nextItemData);
+      return this.setItemData(this.nextItemName, nextItemData);
     },
 
     createLoadItemPromise (itemName) {
@@ -511,6 +547,12 @@ export default {
       return this.$store.dispatch(`${this.NS}/${PLAYER_A_DELETE_ITEM}`, itemSrc);
     },
 
+    showAlert ({ content = 'Unknow error.', severity = 'error' } = {}) {
+      this.alert.show = true;
+      this.alert.content = content;
+      this.alert.severity = severity;
+    },
+
     attachKeyboardPlayerShortcuts () {
       this.keyboardShortcuts.player = (e) => {
         console.log(`code: ${e.code}`);
@@ -610,6 +652,16 @@ export default {
         border: 1px solid $grey-7;
       }
     }
+  }
+
+  .alert {
+    $margin: 10px;
+    z-index: 2000;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: calc(100% - #{$margin * 2});
+    margin: $margin;
   }
 
   .items-ctn {

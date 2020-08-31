@@ -18,6 +18,7 @@ import {
   PLAYER_M_SET_HISTORY_INDEX,
   PLAYER_M_ADD_HISTORY_ITEM,
   PLAYER_M_DELETE_HISTORY_ITEM,
+  PLAYER_M_ADD_ERROR,
 
   PLAYER_A_FETCH_NEXT,
   PLAYER_A_DELETE_ITEM,
@@ -50,6 +51,8 @@ const state = () => ({
     items: [],
     index: 0,
   },
+
+  errors: [],
 });
 
 const getters = {
@@ -86,11 +89,19 @@ const mutations = {
       (item) => item.src !== itemSrc,
     );
   },
+
+  [PLAYER_M_ADD_ERROR] (state, { actionName, error }) {
+    const e = {};
+    e[actionName] = error;
+    state.errors.push(e);
+    // eslint-disable-next-line no-console
+    console.error(actionName, error);
+  },
 };
 
 const actions = {
 
-  async [PLAYER_A_FETCH_NEXT] () {
+  async [PLAYER_A_FETCH_NEXT] ({ commit }) {
     const url = `${BASE_URL}/api/getRandomPic`;
     const opts = {
       method: 'POST',
@@ -100,30 +111,26 @@ const actions = {
       }),
     };
 
-    const next = await fetch(url, opts)
+    const onError = (error) => {
+      commit(PLAYER_M_ADD_ERROR, { actionName: PLAYER_A_FETCH_NEXT, error });
+      return error;
+    };
+
+    const response = await fetch(url, opts)
       .then((response) => response.json().then((json) => {
         if (json.success) {
-          // commit('onGetRandom', json);
-          const item = createItem(json.pic);
-          return item;
+          json.item = createItem(json.pic);
         }
-        // TODO: Manage fetch next error.
+        if (json.error) { onError(json) }
+
         return json;
-        // commit('onGetRandomError', json.error);
       }))
-      .catch((/* error */) => {
-        // console.error(error);
-        // const e = { publicMessage: error.toString() };
-        // commit('onGetRandomError', e);
-      });
+      .catch((error) => onError({ error: true, publicMessage: error.toString() }));
 
-    // console.log(next);
-
-    // await wait(0);
-    return next;
+    return response;
   },
 
-  async [PLAYER_A_DELETE_ITEM] (context, itemSrc) {
+  async [PLAYER_A_DELETE_ITEM] ({ commit }, itemSrc) {
     const url = `${BASE_URL}/api/deletePic`;
     const opts = {
       method: 'POST',
@@ -135,26 +142,17 @@ const actions = {
       }),
     };
 
-    const next = await fetch(url, opts)
+    const onError = (error) => {
+      commit(PLAYER_M_ADD_ERROR, { actionName: PLAYER_A_DELETE_ITEM, error });
+      return error;
+    };
+
+    await fetch(url, opts)
       .then((response) => response.json().then((json) => {
-        if (json.success) {
-          console.log('delete success');
-          console.log(json);
-        } else {
-          console.error(json);
-        }
-
-        // TODO: Manage error.
+        if (json.error) { onError(json) }
         return json;
-        // commit('onGetRandomError', json.error);
       }))
-      .catch((/* error */) => {
-        // console.error(error);
-        // const e = { publicMessage: error.toString() };
-        // commit('onGetRandomError', e);
-      });
-
-    return next;
+      .catch((error) => onError({ error: true, publicMessage: error.toString() }));
   },
 };
 
