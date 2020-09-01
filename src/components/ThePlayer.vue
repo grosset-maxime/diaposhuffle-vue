@@ -13,7 +13,16 @@
       :indeterminate="loop.indeterminate"
       :striped="loop.striped"
       @click="resetProgressValue(true)"
-    />
+      :height="loop.height"
+      background-opacity="0.2"
+    >
+      <span
+        v-show="!loop.indeterminate && loopText"
+        class="loop-text"
+      >
+        {{ loopText }}
+      </span>
+    </v-progress-linear>
 
     <v-btn
       v-show="pause"
@@ -129,21 +138,25 @@ const defaultVideoOptions = {
 };
 
 const LOOP_STEP = 100; // In ms.
+const LOOP_DETERMINATE_COLOR = '#2196f380'; // primary color + 50% opacity.
+const LOOP_INDETERMINATE_COLOR = '#E87B0080'; // $orange-1 + 50% opacity.
+const LOOP_DETERMINATE_HEIGHT = 10;
+const LOOP_INDETERMINATE_HEIGHT = 4;
 
 export default {
   name: 'ThePlayer',
 
   data: () => ({
 
-    // TODO: display remaining time in loop progress bar.
     // TODO: display history index and length
 
     loop: {
       id: null,
       value: 0,
       indeterminate: true,
-      color: 'primary',
+      color: LOOP_DETERMINATE_COLOR,
       striped: false,
+      height: LOOP_DETERMINATE_HEIGHT,
     },
 
     pause: false,
@@ -200,6 +213,25 @@ export default {
     loopPercentage () { return (this.loop.value * 100) / this.loopEndValue },
 
     loopEndValue () { return this.itemCustomInterval || this.intervalOptions },
+
+    loopText () {
+      const date = new Date(2020, 0, 0);
+
+      date.setMilliseconds(Math.abs(this.loopEndValue - this.loop.value));
+      const hours = date.getHours();
+      const mins = date.getMinutes();
+      const seconds = date.getSeconds();
+      const ms = date.getMilliseconds();
+
+      let text = '';
+
+      if (hours) { text += `${hours}h ` }
+      if (mins) { text += `${mins}m ` }
+      text += `${seconds}s `;
+      if (!hours && !mins) { text += `${ms / 100}ms` }
+
+      return `${text}`;
+    },
 
     nextItemName () { return this.currentItemName === 'item1' ? 'item2' : 'item1' },
 
@@ -515,10 +547,12 @@ export default {
 
       if (shouldSetInderminate) {
         this.loop.indeterminate = true;
-        this.loop.color = '#E87B00'; // $orange-1
+        this.loop.color = LOOP_INDETERMINATE_COLOR;
+        this.loop.height = LOOP_INDETERMINATE_HEIGHT;
       } else {
         this.loop.indeterminate = false;
-        this.loop.color = 'primary';
+        this.loop.color = LOOP_DETERMINATE_COLOR;
+        this.loop.height = LOOP_DETERMINATE_HEIGHT;
       }
     },
 
@@ -599,7 +633,7 @@ export default {
             break;
 
           case 'Delete':
-            if (this.loop.value < this.loopEndValue) {
+            if (this.loop.value < this.loopEndValue || this.pause) {
               this.showDeleteModal();
             }
             break;
@@ -646,9 +680,14 @@ export default {
 .the-player {
   width: 100vw;
   height: 100vh;
+  background-color: $grey-8;
 
   .progress-loop {
     z-index: 1000;
+
+    .loop-text {
+      font-size: 0.6em;
+    }
   }
 
   .pause-btn {
