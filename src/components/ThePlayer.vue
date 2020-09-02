@@ -48,6 +48,13 @@
       {{ alert.content }}
     </v-alert>
 
+    <v-chip
+      class="history"
+      small
+    >
+      {{ historyIndex + 1 }} / {{ historyLength }} | {{ itemDisplayedCount }}
+    </v-chip>
+
     <v-dialog
       content-class="delete-modal"
       v-model="deleteModal"
@@ -242,6 +249,14 @@ export default {
     currentItemSelectedPath () { return this.currentItemData.customFolderPath },
 
     currentItemRandomPath () { return this.currentItemData.randomPublicPath },
+
+    itemDisplayedCount () {
+      let count = 0;
+      this.history.items.forEach((item) => {
+        if (item.src === this.currentItemData.src) { count += 1 }
+      });
+      return count;
+    },
 
     history () { return this.$store.getters[`${this.NS}/${PLAYER_G_HISTORY}`] },
 
@@ -720,6 +735,15 @@ export default {
     left: 0;
     width: calc(100% - #{$margin * 2});
     margin: $margin;
+  }
+
+  .history {
+    position: absolute;
+    top: 15px;
+    left: 5px;
+    padding: 0 6px;
+    z-index: 1000;
+    background-color: $grey-7#{80};
   }
 
   .items-ctn {
