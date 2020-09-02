@@ -743,7 +743,13 @@ export default {
     left: 5px;
     padding: 0 6px;
     z-index: 1000;
-    background-color: $grey-7#{80};
+    background-color: $grey-8#{80};
+    color: $grey-5;
+    transition: color 0.3 ease;
+
+    &:hover {
+      color: $grey-0;
+    }
   }
 
   .items-ctn {
@@ -803,10 +809,14 @@ export default {
   position: absolute;
   z-index: 1000;
   color: $grey-8;
-  background-color: $grey-6#{80};
-  padding: 5px;
+  background-color: $grey-7#{80};
+  padding: 0 5px;
   border-radius: 5px;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, color 0.3s ease;
+
+  &:hover {
+    color: $grey-5;
+  }
 
   .selected-path {
     font-size: 1em;
