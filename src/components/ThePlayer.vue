@@ -686,6 +686,7 @@ export default {
 
   beforeDestroy () {
     this.removeKeyboardPlayerShortcuts();
+    this.removeKeyboardDeleteModalShortcuts();
     this.stopLooping();
   },
 };

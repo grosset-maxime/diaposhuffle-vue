@@ -119,6 +119,8 @@
 
 <script>
 import {
+  INDEX_A_PLAYER_START,
+
   PLAYER_G_FILTER_FILE_TYPES,
   PLAYER_G_FILTERS,
   PLAYER_G_OPTIONS,
@@ -126,12 +128,16 @@ import {
   PLAYER_M_FILTERS,
   PLAYER_M_OPTIONS,
   PLAYER_M_RESET_INTERVAL,
+  INDEX_G_SHOW_THE_PLAYER,
 } from '../store/types';
 
 export default {
   name: 'ThePlayerOptions',
 
   data: () => ({
+    keyboardShortcuts: {
+      playerOptions: () => {},
+    },
   }),
 
   computed: {
@@ -189,10 +195,50 @@ export default {
       set (muteVideo) { this.$store.commit(`${this.NS}/${PLAYER_M_OPTIONS}`, { muteVideo }) },
     },
 
+    showThePlayer () {
+      return this.$store.getters[INDEX_G_SHOW_THE_PLAYER];
+    },
+  },
+
+  watch: {
+    showThePlayer (onShow) {
+      if (onShow) {
+        this.removeKeyboardPlayerOptionsShortcuts();
+      } else {
+        this.attachKeyboardPlayerOptionsShortcuts();
+      }
+    },
+  },
+
+  mounted () {
+    this.attachKeyboardPlayerOptionsShortcuts();
   },
 
   methods: {
     resetInterval () { this.$store.commit(`${this.NS}/${PLAYER_M_RESET_INTERVAL}`) },
+
+    attachKeyboardPlayerOptionsShortcuts () {
+      this.keyboardShortcuts.playerOptions = (e) => {
+        // console.log(`code: ${e.code}`);
+        switch (e.code) {
+          case 'Space':
+          case 'Enter':
+            this.$store.dispatch(INDEX_A_PLAYER_START);
+            break;
+          default:
+        }
+      };
+
+      window.addEventListener('keyup', this.keyboardShortcuts.playerOptions);
+    },
+
+    removeKeyboardPlayerOptionsShortcuts () {
+      window.removeEventListener('keyup', this.keyboardShortcuts.playerOptions);
+    },
+  },
+
+  beforeDestroy () {
+    this.removeKeyboardPlayerOptionsShortcuts();
   },
 };
 </script>
