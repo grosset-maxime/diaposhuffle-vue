@@ -42,6 +42,10 @@ export default {
     },
   },
 
+  emits: {
+    onClose: null,
+  },
+
   data: () => ({
     keyboardShortcuts: {
       main: () => {},
@@ -74,7 +78,7 @@ export default {
 
     attachKeyboardShortcuts () {
       this.keyboardShortcuts.main = (e) => {
-        console.log('FoldersBrowser e:', e);
+        // console.log('FoldersBrowser e:', e);
 
         const key = getKey(e);
         switch (key) {

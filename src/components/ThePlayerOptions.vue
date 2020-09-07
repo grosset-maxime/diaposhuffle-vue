@@ -149,6 +149,10 @@ export default {
     FoldersBrowser,
   },
 
+  emits: {
+    showTheHelp: null,
+  },
+
   data: () => ({
     foldersBrowser: {
       show: false,
