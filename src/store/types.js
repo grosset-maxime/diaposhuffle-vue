@@ -1,13 +1,10 @@
 /* === Index === */
 /* ============= */
 export const INDEX_G_SHOW_THE_LEFT_MENU = 'Show The Left Menu';
-export const INDEX_G_SHOW_THE_OVERLAY = 'Show The Overlay';
 export const INDEX_G_SHOW_THE_HELP = 'Show The Help';
 export const INDEX_G_SHOW_THE_PLAYER = 'Show The Player';
-export const INDEX_G_THE_OVERLAY_OPACITY = 'The Overlay Opacity';
 
 export const INDEX_M_SHOW_THE_LEFT_MENU = 'Show The Left Menu';
-export const INDEX_M_SHOW_THE_OVERLAY = 'Show The Overlay';
 export const INDEX_M_SHOW_THE_HELP = 'Show The Help';
 export const INDEX_M_SHOW_THE_PLAYER = 'Show The Player';
 

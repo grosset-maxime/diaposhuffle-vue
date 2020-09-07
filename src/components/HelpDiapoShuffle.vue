@@ -1,5 +1,5 @@
 <template>
-  <v-container class="main-ctn">
+  <v-container class="help-diaposhuffle-ctn">
     <v-expansion-panels
       multiple
       focusable
@@ -98,9 +98,6 @@ const panels = [{
   }, {
     shortcut: '-',
     description: 'Zoom out picture/video size.',
-  }, {
-    shortcut: '',
-    description: '',
   }],
 }, {
   // Folder browser - shortucts
@@ -145,12 +142,7 @@ export default {
     font-weight: bold;
   }
 }
-.main-ctn {
-  height: 100%;
-  overflow: auto;
-  padding-bottom: 50px;
-  @include w-scrollbar;
-}
+
 .item-row {
   padding-left: 10px;
   border-radius: 3px;

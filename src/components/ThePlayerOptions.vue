@@ -5,7 +5,10 @@
         <span class="v-label theme--dark">
           Folder(s)
         </span>
-        <v-btn class="secondary">
+        <v-btn
+          class="secondary"
+          @click="showFoldersBrowser"
+        >
           Browse...
         </v-btn>
       </v-col>
@@ -114,11 +117,18 @@
         />
       </v-col>
     </v-row>
+
+    <foldersBrowser
+      :show="foldersBrowser.show"
+      @onClose="onCloseFoldersBrowser"
+    />
   </v-container>
 </template>
 
 <script>
 import {
+  INDEX_G_SHOW_THE_PLAYER,
+  INDEX_G_SHOW_THE_HELP,
   INDEX_A_PLAYER_START,
 
   PLAYER_G_FILTER_FILE_TYPES,
@@ -128,15 +138,24 @@ import {
   PLAYER_M_FILTERS,
   PLAYER_M_OPTIONS,
   PLAYER_M_RESET_INTERVAL,
-  INDEX_G_SHOW_THE_PLAYER,
 } from '../store/types';
+import { getKey } from '../utils/utils';
+import FoldersBrowser from './FoldersBrowser.vue';
 
 export default {
   name: 'ThePlayerOptions',
 
+  components: {
+    FoldersBrowser,
+  },
+
   data: () => ({
+    foldersBrowser: {
+      show: false,
+    },
+
     keyboardShortcuts: {
-      playerOptions: () => {},
+      main: () => {},
     },
   }),
 
@@ -195,50 +214,76 @@ export default {
       set (muteVideo) { this.$store.commit(`${this.NS}/${PLAYER_M_OPTIONS}`, { muteVideo }) },
     },
 
-    showThePlayer () {
-      return this.$store.getters[INDEX_G_SHOW_THE_PLAYER];
-    },
+    thePlayer () { return this.$store.getters[INDEX_G_SHOW_THE_PLAYER] },
+
+    theHelp () { return this.$store.getters[INDEX_G_SHOW_THE_HELP] },
   },
 
   watch: {
-    showThePlayer (onShow) {
+    thePlayer (onShow) {
       if (onShow) {
-        this.removeKeyboardPlayerOptionsShortcuts();
+        this.removeKeyboardShortcuts();
       } else {
-        this.attachKeyboardPlayerOptionsShortcuts();
+        this.attachKeyboardShortcuts();
+      }
+    },
+
+    theHelp (onShow) {
+      if (onShow) {
+        this.removeKeyboardShortcuts();
+      } else if (!this.thePlayer) {
+        this.attachKeyboardShortcuts();
       }
     },
   },
 
   mounted () {
-    this.attachKeyboardPlayerOptionsShortcuts();
+    this.attachKeyboardShortcuts();
   },
 
   methods: {
+    showFoldersBrowser () {
+      this.removeKeyboardShortcuts();
+      this.foldersBrowser.show = true;
+    },
+
+    onCloseFoldersBrowser () {
+      this.foldersBrowser.show = false;
+      this.attachKeyboardShortcuts();
+    },
+
     resetInterval () { this.$store.commit(`${this.NS}/${PLAYER_M_RESET_INTERVAL}`) },
 
-    attachKeyboardPlayerOptionsShortcuts () {
-      this.keyboardShortcuts.playerOptions = (e) => {
-        // console.log(`code: ${e.code}`);
-        switch (e.code) {
+    attachKeyboardShortcuts () {
+      this.keyboardShortcuts.main = (e) => {
+        // console.log('ThePlayerOptions e:', e);
+
+        const key = getKey(e);
+        switch (key) {
           case 'Space':
           case 'Enter':
             this.$store.dispatch(INDEX_A_PLAYER_START);
+            break;
+          case 'b':
+            this.showFoldersBrowser();
+            break;
+          case 'h':
+            this.$emit('showTheHelp');
             break;
           default:
         }
       };
 
-      window.addEventListener('keyup', this.keyboardShortcuts.playerOptions);
+      window.addEventListener('keyup', this.keyboardShortcuts.main);
     },
 
-    removeKeyboardPlayerOptionsShortcuts () {
-      window.removeEventListener('keyup', this.keyboardShortcuts.playerOptions);
+    removeKeyboardShortcuts () {
+      window.removeEventListener('keyup', this.keyboardShortcuts.main);
     },
   },
 
   beforeDestroy () {
-    this.removeKeyboardPlayerOptionsShortcuts();
+    this.removeKeyboardShortcuts();
   },
 };
 </script>

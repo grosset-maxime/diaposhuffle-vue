@@ -17,17 +17,9 @@
       </div>
     </v-footer>
 
-    <v-overlay
-      z-index="10"
-      :value="showTheOverlay"
-      :opacity="theOverlayOpacity"
-      class="the-overlay"
-    >
-      <TheHelp v-if="showTheHelp" />
-      <ThePlayer
-        v-if="showThePlayer"
-      />
-    </v-overlay>
+    <TheHelp />
+
+    <ThePlayer v-if="showThePlayer" />
   </v-app>
 </template>
 
@@ -37,14 +29,12 @@ import TheLeftMenu from './components/TheLeftMenu.vue';
 import TheHelp from './components/TheHelp.vue';
 import ThePlayer from './components/ThePlayer.vue';
 import {
-  INDEX_G_SHOW_THE_OVERLAY,
-  INDEX_G_THE_OVERLAY_OPACITY,
-  INDEX_G_SHOW_THE_HELP,
   INDEX_G_SHOW_THE_PLAYER,
 } from './store/types';
 
 export default {
   name: 'App',
+
   components: {
     TheLeftMenu,
     StartButton,
@@ -52,13 +42,9 @@ export default {
     ThePlayer,
   },
 
-  data: () => ({
-  }),
+  data: () => ({}),
 
   computed: {
-    showTheOverlay () { return this.$store.getters[INDEX_G_SHOW_THE_OVERLAY] },
-    theOverlayOpacity () { return this.$store.getters[INDEX_G_THE_OVERLAY_OPACITY] },
-    showTheHelp () { return this.$store.getters[INDEX_G_SHOW_THE_HELP] },
     showThePlayer () { return this.$store.getters[INDEX_G_SHOW_THE_PLAYER] },
   },
 };

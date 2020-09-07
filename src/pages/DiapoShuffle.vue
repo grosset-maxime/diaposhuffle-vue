@@ -23,7 +23,7 @@
 
     <v-divider class="divider-top ml-3 mr-3" />
 
-    <ThePlayerOptions />
+    <ThePlayerOptions @showTheHelp="showTheHelp" />
   </v-card>
 </template>
 
@@ -32,7 +32,6 @@ import ThePlayerOptions from '../components/ThePlayerOptions.vue';
 import { getPageFromPath } from '../router/pages';
 import {
   INDEX_G_SHOW_THE_LEFT_MENU,
-  INDEX_G_SHOW_THE_HELP,
   INDEX_M_SHOW_THE_LEFT_MENU,
   INDEX_M_SHOW_THE_HELP,
 } from '../store/types';
@@ -60,7 +59,7 @@ export default {
     },
 
     showTheHelp () {
-      this.$store.commit(INDEX_M_SHOW_THE_HELP, !this.$store.getters[INDEX_G_SHOW_THE_HELP]);
+      this.$store.commit(INDEX_M_SHOW_THE_HELP, true);
     },
   },
 };

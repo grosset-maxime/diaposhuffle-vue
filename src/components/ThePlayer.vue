@@ -118,8 +118,10 @@
 </template>
 
 <script>
-import { wait } from '../utils/utils';
+import { wait, getKey } from '../utils/utils';
 import {
+  INDEX_G_SHOW_THE_HELP,
+  INDEX_M_SHOW_THE_HELP,
   INDEX_A_PLAYER_STOP,
 
   PLAYER_G_OPTIONS,
@@ -265,6 +267,18 @@ export default {
     historyIndex: {
       get () { return this.$store.getters[`${this.NS}/${PLAYER_G_HISTORY_INDEX}`] },
       set (index) { this.$store.commit(`${this.NS}/${PLAYER_M_SET_HISTORY_INDEX}`, index) },
+    },
+
+    theHelp () { return this.$store.getters[INDEX_G_SHOW_THE_HELP] },
+  },
+
+  watch: {
+    theHelp (onShow) {
+      if (onShow) {
+        this.removeKeyboardPlayerShortcuts();
+      } else {
+        this.attachKeyboardPlayerShortcuts();
+      }
     },
   },
 
@@ -615,6 +629,10 @@ export default {
       return response;
     },
 
+    showTheHelp () {
+      this.$store.commit(INDEX_M_SHOW_THE_HELP, true);
+    },
+
     showAlert ({ content = 'Unknow error.', severity = 'error' } = {}) {
       this.alert.show = true;
       this.alert.content = content;
@@ -623,8 +641,10 @@ export default {
 
     attachKeyboardPlayerShortcuts () {
       this.keyboardShortcuts.player = (e) => {
-        console.log(`code: ${e.code}`);
-        switch (e.code) {
+        // console.log('ThePlayer e:', e);
+
+        const key = getKey(e);
+        switch (key) {
           case 'Space':
           case 'Enter':
           case 'ArrowDown':
@@ -652,6 +672,10 @@ export default {
               this.showDeleteModal();
             }
             break;
+          case 'h':
+            this.pauseLooping();
+            this.showTheHelp();
+            break;
           default:
         }
       };
@@ -661,7 +685,8 @@ export default {
 
     attachKeyboardDeleteModalShortcuts () {
       this.keyboardShortcuts.deleteModal = (e) => {
-        switch (e.code) {
+        const key = getKey(e);
+        switch (key) {
           case 'Enter':
             this.hideDeleteModal({ deleteItem: true });
             break;
@@ -697,6 +722,10 @@ export default {
   width: 100vw;
   height: 100vh;
   background-color: $grey-8;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 100;
 
   .progress-loop {
     z-index: 1000;
