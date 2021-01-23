@@ -2,7 +2,8 @@
 
 ## Project setup
 ```
-yarn install
+yarn
+cp ./.env.development.local.dist ./.env.development.local
 ```
 
 ### Compiles and hot-reloads for development
