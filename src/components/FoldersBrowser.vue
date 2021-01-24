@@ -25,15 +25,30 @@
           </v-btn>
         </v-toolbar-items>
       </v-toolbar>
+
+      <div
+        class="ctn"
+      >
+        <FoldersBrowserList
+          :folders="folders"
+          @fetch="fetchFolderList"
+        />
+      </div>
     </v-card>
   </v-dialog>
 </template>
 
 <script>
+import { FOLDERS_BROWSER_A_FETCH_FOLDERS } from '../store/types';
 import { getKey } from '../utils/utils';
+import FoldersBrowserList from './FolderBrowserList.vue';
 
 export default {
   name: 'FoldersBrowser',
+
+  components: {
+    FoldersBrowserList,
+  },
 
   props: {
     show: {
@@ -47,15 +62,25 @@ export default {
   },
 
   data: () => ({
+    folders: {},
+
     keyboardShortcuts: {
       main: () => {},
     },
   }),
 
+  computed: {
+    NS () { return 'foldersBrowser' },
+  },
+
   watch: {
     show (onShow) {
       if (onShow) {
         this.attachKeyboardShortcuts();
+        this.$store.dispatch(`${this.NS}/${FOLDERS_BROWSER_A_FETCH_FOLDERS}`)
+          .then((folders) => {
+            this.folders = folders;
+          });
       } else {
         this.removeKeyboardShortcuts();
       }
@@ -74,6 +99,13 @@ export default {
     },
     onClose () {
       this.$emit('onClose');
+    },
+
+    fetchFolderList (path) {
+      this.$store.dispatch(`${this.NS}/${FOLDERS_BROWSER_A_FETCH_FOLDERS}`, path)
+        .then((folders) => {
+          this.folders = folders;
+        });
     },
 
     attachKeyboardShortcuts () {
@@ -112,9 +144,12 @@ export default {
 
 <style lang="scss">
 .folders-browser {
-  // $margin: 20px;
-  // margin: $margin;
-  // width: calc(100% - #{$margin * 2});
-  // height: calc(100% - #{$margin * 2});
+  .ctn {
+    // 56px (v-toolbar-title height) + 24px (v-container padding top + bottom)
+    height: calc(100vh - 64px);
+    overflow: auto;
+    padding: 10px;
+    padding-bottom: 40px;
+  }
 }
 </style>

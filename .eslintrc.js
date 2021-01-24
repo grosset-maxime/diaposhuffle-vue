@@ -17,6 +17,7 @@ module.exports = {
     "space-before-function-paren": ["error", "always"],
     semi: ["error", "always", { "omitLastInOneLineBlock": true}],
     'max-len': ['error', { 'code': 100, 'ignoreUrls': true }],
+    'no-underscore-dangle': ['off'],
     'prefer-template': 'error',
     'operator-linebreak': ['error', 'before'],
     'no-warning-comments': "warn",

@@ -16,6 +16,7 @@ import {
 
 import diaposhuffle from './modules/diaposhuffle';
 import player from './modules/player';
+import foldersBrowser from './modules/foldersBrowser';
 
 Vue.use(Vuex);
 
@@ -54,6 +55,7 @@ const store = new Vuex.Store({
   modules: {
     diaposhuffle,
     player,
+    foldersBrowser,
   },
 });
 

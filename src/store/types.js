@@ -31,3 +31,11 @@ export const PLAYER_M_ADD_ERROR = 'Add Error';
 
 export const PLAYER_A_FETCH_NEXT = 'Fetch Next Item';
 export const PLAYER_A_DELETE_ITEM = 'Delete Item';
+
+/* === Folders Browser === */
+/* ======================= */
+export const FOLDERS_BROWSER_G_FOLDERS = 'Get Folders';
+
+export const FOLDERS_BROWSER_M_ADD_ERROR = 'Add Error';
+
+export const FOLDERS_BROWSER_A_FETCH_FOLDERS = 'Fetch Folders';
