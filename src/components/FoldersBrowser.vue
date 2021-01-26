@@ -30,16 +30,23 @@
         class="ctn"
       >
         <FoldersBrowserList
-          :folders="folders"
-          @fetch="fetchFolderList"
+          ref="FolderBrowserList"
+          :selected="selectedFolders"
+          @onSelect="onSelect"
+          @onUnselect="onUnSelect"
         />
+        <div>
+          Selected: {{ selected }}
+        </div>
+        <div>
+          Selected folders: {{ selectedFolders }}
+        </div>
       </div>
     </v-card>
   </v-dialog>
 </template>
 
 <script>
-import { FOLDERS_BROWSER_A_FETCH_FOLDERS } from '../store/types';
 import { getKey } from '../utils/utils';
 import FoldersBrowserList from './FolderBrowserList.vue';
 
@@ -55,57 +62,74 @@ export default {
       type: Boolean,
       default: false,
     },
+
+    selected: {
+      type: Array,
+      default: () => ([]),
+    },
   },
 
   emits: {
     onClose: null,
+    onSave: null,
   },
 
   data: () => ({
-    folders: {},
+    selectedFolders: [],
 
     keyboardShortcuts: {
       main: () => {},
     },
   }),
 
-  computed: {
-    NS () { return 'foldersBrowser' },
-  },
+  computed: {},
 
   watch: {
-    show (onShow) {
-      if (onShow) {
-        this.attachKeyboardShortcuts();
-        this.$store.dispatch(`${this.NS}/${FOLDERS_BROWSER_A_FETCH_FOLDERS}`)
-          .then((folders) => {
-            this.folders = folders;
-          });
-      } else {
-        this.removeKeyboardShortcuts();
-      }
-    },
+    show (onShow) { return onShow ? this.onShow() : this.onHide() },
   },
 
-  mounted () {
-  },
+  mounted () {},
 
   methods: {
+    onShow () {
+      this.attachKeyboardShortcuts();
+
+      // this.selected.forEach((path) => { this.$set(this.selectedFolders, path, true) });
+      this.selectedFolders = [...this.selected];
+
+      // Wait for v-dialog transition end before continuing.
+      setTimeout(() => {
+        this.$refs.FolderBrowserList.onShow();
+      }, 300);
+    },
+
+    onHide () { this.removeKeyboardShortcuts() },
+
     onSave () {
+      this.$emit(
+        'onSave',
+        [...this.selectedFolders],
+      );
       this.onClose();
     },
+
     onCancel () {
       this.onClose();
     },
+
     onClose () {
+      this.onHide();
       this.$emit('onClose');
     },
 
-    fetchFolderList (path) {
-      this.$store.dispatch(`${this.NS}/${FOLDERS_BROWSER_A_FETCH_FOLDERS}`, path)
-        .then((folders) => {
-          this.folders = folders;
-        });
+    onSelect (path) {
+      if (!this.selectedFolders.includes(path)) {
+        this.selectedFolders.push(path);
+      }
+    },
+
+    onUnSelect (path) {
+      this.selectedFolders = this.selectedFolders.filter((p) => p !== path);
     },
 
     attachKeyboardShortcuts () {

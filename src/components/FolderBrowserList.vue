@@ -1,20 +1,25 @@
 <script>
+import {
+  FOLDERS_BROWSER_A_FETCH_FOLDERS,
+  FOLDERS_BROWSER_G_FOLDERS,
+} from '../store/types';
 
 export default {
   name: 'FoldersBrowserList',
 
   props: {
-    folders: {
-      type: Object,
-      default: () => {},
+    selected: {
+      type: Array,
+      default: () => ([]),
     },
   },
 
   emits: {
+    onSelect: null,
+    onUnselect: null,
   },
 
-  data: () => ({
-  }),
+  data: () => ({}),
 
   render (createElement) {
     const that = this;
@@ -22,14 +27,29 @@ export default {
       const hasNoSubFolders = folder.hasFetchedChildren && !folder.children.length;
       const { name, path } = folder;
 
-      const subFolderCtn = createElement( // Sub folders container.
+      const subFoldersCtn = createElement( // Sub folders container.
         'div', { class: 'sub-folders-ctn hide' },
         folder.children.map((f) => buildFolder(f, level + 1)),
       );
 
+      const checkbox = createElement('v-checkbox', {
+        class: 'select-checkbox',
+        props: {
+          label: name,
+          'true-value': true,
+          'false-value': false,
+          'input-value': that.selected.includes(folder.path),
+        },
+        on: {
+          change (isChecked) {
+            that.$emit(isChecked ? 'onSelect' : 'onUnselect', folder.path);
+          },
+        },
+      });
+
       return createElement('div', { class: 'folder-ctn' }, [
         createElement('div', { class: 'folder' }, [
-          createElement('v-btn', {
+          createElement('v-btn', { // Expand btn
             class: `expand-btn ${hasNoSubFolders ? 'no-sub-folders' : ''}`,
             props: {
               width: 24,
@@ -42,48 +62,50 @@ export default {
               click (e) {
                 if (!hasNoSubFolders) {
                   e.currentTarget.classList.toggle('expanded');
-                  subFolderCtn.elm.classList.toggle('hide');
-                  that.$emit('fetch', path);
+                  subFoldersCtn.elm.classList.toggle('hide');
+                  that.fetchFolders(path);
                 }
               },
             },
           }, [
-            createElement('v-icon', {
-              class: 'plus-icon',
-            }, 'mdi-plus'),
-            createElement('v-icon', {
-              class: 'minus-icon',
-            }, 'mdi-minus'),
+            createElement('v-icon', { class: 'plus-icon' }, 'mdi-plus'),
+            createElement('v-icon', { class: 'minus-icon' }, 'mdi-minus'),
           ]),
-          createElement('v-checkbox', {
-            class: '',
-            attrs: {},
-          }),
-          createElement('div', { class: 'name' }, name),
+          checkbox,
         ]),
-        subFolderCtn,
+        subFoldersCtn,
       ]);
     };
+
+    const hasFolders = (that.folders.children || []).length;
 
     return createElement(
       'div',
       { class: 'folders-browser-list' },
-      this.folders.children
-        ? this.folders.children.map((folder) => buildFolder(folder, 0))
+      hasFolders
+        ? that.folders.children.map((folder) => buildFolder(folder, 0))
         : [createElement('div', { class: 'no-folders' }, 'No Folders')],
-      this.$slots.default,
+      that.$slots.default,
     );
   },
 
   computed: {
     NS () { return 'foldersBrowser' },
+
+    folders () { return this.$store.getters[`${this.NS}/${FOLDERS_BROWSER_G_FOLDERS}`] },
   },
 
   watch: {},
 
   mounted () {},
 
-  methods: {},
+  methods: {
+    onShow () { this.fetchFolders() },
+
+    fetchFolders (path) {
+      this.$store.dispatch(`${this.NS}/${FOLDERS_BROWSER_A_FETCH_FOLDERS}`, path);
+    },
+  },
 
   beforeDestroy () {},
 };
@@ -93,6 +115,8 @@ export default {
 </style>
 
 <style lang="scss">
+$folder-padding-left: 5px;
+
 .folders-browser-list {
   height: 100%;
 
@@ -128,14 +152,23 @@ export default {
   }
 
   .folder {
+    padding-left: $folder-padding-left;
     display: flex;
     align-items: center;
     height: 40px;
+
+    &:hover {
+      background-color: $grey-7;
+    }
+
+    .name {
+      cursor: pointer;
+    }
   }
 
   .sub-folders-ctn {
     padding-left: 12px;
-    margin-left: 12px;
+    margin-left: #{12px + $folder-padding-left};
     border-left: 1px dashed $grey-6;
 
     &.hide {

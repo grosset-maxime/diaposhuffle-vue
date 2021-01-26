@@ -16,6 +16,12 @@
 
     <v-row align="center">
       <v-col>
+        {{ foldersBrowser.selected }}
+      </v-col>
+    </v-row>
+
+    <v-row align="center">
+      <v-col>
         <span class="v-label theme--dark">
           Tag(s)
         </span>
@@ -120,7 +126,9 @@
 
     <foldersBrowser
       :show="foldersBrowser.show"
+      :selected="foldersBrowser.selected"
       @onClose="onCloseFoldersBrowser"
+      @onSave="onSaveFoldersBrowser"
     />
   </v-container>
 </template>
@@ -156,6 +164,7 @@ export default {
   data: () => ({
     foldersBrowser: {
       show: false,
+      selected: [],
     },
 
     keyboardShortcuts: {
@@ -254,6 +263,10 @@ export default {
     onCloseFoldersBrowser () {
       this.foldersBrowser.show = false;
       this.attachKeyboardShortcuts();
+    },
+
+    onSaveFoldersBrowser (selectedFolders) {
+      this.foldersBrowser.selected = selectedFolders;
     },
 
     resetInterval () { this.$store.commit(`${this.NS}/${PLAYER_M_RESET_INTERVAL}`) },
