@@ -94,7 +94,6 @@ export default {
     onShow () {
       this.attachKeyboardShortcuts();
 
-      // this.selected.forEach((path) => { this.$set(this.selectedFolders, path, true) });
       this.selectedFolders = [...this.selected];
 
       // Wait for v-dialog transition end before continuing.
