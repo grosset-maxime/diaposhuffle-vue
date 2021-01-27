@@ -32,6 +32,7 @@ const state = () => ({
     root: true,
     children: [],
     fetched: false,
+    fetching: false,
   },
   error: [],
 });
@@ -41,15 +42,29 @@ const getters = {
 };
 
 const mutations = {
-  _setChildren (state, { path = '', children = [] }) {
-    const folder = findFolder(
-      state.folders,
-      path.split('/').filter((s) => s),
-    );
+  _setFetching (state, { folder, path = '', isFetching = false }) {
+    if (!folder) {
+      folder = findFolder(
+        state.folders,
+        path.split('/').filter((s) => s),
+      );
+    }
+
+    folder.fetching = isFetching;
+  },
+
+  _setChildren (state, { folder, path = '', children = [] }) {
+    if (!folder) {
+      folder = findFolder(
+        state.folders,
+        path.split('/').filter((s) => s),
+      );
+    }
 
     state.folders.pathes[folder.path || '/'] = folder;
 
     folder.fetched = true;
+    folder.fetching = false;
 
     children.forEach((childName) => {
       const childPath = `${path}/${childName}`;
@@ -77,6 +92,8 @@ const actions = {
       return folders;
     }
 
+    commit('_setFetching', { folder, path, isFetching: true });
+
     const url = `${BASE_URL}/api/getFolderList`;
     const opts = {
       method: 'POST',
@@ -100,7 +117,7 @@ const actions = {
 
           console.log(`>>> Fetched folders for path "${path}":`, children);
 
-          commit('_setChildren', { path, children });
+          commit('_setChildren', { folder, path, children });
         }
         if (json.error) { onError(json) }
 
@@ -108,7 +125,10 @@ const actions = {
 
         return getters[FOLDER_BROWSER_G_FOLDERS];
       }))
-      .catch((error) => onError({ error: true, publicMessage: error.toString() }));
+      .catch((error) => onError({ error: true, publicMessage: error.toString() }))
+      .finally(() => {
+        commit('_setFetching', { folder, path, isFetching: false });
+      });
 
     return response;
   },

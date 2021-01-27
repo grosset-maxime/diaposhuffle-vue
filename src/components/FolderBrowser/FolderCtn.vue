@@ -13,10 +13,22 @@
         :disabled="hasNoSubFolders"
         @click="onExpandBtnClick"
       >
-        <v-icon class="plus-icon">
+        <v-progress-circular
+          v-if="folder.fetching"
+          size="15"
+          width="1"
+          indeterminate
+        />
+        <v-icon
+          class="plus-icon"
+          v-show="!folder.fetching"
+        >
           mdi-plus
         </v-icon>
-        <v-icon class="minus-icon">
+        <v-icon
+          class="minus-icon"
+          v-show="!folder.fetching"
+        >
           mdi-minus
         </v-icon>
       </v-btn>
