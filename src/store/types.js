@@ -34,8 +34,8 @@ export const PLAYER_A_DELETE_ITEM = 'Delete Item';
 
 /* === Folders Browser === */
 /* ======================= */
-export const FOLDERS_BROWSER_G_FOLDERS = 'Get Folders';
+export const FOLDER_BROWSER_G_FOLDERS = 'Get Folders';
 
-export const FOLDERS_BROWSER_M_ADD_ERROR = 'Add Error';
+export const FOLDER_BROWSER_M_ADD_ERROR = 'Add Error';
 
-export const FOLDERS_BROWSER_A_FETCH_FOLDERS = 'Fetch Folders';
+export const FOLDER_BROWSER_A_FETCH_FOLDERS = 'Fetch Folders';

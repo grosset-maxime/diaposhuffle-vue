@@ -1,11 +1,11 @@
 <script>
 import {
-  FOLDERS_BROWSER_A_FETCH_FOLDERS,
-  FOLDERS_BROWSER_G_FOLDERS,
-} from '../store/types';
+  FOLDER_BROWSER_A_FETCH_FOLDERS,
+  FOLDER_BROWSER_G_FOLDERS,
+} from '../../store/types';
 
 export default {
-  name: 'FoldersBrowserList',
+  name: 'FolderList',
 
   props: {
     selected: {
@@ -23,8 +23,9 @@ export default {
 
   render (createElement) {
     const that = this;
+
     const buildFolder = (folder, level) => {
-      const hasNoSubFolders = folder.hasFetchedChildren && !folder.children.length;
+      const hasNoSubFolders = folder.fetched && !folder.children.length;
       const { name, path } = folder;
 
       const subFoldersCtn = createElement( // Sub folders container.
@@ -38,7 +39,7 @@ export default {
           label: name,
           'true-value': true,
           'false-value': false,
-          'input-value': that.selected.includes(folder.path),
+          'input-value': this.selected.includes(folder.path),
         },
         on: {
           change (isChecked) {
@@ -77,22 +78,45 @@ export default {
       ]);
     };
 
-    const hasFolders = (that.folders.children || []).length;
+    // TODO: Show loading on fetch a folder.
+
+    const isRootHasFolders = (this.folders.children || []).length;
+    const isRootFetched = this.folders.fetched;
+
+    let elements = [];
+
+    if (!isRootFetched) {
+      elements = [createElement('div', {
+        class: 'loading-first-fetch',
+      }, [
+        createElement('v-progress-circular', {
+          props: {
+            size: 100,
+            width: 10,
+            indeterminate: true,
+            color: 'orange',
+          },
+        }),
+      ])];
+    } else if (!isRootHasFolders) {
+      elements = [createElement('div', { class: 'no-folders' }, 'No Folders'),
+      ];
+    } else {
+      elements = this.folders.children.map((folder) => buildFolder(folder, 0));
+    }
 
     return createElement(
       'div',
-      { class: 'folders-browser-list' },
-      hasFolders
-        ? that.folders.children.map((folder) => buildFolder(folder, 0))
-        : [createElement('div', { class: 'no-folders' }, 'No Folders')],
-      that.$slots.default,
+      { class: 'folder-list' },
+      elements,
+      this.$slots.default,
     );
   },
 
   computed: {
-    NS () { return 'foldersBrowser' },
+    NS () { return 'folderBrowser' },
 
-    folders () { return this.$store.getters[`${this.NS}/${FOLDERS_BROWSER_G_FOLDERS}`] },
+    folders () { return this.$store.getters[`${this.NS}/${FOLDER_BROWSER_G_FOLDERS}`] },
   },
 
   watch: {},
@@ -103,7 +127,7 @@ export default {
     onShow () { this.fetchFolders() },
 
     fetchFolders (path) {
-      this.$store.dispatch(`${this.NS}/${FOLDERS_BROWSER_A_FETCH_FOLDERS}`, path);
+      this.$store.dispatch(`${this.NS}/${FOLDER_BROWSER_A_FETCH_FOLDERS}`, path);
     },
   },
 
@@ -114,17 +138,14 @@ export default {
 <style lang="scss" scoped>
 </style>
 
-<style lang="scss">
+<style lang="scss" scoped>
 $folder-padding-left: 5px;
 
-.folders-browser-list {
+.folder-list {
   height: 100%;
 
-  .v-btn.expand-btn {
-    padding: 0 12px;
-  }
-
   .expand-btn {
+    padding: 0 12px;
     margin-right: 10px;
 
     &.expanded {
@@ -176,7 +197,8 @@ $folder-padding-left: 5px;
     }
   }
 
-  .no-folders {
+  .no-folders,
+  .loading-first-fetch {
     width: 100%;
     height: 100%;
     display: flex;

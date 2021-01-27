@@ -7,7 +7,7 @@
         </span>
         <v-btn
           class="secondary"
-          @click="showFoldersBrowser"
+          @click="showFolderBrowser"
         >
           Browse...
         </v-btn>
@@ -16,7 +16,7 @@
 
     <v-row align="center">
       <v-col>
-        {{ foldersBrowser.selected }}
+        {{ folderBrowser.selected }}
       </v-col>
     </v-row>
 
@@ -124,11 +124,11 @@
       </v-col>
     </v-row>
 
-    <foldersBrowser
-      :show="foldersBrowser.show"
-      :selected="foldersBrowser.selected"
-      @onClose="onCloseFoldersBrowser"
-      @onSave="onSaveFoldersBrowser"
+    <FolderBrowser
+      :show="folderBrowser.show"
+      :selected="folderBrowser.selected"
+      @onClose="onCloseFolderBrowser"
+      @onSave="onSaveFolderBrowser"
     />
   </v-container>
 </template>
@@ -148,13 +148,13 @@ import {
   PLAYER_M_RESET_INTERVAL,
 } from '../store/types';
 import { getKey } from '../utils/utils';
-import FoldersBrowser from './FoldersBrowser.vue';
+import FolderBrowser from './FolderBrowser/FolderBrowser.vue';
 
 export default {
   name: 'ThePlayerOptions',
 
   components: {
-    FoldersBrowser,
+    FolderBrowser,
   },
 
   emits: {
@@ -162,7 +162,7 @@ export default {
   },
 
   data: () => ({
-    foldersBrowser: {
+    folderBrowser: {
       show: false,
       selected: [],
     },
@@ -255,18 +255,18 @@ export default {
   },
 
   methods: {
-    showFoldersBrowser () {
+    showFolderBrowser () {
       this.removeKeyboardShortcuts();
-      this.foldersBrowser.show = true;
+      this.folderBrowser.show = true;
     },
 
-    onCloseFoldersBrowser () {
-      this.foldersBrowser.show = false;
+    onCloseFolderBrowser () {
+      this.folderBrowser.show = false;
       this.attachKeyboardShortcuts();
     },
 
-    onSaveFoldersBrowser (selectedFolders) {
-      this.foldersBrowser.selected = selectedFolders;
+    onSaveFolderBrowser (selectedFolders) {
+      this.folderBrowser.selected = selectedFolders;
     },
 
     resetInterval () { this.$store.commit(`${this.NS}/${PLAYER_M_RESET_INTERVAL}`) },
@@ -282,7 +282,7 @@ export default {
             this.$store.dispatch(INDEX_A_PLAYER_START);
             break;
           case 'b':
-            this.showFoldersBrowser();
+            this.showFolderBrowser();
             break;
           case 'h':
             this.$emit('showTheHelp');

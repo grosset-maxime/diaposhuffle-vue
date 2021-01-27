@@ -3,9 +3,9 @@
 // import Vue from 'vue';
 import { getHeaders } from '../../utils/utils';
 import {
-  FOLDERS_BROWSER_G_FOLDERS,
-  FOLDERS_BROWSER_M_ADD_ERROR,
-  FOLDERS_BROWSER_A_FETCH_FOLDERS,
+  FOLDER_BROWSER_G_FOLDERS,
+  FOLDER_BROWSER_M_ADD_ERROR,
+  FOLDER_BROWSER_A_FETCH_FOLDERS,
 } from '../types';
 
 const BASE_URL = process.env.VUE_APP_BASE_URL || '';
@@ -31,12 +31,13 @@ const state = () => ({
     pathes: {},
     root: true,
     children: [],
+    fetched: false,
   },
   error: [],
 });
 
 const getters = {
-  [FOLDERS_BROWSER_G_FOLDERS]: (state) => state.folders,
+  [FOLDER_BROWSER_G_FOLDERS]: (state) => state.folders,
 };
 
 const mutations = {
@@ -48,7 +49,7 @@ const mutations = {
 
     state.folders.pathes[folder.path || '/'] = folder;
 
-    folder.hasFetchedChildren = true;
+    folder.fetched = true;
 
     children.forEach((childName) => {
       const childPath = `${path}/${childName}`;
@@ -56,7 +57,7 @@ const mutations = {
         name: childName,
         path: childPath,
         children: [],
-        hasFetchedChildren: false,
+        fetched: false,
       };
 
       state.folders.pathes[childPath] = child;
@@ -68,11 +69,11 @@ const mutations = {
 
 const actions = {
 
-  async [FOLDERS_BROWSER_A_FETCH_FOLDERS] ({ commit, getters }, path = '') {
-    const folders = getters[FOLDERS_BROWSER_G_FOLDERS];
+  async [FOLDER_BROWSER_A_FETCH_FOLDERS] ({ commit, getters }, path = '') {
+    const folders = getters[FOLDER_BROWSER_G_FOLDERS];
     const folder = folders.pathes[path || '/'];
 
-    if (folder && folder.hasFetchedChildren) {
+    if (folder && folder.fetched) {
       return folders;
     }
 
@@ -86,8 +87,8 @@ const actions = {
     };
 
     const onError = (error) => {
-      commit(FOLDERS_BROWSER_M_ADD_ERROR, {
-        actionName: FOLDERS_BROWSER_A_FETCH_FOLDERS, error,
+      commit(FOLDER_BROWSER_M_ADD_ERROR, {
+        actionName: FOLDER_BROWSER_A_FETCH_FOLDERS, error,
       });
       return error;
     };
@@ -103,9 +104,9 @@ const actions = {
         }
         if (json.error) { onError(json) }
 
-        console.log('>>> Folders:', getters[FOLDERS_BROWSER_G_FOLDERS]);
+        console.log('>>> Folders:', getters[FOLDER_BROWSER_G_FOLDERS]);
 
-        return getters[FOLDERS_BROWSER_G_FOLDERS];
+        return getters[FOLDER_BROWSER_G_FOLDERS];
       }))
       .catch((error) => onError({ error: true, publicMessage: error.toString() }));
 

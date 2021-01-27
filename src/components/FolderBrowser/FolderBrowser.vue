@@ -1,6 +1,6 @@
 <template>
   <v-dialog
-    content-class="folders-browser"
+    content-class="folder-browser"
     :value="show"
     fullscreen
     hide-overlay
@@ -29,8 +29,8 @@
       <div
         class="ctn"
       >
-        <FoldersBrowserList
-          ref="FolderBrowserList"
+        <FolderList
+          ref="FolderList"
           :selected="selectedFolders"
           @onSelect="onSelect"
           @onUnselect="onUnSelect"
@@ -47,14 +47,14 @@
 </template>
 
 <script>
-import { getKey } from '../utils/utils';
-import FoldersBrowserList from './FolderBrowserList.vue';
+import { getKey } from '../../utils/utils';
+import FolderList from './FolderList.vue';
 
 export default {
-  name: 'FoldersBrowser',
+  name: 'FolderBrowser',
 
   components: {
-    FoldersBrowserList,
+    FolderList,
   },
 
   props: {
@@ -99,7 +99,7 @@ export default {
 
       // Wait for v-dialog transition end before continuing.
       setTimeout(() => {
-        this.$refs.FolderBrowserList.onShow();
+        this.$refs.FolderList.onShow();
       }, 300);
     },
 
@@ -167,7 +167,7 @@ export default {
 </style>
 
 <style lang="scss">
-.folders-browser {
+.folder-browser {
   .ctn {
     // 56px (v-toolbar-title height) + 24px (v-container padding top + bottom)
     height: calc(100vh - 64px);
