@@ -73,10 +73,11 @@
             multiple
           >
             <v-chip
-              v-for="type in availableFilterFileTypes"
+              v-for="(type, i) in availableFilterFileTypes"
               :key="type"
               class="mr-3 mt-0 mb-0"
               outlined
+              :color="filterFileTypes.includes(i) ? 'orange' : undefined"
               filter
             >
               {{ type }}
