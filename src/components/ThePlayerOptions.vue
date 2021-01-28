@@ -5,18 +5,47 @@
         <span class="v-label theme--dark">
           Folder(s)
         </span>
+
         <v-btn
           class="secondary"
           @click="showFolderBrowser"
         >
           Browse...
         </v-btn>
+
+        <v-btn
+          v-if="nbSelectedFolders"
+          class="secondary unselect-all-folders-btn"
+          @click="onUnselectAllFolders"
+        >
+          Unselect All
+        </v-btn>
+
+        <span
+          class="v-label theme--dark nb-selected-folders"
+          v-if="nbSelectedFolders"
+        >
+          Selected: {{ nbSelectedFolders }}
+        </span>
       </v-col>
     </v-row>
 
-    <v-row align="center">
+    <v-row
+      align="center"
+      v-if="nbSelectedFolders"
+    >
       <v-col>
-        {{ folderBrowser.selected }}
+        <v-chip
+          v-for="path in folderBrowser.selected"
+          :key="path"
+          class="mr-3 mt-0 mb-2"
+          outlined
+          close
+          color="blue"
+          @click:close="onUnselectFolder(path)"
+        >
+          {{ path }}
+        </v-chip>
       </v-col>
     </v-row>
 
@@ -230,6 +259,8 @@ export default {
     thePlayer () { return this.$store.getters[INDEX_G_SHOW_THE_PLAYER] },
 
     theHelp () { return this.$store.getters[INDEX_G_SHOW_THE_HELP] },
+
+    nbSelectedFolders () { return this.folderBrowser.selected.length },
   },
 
   watch: {
@@ -267,6 +298,14 @@ export default {
 
     onSaveFolderBrowser (selectedFolders) {
       this.folderBrowser.selected = selectedFolders;
+    },
+
+    onUnselectAllFolders () {
+      this.folderBrowser.selected = [];
+    },
+
+    onUnselectFolder (path) {
+      this.folderBrowser.selected = this.folderBrowser.selected.filter((p) => p !== path);
     },
 
     resetInterval () { this.$store.commit(`${this.NS}/${PLAYER_M_RESET_INTERVAL}`) },
@@ -317,5 +356,12 @@ export default {
 }
 .interval-col {
   padding-right: 20%;
+}
+.unselect-all-folders-btn {
+  text-transform: none;
+  margin-left: 60px;
+}
+.nb-selected-folders {
+  margin-left: 20px;
 }
 </style>
