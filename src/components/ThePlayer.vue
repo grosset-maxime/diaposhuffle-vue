@@ -98,6 +98,8 @@
           :controls="item.videoOptions.controls"
           :controlsList="item.videoOptions.controlsList"
           @canplay="item.onLoad"
+          @pause="onPauseVideo()"
+          @play="onPlayVideo()"
           disablePictureInPicture
         />
       </div>
@@ -455,6 +457,10 @@ export default {
 
     onLoadItem2 () { this.item2.onLoadResolve() },
 
+    onPauseVideo () { if (!this.pause) { this.pauseLooping() } },
+
+    onPlayVideo () { if (this.pause) { this.resumeLooping() } },
+
     startPlayingItem (itemName) {
       this.itemCustomInterval = this.intervalOptions;
 
@@ -704,6 +710,7 @@ export default {
     removeKeyboardPlayerShortcuts () {
       window.removeEventListener('keyup', this.keyboardShortcuts.player);
     },
+
     removeKeyboardDeleteModalShortcuts () {
       window.removeEventListener('keyup', this.keyboardShortcuts.deleteModal);
     },

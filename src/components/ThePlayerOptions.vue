@@ -209,11 +209,6 @@ export default {
       return this.$store.getters[`${this.NS}/${PLAYER_G_FILTER_FILE_TYPES}`];
     },
 
-    folders: {
-      get () { return this.$store.getters[`${this.NS}/${PLAYER_G_FILTERS}`].folders },
-      set (folders) { this.$store.commit(`${this.NS}/${PLAYER_M_FILTERS}`, { folders }) },
-    },
-
     tags: {
       get () { return this.$store.getters[`${this.NS}/${PLAYER_G_FILTERS}`].tags },
       set (tags) { this.$store.commit(`${this.NS}/${PLAYER_M_FILTERS}`, { tags }) },
