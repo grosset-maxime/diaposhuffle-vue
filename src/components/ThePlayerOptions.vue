@@ -299,14 +299,22 @@ export default {
 
     onSaveFolderBrowser (selectedFolders) {
       this.folderBrowser.selected = selectedFolders;
+      this.setFolders(selectedFolders);
     },
 
     onUnselectAllFolders () {
       this.folderBrowser.selected = [];
+      this.setFolders([]);
     },
 
     onUnselectFolder (path) {
       this.folderBrowser.selected = this.folderBrowser.selected.filter((p) => p !== path);
+      this.setFolders(this.folderBrowser.selected);
+    },
+
+    setFolders (selectedFolders) {
+      const folders = [...selectedFolders];
+      this.$store.commit(`${this.NS}/${PLAYER_M_FILTERS}`, { folders });
     },
 
     resetInterval () { this.$store.commit(`${this.NS}/${PLAYER_M_RESET_INTERVAL}`) },

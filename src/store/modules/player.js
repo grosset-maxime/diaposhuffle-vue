@@ -101,13 +101,13 @@ const mutations = {
 
 const actions = {
 
-  async [PLAYER_A_FETCH_NEXT] ({ commit }) {
+  async [PLAYER_A_FETCH_NEXT] ({ commit, getters }) {
     const url = `${BASE_URL}/api/getRandomPic`;
     const opts = {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify({
-        customFolders: [],
+        customFolders: getters[PLAYER_G_FILTERS].folders,
       }),
     };
 
