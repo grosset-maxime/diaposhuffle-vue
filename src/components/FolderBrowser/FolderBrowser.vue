@@ -16,7 +16,21 @@
         </v-btn>
         <v-toolbar-title>Folders browser</v-toolbar-title>
         <v-spacer />
+        <div
+          v-if="nbSelected"
+          class="nb-selected"
+        >
+          Selected: {{ nbSelected }}
+        </div>
         <v-toolbar-items>
+          <v-btn
+            v-if="nbSelected"
+            class="unselect-all-btn"
+            text
+            @click="onUnselectAll"
+          >
+            Unselect All
+          </v-btn>
           <v-btn
             text
             @click="onSave"
@@ -35,12 +49,6 @@
           @onSelect="onSelect"
           @onUnselect="onUnSelect"
         />
-        <div>
-          Selected: {{ selected }}
-        </div>
-        <div>
-          Selected folders: {{ selectedFolders }}
-        </div>
       </div>
     </v-card>
   </v-dialog>
@@ -82,7 +90,9 @@ export default {
     },
   }),
 
-  computed: {},
+  computed: {
+    nbSelected () { return this.selectedFolders.length },
+  },
 
   watch: {
     show (onShow) { return onShow ? this.onShow() : this.onHide() },
@@ -131,6 +141,8 @@ export default {
       this.selectedFolders = this.selectedFolders.filter((p) => p !== path);
     },
 
+    onUnselectAll () { this.selectedFolders = [] },
+
     attachKeyboardShortcuts () {
       this.keyboardShortcuts.main = (e) => {
         // console.log('FoldersBrowser e:', e);
@@ -173,6 +185,18 @@ export default {
     overflow: auto;
     padding: 10px;
     padding-bottom: 40px;
+  }
+
+  .nb-selected {
+    margin-right: 10px;
+  }
+
+  .unselect-all-btn {
+    text-transform: none;
+    color: $grey-6;
+    &:hover {
+      color: white;
+    }
   }
 }
 </style>

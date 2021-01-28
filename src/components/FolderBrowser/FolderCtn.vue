@@ -1,6 +1,9 @@
 <template>
   <div class="folder-ctn">
-    <div class="folder">
+    <div
+      class="folder"
+      @click="onFolderLineClick"
+    >
       <v-btn
         :class="['expand-btn', {
           'no-sub-folders': hasNoSubFolders,
@@ -37,7 +40,7 @@
         :label="folder.name"
         :true-value="true"
         :false-value="false"
-        :input-value="this.states.isSelected"
+        :input-value="selected"
         @change="onSelectedChange"
       />
     </div>
@@ -88,9 +91,7 @@ export default {
     },
   },
 
-  mounted () {
-    this.states.isSelected = this.selected;
-  },
+  mounted () {},
 
   methods: {
     onExpandBtnClick () {
@@ -101,8 +102,13 @@ export default {
     },
 
     onSelectedChange (isSelected) {
-      this.states.selected = isSelected;
       this.$emit(isSelected ? 'onSelect' : 'onUnselect', this.folder.path);
+    },
+
+    onFolderLineClick (e) {
+      if (e.target === e.currentTarget) {
+        this.onSelectedChange(!this.selected);
+      }
     },
   },
 
@@ -114,6 +120,8 @@ export default {
 $folder-padding-left: 5px;
 
 .folder-ctn {
+  cursor: pointer;
+
   .expand-btn {
     padding: 0 12px;
     margin-right: 10px;
