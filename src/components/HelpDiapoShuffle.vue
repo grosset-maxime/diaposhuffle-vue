@@ -63,8 +63,13 @@ const panels = [{
     shortcut: 'ESC',
     description: 'Stop playing, return to options.',
   }, {
-    shortcut: 'SPACE / down arrow',
-    description: 'Pause playing.',
+    shortcut: 'SPACE',
+    description: `Pause/resume playing and pause/resume video too (if current
+                  item is a video).`,
+  }, {
+    shortcut: 'down arrow',
+    description: `Pause/resume playing but do not pause or resume video (if
+                  current item is a video).`,
   }, {
     shortcut: 'i / up arrow',
     description: 'Open Inside folder of current picture/video modal.',

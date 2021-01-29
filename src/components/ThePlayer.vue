@@ -81,6 +81,7 @@
         :ref="item.name"
         :class="['item-ctn transition', item.name]"
         :style="item.styles"
+        @click="onItemClick"
       >
         <img
           v-if="item.src && (item.data || {}).isImage"
@@ -98,8 +99,8 @@
           :controls="item.videoOptions.controls"
           :controlsList="item.videoOptions.controlsList"
           @canplay="item.onLoad"
-          @pause="onPauseVideo()"
-          @play="onPlayVideo()"
+          @pause="onPauseFromVideoEl()"
+          @play="onPlayFromVideoEl()"
           disablePictureInPicture
         />
       </div>
@@ -158,9 +159,6 @@ export default {
   name: 'ThePlayer',
 
   data: () => ({
-
-    // TODO: display history index and length
-
     loop: {
       id: null,
       value: 0,
@@ -457,17 +455,39 @@ export default {
 
     onLoadItem2 () { this.item2.onLoadResolve() },
 
-    onPauseVideo () { if (!this.pause) { this.pauseLooping() } },
+    onItemClick (e) {
+      const { currentItemName } = this;
+      const { target } = e;
 
-    onPlayVideo () { if (this.pause) { this.resumeLooping() } },
+      let itemEl;
+
+      if (this.isItemImage(currentItemName)) {
+        itemEl = this.getImageEl(currentItemName);
+      } else if (this.isItemVideo(currentItemName)) {
+        itemEl = this.getVideoEl(currentItemName);
+      }
+
+      if (target === e.currentTarget
+        || target === itemEl
+      ) {
+        if (this.pause) {
+          this.resumePlayingItem(currentItemName);
+        } else {
+          this.pausePlayingItem(currentItemName);
+        }
+      }
+    },
+
+    onPauseFromVideoEl () { if (!this.pause) { this.pauseLooping() } },
+
+    onPlayFromVideoEl () { if (this.pause) { this.resumeLooping() } },
 
     startPlayingItem (itemName) {
       this.itemCustomInterval = this.intervalOptions;
 
       if (this.isItemVideo(itemName)) {
-        const itemRef = this.getItemRef(itemName);
-        const videoEl = itemRef.querySelector('.item.vid');
-        videoEl.play();
+        this.playVideo(itemName);
+        const videoEl = this.getVideoEl(itemName);
         this.itemCustomInterval = Math.max(videoEl.duration * 1000, this.intervalOptions);
       }
     },
@@ -476,11 +496,29 @@ export default {
       this.itemCustomInterval = 0;
 
       if (this.isItemVideo(itemName)) {
-        const itemRef = this.getItemRef(itemName);
-        const videoEl = itemRef.querySelector('.item.vid');
-        videoEl.pause();
+        this.pauseVideo(itemName);
       }
     },
+
+    pausePlayingItem (itemName) {
+      this.pauseLooping();
+
+      if (this.isItemVideo(itemName)) {
+        this.pauseVideo(itemName);
+      }
+    },
+
+    resumePlayingItem (itemName) {
+      this.resumeLooping();
+
+      if (this.isItemVideo(itemName)) {
+        this.playVideo(itemName);
+      }
+    },
+
+    pauseVideo (itemName) { this.getVideoEl(itemName).pause() },
+
+    playVideo (itemName) { this.getVideoEl(itemName).play() },
 
     isItemImage (itemName) { return !this.isItemVideo(itemName) },
 
@@ -493,6 +531,14 @@ export default {
     getItemStyles (itemName) { return this.getItem(itemName).styles },
 
     getItemRef (itemName) { return this.$refs[itemName][0] },
+
+    getImageEl (itemName) {
+      return this.getItemRef(itemName).querySelector('.item.img');
+    },
+
+    getVideoEl (itemName) {
+      return this.getItemRef(itemName).querySelector('.item.vid');
+    },
 
     setItemData (itemName, data) {
       const promise = this.createLoadItemPromise(itemName);
@@ -592,7 +638,7 @@ export default {
     },
 
     showDeleteModal () {
-      this.pauseLooping();
+      this.pausePlayingItem(this.currentItemName);
       this.removeKeyboardPlayerShortcuts();
       this.deleteModal = true;
       this.attachKeyboardDeleteModalShortcuts();
@@ -652,7 +698,15 @@ export default {
         const key = getKey(e);
         switch (key) {
           case 'Space':
-          case 'Enter':
+            if (this.pause) {
+              this.resumePlayingItem(this.currentItemName);
+            } else {
+              this.pausePlayingItem(this.currentItemName);
+            }
+            break;
+
+          // On ArrowDown only pause/resume looping to allow to play video in
+          // infinite loop if wanted.
           case 'ArrowDown':
             if (this.pause) {
               this.resumeLooping();
@@ -679,7 +733,7 @@ export default {
             }
             break;
           case 'h':
-            this.pauseLooping();
+            this.pausePlayingItem(this.currentItemName);
             this.showTheHelp();
             break;
           default:
