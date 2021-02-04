@@ -114,14 +114,10 @@ const actions = {
       .then((response) => response.json().then((json) => {
         if (json.success) {
           const children = json.folderList;
-
-          console.log(`>>> Fetched folders for path "${path}":`, children);
-
           commit('_setChildren', { folder, path, children });
         }
-        if (json.error) { onError(json) }
 
-        console.log('>>> Folders:', getters[FOLDER_BROWSER_G_FOLDERS]);
+        if (json.error) { onError(json) }
 
         return getters[FOLDER_BROWSER_G_FOLDERS];
       }))

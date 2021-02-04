@@ -4,25 +4,11 @@
       'opts-show-path': options.showPath
     }]"
   >
-    <v-progress-linear
-      class="progress-loop"
-      :value="loopPercentage"
-      :color="loop.color"
-      absolute
-      top
-      :indeterminate="loop.indeterminate"
-      :striped="loop.striped"
-      @click="resetProgressValue(true)"
-      :height="loop.height"
-      background-opacity="0.2"
-    >
-      <span
-        v-show="!loop.indeterminate && loopText"
-        class="loop-text"
-      >
-        {{ loopText }}
-      </span>
-    </v-progress-linear>
+    <TheLoop
+      ref="TheLoop"
+      :duration="loopDuration"
+      @onEnd="onLoopEnd"
+    />
 
     <v-btn
       v-show="pause"
@@ -49,6 +35,7 @@
     </v-alert>
 
     <v-chip
+      v-show="historyLength"
       class="history"
       small
     >
@@ -57,7 +44,7 @@
 
     <v-dialog
       content-class="delete-modal"
-      v-model="deleteModal"
+      v-model="displayDeleteModal"
     >
       <div>Delete this item ?</div>
       <v-btn
@@ -99,8 +86,8 @@
           :controls="item.videoOptions.controls"
           :controlsList="item.videoOptions.controlsList"
           @canplay="item.onLoad"
-          @pause="onPauseFromVideoEl()"
-          @play="onPlayFromVideoEl()"
+          @pause="onPauseVideo()"
+          @play="onPlayVideo()"
           disablePictureInPicture
         />
       </div>
@@ -113,7 +100,10 @@
       <span class="selected-path">
         {{ currentItemSelectedPath }}
       </span>
-      <span class="random-path">
+      <span
+        class="random-path"
+        v-show="currentItemRandomPath"
+      >
         {{ currentItemRandomPath }}
       </span>
     </div>
@@ -121,7 +111,7 @@
 </template>
 
 <script>
-import { wait, getKey } from '../utils/utils';
+import { getKey } from '../utils/utils';
 import {
   INDEX_G_SHOW_THE_HELP,
   INDEX_M_SHOW_THE_HELP,
@@ -140,6 +130,7 @@ import {
   PLAYER_A_FETCH_NEXT,
   PLAYER_A_DELETE_ITEM,
 } from '../store/types';
+import TheLoop from './TheLoop.vue';
 
 const defaultVideoOptions = {
   autoplay: false,
@@ -149,23 +140,16 @@ const defaultVideoOptions = {
   controlsList: ['nofullscreen', 'nodownload', 'noremoteplayback'].join(' '),
 };
 
-const LOOP_STEP = 100; // In ms.
-const LOOP_DETERMINATE_COLOR = '#2196f380'; // primary color + 50% opacity.
-const LOOP_INDETERMINATE_COLOR = '#E87B0080'; // $orange-1 + 50% opacity.
-const LOOP_DETERMINATE_HEIGHT = 10;
-const LOOP_INDETERMINATE_HEIGHT = 4;
-
 export default {
   name: 'ThePlayer',
 
+  components: {
+    TheLoop,
+  },
+
   data: () => ({
     loop: {
-      id: null,
-      value: 0,
-      indeterminate: true,
-      color: LOOP_DETERMINATE_COLOR,
-      striped: false,
-      height: LOOP_DETERMINATE_HEIGHT,
+      duration: 0,
     },
 
     pause: false,
@@ -194,9 +178,8 @@ export default {
     fetchNextItemPromise: null,
     currentItemName: 'item1',
     goingToNextitem: true,
-    itemCustomInterval: 0, // in ms.
 
-    deleteModal: false,
+    displayDeleteModal: false,
 
     keyboardShortcuts: {
       player: () => {},
@@ -213,34 +196,13 @@ export default {
   computed: {
     NS () { return 'player' },
 
+    TheLoop () { return this.$refs.TheLoop },
+
     options () { return this.$store.getters[`${this.NS}/${PLAYER_G_OPTIONS}`] },
 
     intervalOptions () { return this.options.interval * 1000 },
 
-    LOOP_STEP () { return LOOP_STEP }, // in ms.
-
-    loopPercentage () { return (this.loop.value * 100) / this.loopEndValue },
-
-    loopEndValue () { return this.itemCustomInterval || this.intervalOptions },
-
-    loopText () {
-      const date = new Date(2020, 0, 0);
-
-      date.setMilliseconds(Math.abs(this.loopEndValue - this.loop.value));
-      const hours = date.getHours();
-      const mins = date.getMinutes();
-      const seconds = date.getSeconds();
-      const ms = date.getMilliseconds();
-
-      let text = '';
-
-      if (hours) { text += `${hours}h ` }
-      if (mins) { text += `${mins}m ` }
-      text += `${seconds}s `;
-      if (!hours && !mins) { text += `${ms / 100}ms` }
-
-      return `${text}`;
-    },
+    loopDuration () { return this.loop.duration },
 
     nextItemName () { return this.currentItemName === 'item1' ? 'item2' : 'item1' },
 
@@ -289,103 +251,103 @@ export default {
     this.item2.videoOptions.muted = this.options.muteVideo;
 
     this.attachKeyboardPlayerShortcuts();
-    this.startLooping();
+
+    // Reset history index.
+    this.historyIndex = this.historyLength - 1;
+
+    this.currentItemName = 'item1';
+
+    this.stop = false;
+    this.pause = false;
+    this.onLoopEnd();
   },
 
   methods: {
-    startLooping () {
+    startPlaying ({ startLooping = true } = {}) {
+      const itemName = this.currentItemName;
+
       this.stop = false;
       this.pause = false;
 
-      // Reset history index.
-      this.historyIndex = this.historyLength - 1;
+      this.TheLoop.goToLoopStart();
 
-      this.currentItemName = 'item1';
-      this.onLoopEnd();
+      this.startPlayingItem(itemName);
+
+      if (startLooping) {
+        this.TheLoop.startLooping();
+      }
     },
 
-    stopLooping () {
+    stopPlaying () {
       this.stop = true;
-      this.clearLoop();
-      this.$store.dispatch(`${INDEX_A_PLAYER_STOP}`);
-    },
-
-    pauseLooping () {
-      this.pause = true;
-      this.clearLoop();
-    },
-
-    resumeLooping () {
-      if (!this.pause) { return }
-      this.pause = false;
-      this.looop();
-    },
-
-    looop () {
-      this.clearLoop();
-
-      if (this.stop || this.pause) {
-        this.loop.value -= this.LOOP_STEP;
-        return;
-      }
-
-      this.loop.id = setTimeout(() => {
-        this.loop.value += this.LOOP_STEP;
-
-        // If loop has not yet reach its end, continue to loop.
-        if (this.loop.value <= this.loopEndValue) {
-          this.looop();
-          return;
-        }
-
-        // Add timeout to have feeling that loop reach the end.
-        wait(200).then(() => { this.onLoopEnd() });
-      }, this.LOOP_STEP);
-    },
-
-    goToLoopEnd () { this.loop.value = this.loopEndValue },
-
-    goToLoopStart () { this.loop.value = 0 },
-
-    onLoopEnd () {
-      // Reset loop here to reset the loop UI before starting next loop.
-      this.goToLoopStart();
-
-      if (this.historyLength
-        && this.historyIndex < this.historyLength - 1
-      ) {
-        return wait(100).then(() => this.goToNextItem());
-      }
 
       this.stopPlayingItem(this.currentItemName);
 
-      this.toggleLoopIndeterminate(true);
+      this.TheLoop.stopLooping();
 
-      return (this.fetchNextItemPromise || this.fetchNextItem()).then(() => {
-        this.fetchNextItemPromise = null;
-
-        this.toggleLoopIndeterminate(false);
-
-        return this.animateItems().then(() => {
-          this.currentItemName = this.nextItemName;
-
-          this.startPlayingItem(this.currentItemName);
-
-          this.addHistoryItem(this.currentItemData);
-          this.historyIndex = this.historyLength - 1;
-
-          this.fetchNextItemPromise = this.fetchNextItem().catch(() => {});
-
-          // Reset loop value here to force staring a new loop from begining.
-          this.goToLoopStart();
-          this.goingToNextitem = false;
-
-          this.looop();
-        });
-      }).catch(() => {});
+      this.$store.dispatch(`${INDEX_A_PLAYER_STOP}`);
     },
 
-    clearLoop () { clearTimeout(this.loop.id); this.loop.id = null },
+    pausePlaying ({ pauseItem = true } = {}) {
+      const itemName = this.currentItemName;
+
+      this.pause = true;
+
+      if (pauseItem) {
+        this.pausePlayingItem(itemName);
+      }
+
+      this.TheLoop.pauseLooping();
+    },
+
+    resumePlaying ({ resumeItem = true } = {}) {
+      const itemName = this.currentItemName;
+
+      this.pause = false;
+
+      if (resumeItem) {
+        this.resumePlayingItem(itemName);
+      }
+
+      this.TheLoop.resumeLooping();
+    },
+
+    setLoopIndeterminate (state) {
+      this.TheLoop.setIndeterminate(state);
+    },
+
+    async onLoopEnd () {
+      await this.TheLoop.goToLoopStart().then(() => {
+        if (this.historyLength
+          && this.historyIndex < this.historyLength - 1
+        ) {
+          return this.goToNextItem({ pausePlaying: false });
+        }
+
+        this.pausePlayingItem(this.currentItemName);
+
+        this.setLoopIndeterminate(true);
+
+        return (this.fetchNextItemPromise || this.fetchNextItem()).then(() => {
+          this.fetchNextItemPromise = null;
+
+          this.setLoopIndeterminate(false);
+
+          return this.animateItems().then(() => {
+            this.currentItemName = this.nextItemName;
+
+            this.addHistoryItem(this.currentItemData);
+            this.historyIndex = this.historyLength - 1;
+
+            this.fetchNextItemPromise = this.fetchNextItem().catch(() => {});
+
+            this.goingToNextitem = false;
+
+            this.startPlaying();
+          });
+        }).catch(() => {});
+      });
+    },
 
     async animateItems () {
       if (this.stop) { return }
@@ -432,7 +394,7 @@ export default {
       if (response.success) {
         nextItemData = response.item;
       } else {
-        this.pauseLooping();
+        this.pausePlaying();
         this.showAlert({
           content: response.error.publicMessage,
           severity: response.error.severity,
@@ -471,46 +433,38 @@ export default {
         || target === itemEl
       ) {
         if (this.pause) {
-          this.resumePlayingItem(currentItemName);
+          this.resumePlaying();
         } else {
-          this.pausePlayingItem(currentItemName);
+          this.pausePlaying();
         }
       }
     },
 
-    onPauseFromVideoEl () { if (!this.pause) { this.pauseLooping() } },
+    onPauseVideo () {},
 
-    onPlayFromVideoEl () { if (this.pause) { this.resumeLooping() } },
+    onPlayVideo () {},
 
     startPlayingItem (itemName) {
-      this.itemCustomInterval = this.intervalOptions;
+      this.setLoopDuration(itemName);
 
       if (this.isItemVideo(itemName)) {
         this.playVideo(itemName);
-        const videoEl = this.getVideoEl(itemName);
-        this.itemCustomInterval = Math.max(videoEl.duration * 1000, this.intervalOptions);
       }
     },
 
     stopPlayingItem (itemName) {
-      this.itemCustomInterval = 0;
-
       if (this.isItemVideo(itemName)) {
         this.pauseVideo(itemName);
       }
     },
 
     pausePlayingItem (itemName) {
-      this.pauseLooping();
-
       if (this.isItemVideo(itemName)) {
         this.pauseVideo(itemName);
       }
     },
 
     resumePlayingItem (itemName) {
-      this.resumeLooping();
-
       if (this.isItemVideo(itemName)) {
         this.playVideo(itemName);
       }
@@ -552,11 +506,22 @@ export default {
       return promise;
     },
 
+    setLoopDuration (itemName) {
+      let duration = this.intervalOptions;
+
+      if (this.isItemVideo(itemName)) {
+        const videoEl = this.getVideoEl(itemName);
+        duration = Math.max(videoEl.duration * 1000, this.intervalOptions);
+      }
+
+      this.loop.duration = duration;
+    },
+
     getItemData (itemName) { return this.getItem(itemName).data },
 
     clearItemOnLoad (itemName) { this.getItem(itemName).onLoadResolve = null },
 
-    goToNextItem ({ pause = false } = {}) {
+    goToNextItem ({ pausePlaying = true } = {}) {
       const itemName = this.currentItemName;
 
       this.clearItemOnLoad(itemName);
@@ -564,36 +529,44 @@ export default {
       if (this.historyLength
         && this.historyIndex < this.historyLength - 1
       ) {
-        this.goToLoopStart();
-        if (pause) { this.pauseLooping() }
+        if (pausePlaying) { this.pausePlaying() }
+
         return this.goToHistoryItem('next')
           .then(() => {
-            this.startPlayingItem(this.currentItemName);
-            if (!pause) { this.looop() }
+            this.startPlaying({ startLooping: !pausePlaying });
+
+            if (pausePlaying) {
+              this.TheLoop.goToLoopStart();
+              this.pausePlaying({ pauseItem: false });
+            }
           });
       }
 
       if (!this.goingToNextitem) {
         this.goingToNextitem = true;
-        this.goToLoopEnd();
+        this.TheLoop.goToLoopEnd();
       }
-
-      this.resumeLooping();
 
       return Promise.resolve();
     },
 
-    goToPreviousItem ({ pause = false } = {}) {
+    goToPreviousItem ({ pausePlaying = true } = {}) {
       const itemName = this.currentItemName;
 
       this.clearItemOnLoad(itemName);
 
-      this.goToLoopStart();
-      if (pause) { this.pauseLooping() }
+      this.TheLoop.goToLoopStart();
+
+      if (pausePlaying) { this.pausePlaying() }
+
       return this.goToHistoryItem('previous')
         .then(() => {
-          this.startPlayingItem(this.currentItemName);
-          if (!pause) { this.looop() }
+          this.startPlaying({ startLooping: !pausePlaying });
+
+          if (pausePlaying) {
+            this.TheLoop.goToLoopStart();
+            this.pausePlaying({ pauseItem: false });
+          }
         });
     },
 
@@ -607,9 +580,9 @@ export default {
         return Promise.resolve();
       }
 
-      this.toggleLoopIndeterminate(true);
+      this.setLoopIndeterminate(true);
       return this.setItemData(itemName, this.getHistoryItem(this.historyIndex))
-        .then(() => { this.toggleLoopIndeterminate(false) });
+        .then(() => { this.setLoopIndeterminate(false) });
     },
 
     getHistoryItem (index) {
@@ -620,33 +593,16 @@ export default {
       return this.$store.commit(`${this.NS}/${PLAYER_M_ADD_HISTORY_ITEM}`, item);
     },
 
-    resetProgressValue () { this.loop.value = 0 },
-
-    toggleLoopIndeterminate (state = null) {
-      const shouldSetInderminate = state !== null
-        ? state : !this.loop.indeterminate;
-
-      if (shouldSetInderminate) {
-        this.loop.indeterminate = true;
-        this.loop.color = LOOP_INDETERMINATE_COLOR;
-        this.loop.height = LOOP_INDETERMINATE_HEIGHT;
-      } else {
-        this.loop.indeterminate = false;
-        this.loop.color = LOOP_DETERMINATE_COLOR;
-        this.loop.height = LOOP_DETERMINATE_HEIGHT;
-      }
-    },
-
     showDeleteModal () {
-      this.pausePlayingItem(this.currentItemName);
+      this.pausePlaying();
       this.removeKeyboardPlayerShortcuts();
-      this.deleteModal = true;
+      this.displayDeleteModal = true;
       this.attachKeyboardDeleteModalShortcuts();
     },
 
     hideDeleteModal ({ deleteItem = false } = {}) {
       this.removeKeyboardDeleteModalShortcuts();
-      this.deleteModal = false;
+      this.displayDeleteModal = false;
       this.attachKeyboardPlayerShortcuts();
 
       if (deleteItem) { this.deleteItem(this.currentItemData.src).catch(() => {}) }
@@ -657,8 +613,7 @@ export default {
 
       this.$store.commit(`${this.NS}/${PLAYER_M_DELETE_HISTORY_ITEM}`, itemSrc);
 
-      this.goToLoopEnd();
-      this.resumeLooping();
+      this.onLoopEnd();
 
       let response;
       try {
@@ -668,8 +623,9 @@ export default {
       }
 
       if (response.error) {
-        this.pauseLooping();
-        this.goToLoopStart();
+        this.TheLoop.goToLoopStart();
+        this.pausePlaying();
+
         this.showAlert({
           content: response.error.publicMessage,
           severity: response.error.severity,
@@ -699,9 +655,9 @@ export default {
         switch (key) {
           case 'Space':
             if (this.pause) {
-              this.resumePlayingItem(this.currentItemName);
+              this.resumePlaying();
             } else {
-              this.pausePlayingItem(this.currentItemName);
+              this.pausePlaying();
             }
             break;
 
@@ -709,31 +665,31 @@ export default {
           // infinite loop if wanted.
           case 'ArrowDown':
             if (this.pause) {
-              this.resumeLooping();
+              this.resumePlaying({ resumeItem: false });
             } else {
-              this.pauseLooping();
+              this.pausePlaying({ pauseItem: false });
             }
             break;
 
           case 'Escape':
-            this.stopLooping();
+            this.stopPlaying();
             break;
 
           case 'ArrowRight':
-            this.goToNextItem({ pause: true });
+            this.goToNextItem({ pausePlaying: true });
             break;
 
           case 'ArrowLeft':
-            this.goToPreviousItem({ pause: true });
+            this.goToPreviousItem({ pausePlaying: true });
             break;
 
           case 'Delete':
-            if (this.loop.value < this.loopEndValue || this.pause) {
+            if (this.TheLoop.value < this.loopDuration || this.pause) {
               this.showDeleteModal();
             }
             break;
           case 'h':
-            this.pausePlayingItem(this.currentItemName);
+            this.pausePlaying();
             this.showTheHelp();
             break;
           default:
@@ -773,7 +729,7 @@ export default {
   beforeDestroy () {
     this.removeKeyboardPlayerShortcuts();
     this.removeKeyboardDeleteModalShortcuts();
-    this.stopLooping();
+    this.stopPlaying();
   },
 };
 </script>
@@ -787,14 +743,6 @@ export default {
   top: 0;
   left: 0;
   z-index: 100;
-
-  .progress-loop {
-    z-index: 1000;
-
-    .loop-text {
-      font-size: 0.6em;
-    }
-  }
 
   .pause-btn {
     position: absolute;
