@@ -10,17 +10,11 @@
       @onEnd="onLoopEnd"
     />
 
-    <v-btn
-      v-show="pause"
-      class="pause-btn"
-      @click="resumeLooping()"
-      icon
-    >
-      <div class="pause-icon">
-        <div class="stick" />
-        <div class="stick" />
-      </div>
-    </v-btn>
+    <PauseBtn
+      class="the-pause-btn"
+      :show="pause"
+      @onClick="resumePlaying"
+    />
 
     <v-alert
       :value="alert.show"
@@ -42,24 +36,11 @@
       {{ historyIndex + 1 }} / {{ historyLength }} | {{ itemDisplayedCount }}
     </v-chip>
 
-    <v-dialog
-      content-class="delete-modal"
-      v-model="displayDeleteModal"
-    >
-      <div>Delete this item ?</div>
-      <v-btn
-        class="modal-btn"
-        @click="hideDeleteModal({ deleteItem: false })"
-      >
-        Cancel
-      </v-btn>
-      <v-btn
-        class="modal-btn primary"
-        @click="hideDeleteModal({ deleteItem: true })"
-      >
-        Delete
-      </v-btn>
-    </v-dialog>
+    <DeleteModal
+      :show="deleteModal.show"
+      @onConfirm="hideDeleteModal({ deleteItem: true })"
+      @onCancel="hideDeleteModal({ deleteItem: false })"
+    />
 
     <div class="items-ctn">
       <div
@@ -131,6 +112,8 @@ import {
   PLAYER_A_DELETE_ITEM,
 } from '../store/types';
 import TheLoop from './TheLoop.vue';
+import PauseBtn from './PauseBtn.vue';
+import DeleteModal from './DeleteModal.vue';
 
 const defaultVideoOptions = {
   autoplay: false,
@@ -145,6 +128,8 @@ export default {
 
   components: {
     TheLoop,
+    PauseBtn,
+    DeleteModal,
   },
 
   data: () => ({
@@ -179,11 +164,12 @@ export default {
     currentItemName: 'item1',
     goingToNextitem: true,
 
-    displayDeleteModal: false,
+    deleteModal: {
+      show: false,
+    },
 
     keyboardShortcuts: {
       player: () => {},
-      deleteModal: () => {},
     },
 
     alert: {
@@ -596,13 +582,13 @@ export default {
     showDeleteModal () {
       this.pausePlaying();
       this.removeKeyboardPlayerShortcuts();
-      this.displayDeleteModal = true;
-      this.attachKeyboardDeleteModalShortcuts();
+
+      this.deleteModal.show = true;
     },
 
     hideDeleteModal ({ deleteItem = false } = {}) {
-      this.removeKeyboardDeleteModalShortcuts();
-      this.displayDeleteModal = false;
+      this.deleteModal.show = false;
+
       this.attachKeyboardPlayerShortcuts();
 
       if (deleteItem) { this.deleteItem(this.currentItemData.src).catch(() => {}) }
@@ -699,36 +685,13 @@ export default {
       window.addEventListener('keyup', this.keyboardShortcuts.player);
     },
 
-    attachKeyboardDeleteModalShortcuts () {
-      this.keyboardShortcuts.deleteModal = (e) => {
-        const key = getKey(e);
-        switch (key) {
-          case 'Enter':
-            this.hideDeleteModal({ deleteItem: true });
-            break;
-
-          case 'Escape':
-            this.hideDeleteModal({ deleteItem: false });
-            break;
-          default:
-        }
-      };
-
-      window.addEventListener('keyup', this.keyboardShortcuts.deleteModal);
-    },
-
     removeKeyboardPlayerShortcuts () {
       window.removeEventListener('keyup', this.keyboardShortcuts.player);
-    },
-
-    removeKeyboardDeleteModalShortcuts () {
-      window.removeEventListener('keyup', this.keyboardShortcuts.deleteModal);
     },
   },
 
   beforeDestroy () {
     this.removeKeyboardPlayerShortcuts();
-    this.removeKeyboardDeleteModalShortcuts();
     this.stopPlaying();
   },
 };
@@ -744,26 +707,12 @@ export default {
   left: 0;
   z-index: 100;
 
-  .pause-btn {
+  .the-pause-btn {
     position: absolute;
     top: 5px;
     right: 5px;
     color: $grey-0;
     z-index: 1000;
-
-    .pause-icon {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-
-      .stick {
-        width: 5px;
-        height: 16px;
-        margin: auto 1px;
-        background: $grey-0;
-        border: 1px solid $grey-7;
-      }
-    }
   }
 
   .alert {
@@ -865,23 +814,6 @@ export default {
   .random-path {
     font-size: 1.5em;
     font-weight: bold;
-  }
-}
-</style>
-
-<style lang="scss">
-.delete-modal {
-  position: absolute;
-  top: 0;
-  display: flex;
-  align-items: center;
-  background: $grey-7#{AA};
-  padding: 15px;
-  width: 400px;
-
-  .modal-btn {
-    width: 100px;
-    margin-left: 20px;
   }
 }
 </style>
