@@ -11,8 +11,8 @@
     />
 
     <PauseBtn
+      v-show="pause"
       class="the-pause-btn"
-      :show="pause"
       @onClick="resumePlaying"
     />
 
@@ -28,13 +28,11 @@
       {{ alert.content }}
     </v-alert>
 
-    <v-chip
-      v-show="historyLength"
-      class="history"
-      small
-    >
-      {{ historyIndex + 1 }} / {{ historyLength }} | {{ itemDisplayedCount }}
-    </v-chip>
+    <HistoryChip
+      v-show="!!historyLength"
+      class="the-history-chip"
+      @onClick="pausePlaying"
+    />
 
     <DeleteModal
       :show="deleteModal.show"
@@ -114,6 +112,7 @@ import {
 import TheLoop from './TheLoop.vue';
 import PauseBtn from './PauseBtn.vue';
 import DeleteModal from './DeleteModal.vue';
+import HistoryChip from './ThePlayer/HistoryChip.vue';
 
 const defaultVideoOptions = {
   autoplay: false,
@@ -130,6 +129,7 @@ export default {
     TheLoop,
     PauseBtn,
     DeleteModal,
+    HistoryChip,
   },
 
   data: () => ({
@@ -194,19 +194,13 @@ export default {
 
     currentItemData () { return this[this.currentItemName].data || {} },
 
+    currentItemSrc () { return this.currentItemData.src },
+
     hasCurrentItemData () { return !!Object.keys(this.currentItemData).length },
 
     currentItemSelectedPath () { return this.currentItemData.customFolderPath },
 
     currentItemRandomPath () { return this.currentItemData.randomPublicPath },
-
-    itemDisplayedCount () {
-      let count = 0;
-      this.history.items.forEach((item) => {
-        if (item.src === this.currentItemData.src) { count += 1 }
-      });
-      return count;
-    },
 
     history () { return this.$store.getters[`${this.NS}/${PLAYER_G_HISTORY}`] },
 
@@ -591,7 +585,7 @@ export default {
 
       this.attachKeyboardPlayerShortcuts();
 
-      if (deleteItem) { this.deleteItem(this.currentItemData.src).catch(() => {}) }
+      if (deleteItem) { this.deleteItem(this.currentItemSrc).catch(() => {}) }
     },
 
     async deleteItem (itemSrc) {
@@ -711,7 +705,6 @@ export default {
     position: absolute;
     top: 5px;
     right: 5px;
-    color: $grey-0;
     z-index: 1000;
   }
 
@@ -725,19 +718,11 @@ export default {
     margin: $margin;
   }
 
-  .history {
+  .the-history-chip {
     position: absolute;
     top: 15px;
     left: 5px;
-    padding: 0 6px;
     z-index: 1000;
-    background-color: $grey-8#{80};
-    color: $grey-5;
-    transition: color 0.3 ease;
-
-    &:hover {
-      color: $grey-0;
-    }
   }
 
   .items-ctn {

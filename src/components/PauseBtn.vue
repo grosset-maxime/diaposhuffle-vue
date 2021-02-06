@@ -1,6 +1,5 @@
 <template>
   <v-btn
-    v-show="show"
     class="pause-btn"
     @click="onClick"
     icon
@@ -16,12 +15,7 @@
 export default {
   name: 'PauseBtn',
 
-  props: {
-    show: {
-      type: Boolean,
-      default: false,
-    },
-  },
+  props: {},
 
   emits: {
     onClick: null,
