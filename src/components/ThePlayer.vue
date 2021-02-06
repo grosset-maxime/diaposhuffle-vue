@@ -1,7 +1,7 @@
 <template>
   <div
     :class="['the-player', {
-      'opts-show-path': options.showPath
+      'opts-show-the-item-path-chip': options.showPath
     }]"
   >
     <TheLoop
@@ -72,20 +72,14 @@
       </div>
     </div>
 
-    <div
-      class="path-ctn"
-      v-if="options.showPath && hasCurrentItemData"
-    >
-      <span class="selected-path">
-        {{ currentItemSelectedPath }}
-      </span>
-      <span
-        class="random-path"
-        v-show="currentItemRandomPath"
-      >
-        {{ currentItemRandomPath }}
-      </span>
-    </div>
+    <ItemPathChip
+      v-if="options.showPath"
+      v-show="hasCurrentItemData"
+      class="the-item-path-chip"
+      :path-start="currentItemSelectedPath"
+      :path-end="currentItemRandomPath"
+      @onClick="pausePlaying"
+    />
   </div>
 </template>
 
@@ -112,6 +106,7 @@ import {
 import TheLoop from './TheLoop.vue';
 import PauseBtn from './PauseBtn.vue';
 import DeleteModal from './DeleteModal.vue';
+import ItemPathChip from './ItemPathChip.vue';
 import HistoryChip from './ThePlayer/HistoryChip.vue';
 
 const defaultVideoOptions = {
@@ -129,6 +124,7 @@ export default {
     TheLoop,
     PauseBtn,
     DeleteModal,
+    ItemPathChip,
     HistoryChip,
   },
 
@@ -725,6 +721,13 @@ export default {
     z-index: 1000;
   }
 
+  .the-item-path-chip {
+    bottom: 5px;
+    right: 5px;
+    position: absolute;
+    z-index: 1000;
+  }
+
   .items-ctn {
     width: 100%;
     height: 100%;
@@ -760,7 +763,7 @@ export default {
     }
   }
 
-  &.opts-show-path {
+  &.opts-show-the-item-path-chip {
     .item.vid {
       &::-webkit-media-controls-panel {
         transition: transform 0.2s ease;
@@ -772,33 +775,6 @@ export default {
         }
       }
     }
-  }
-}
-
-.path-ctn {
-  bottom: 5px;
-  right: 5px;
-  word-break: break-all;
-  position: absolute;
-  z-index: 1000;
-  color: $grey-8;
-  background-color: $grey-7#{80};
-  padding: 0 5px;
-  border-radius: 5px;
-  transition: transform 0.2s ease, color 0.3s ease;
-
-  &:hover {
-    color: $grey-5;
-  }
-
-  .selected-path {
-    font-size: 1em;
-    margin-right: 4px;
-  }
-
-  .random-path {
-    font-size: 1.5em;
-    font-weight: bold;
   }
 }
 </style>

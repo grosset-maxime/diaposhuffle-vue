@@ -1,35 +1,34 @@
 <template>
   <div
-    class="path-ctn"
-    v-if="options.showPath && hasCurrentItemData"
+    class="item-path-chip"
+    @click="onClick"
   >
-    <span class="selected-path">
-      {{ currentItemSelectedPath }}
+    <span class="path-start">
+      {{ pathStart }}
     </span>
+
     <span
-      class="random-path"
-      v-show="currentItemRandomPath"
+      class="path-end"
+      v-show="pathEnd"
     >
-      {{ currentItemRandomPath }}
+      {{ pathEnd }}
     </span>
   </div>
 </template>
 
 <script>
-import {
-  PLAYER_G_HISTORY,
-  PLAYER_G_HISTORY_INDEX,
-  PLAYER_G_HISTORY_LENGTH,
-  PLAYER_G_HISTORY_ITEM,
-} from '../store/types';
-
 export default {
   name: 'ItemPathChip',
 
   props: {
-    show: {
-      type: Boolean,
-      default: false,
+    pathStart: {
+      type: String,
+      default: '',
+    },
+
+    pathEnd: {
+      type: String,
+      default: '',
     },
   },
 
@@ -39,28 +38,7 @@ export default {
 
   data: () => ({}),
 
-  computed: {
-    NS () { return 'player' },
-
-    history () { return this.$store.getters[`${this.NS}/${PLAYER_G_HISTORY}`] },
-
-    historyLength () { return this.$store.getters[`${this.NS}/${PLAYER_G_HISTORY_LENGTH}`] },
-
-    historyIndex () { return this.$store.getters[`${this.NS}/${PLAYER_G_HISTORY_INDEX}`] },
-
-    historyItem () {
-      return this.$store.getters[`${this.NS}/${PLAYER_G_HISTORY_ITEM}`](this.historyIndex);
-    },
-
-    currentItemCount () {
-      let count = 0;
-      this.history.items.forEach((item) => {
-        if (item.src === this.historyItem.src) { count += 1 }
-      });
-
-      return count;
-    },
-  },
+  computed: {},
 
   methods: {
     onClick () { this.$emit('onClick') },
@@ -69,14 +47,26 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.history {
-  padding: 0 6px;
-  background-color: $grey-8#{80};
-  color: $grey-5;
-  transition: color 0.3 ease;
+.item-path-chip {
+  word-break: break-all;
+  color: $grey-8;
+  background-color: $grey-7#{80};
+  padding: 0 5px;
+  border-radius: 5px;
+  transition: transform 0.2s ease, color 0.3s ease;
 
   &:hover {
-    color: $grey-0;
+    color: $grey-5;
+  }
+
+  .path-start {
+    font-size: 1em;
+    margin-right: 4px;
+  }
+
+  .path-end {
+    font-size: 1.5em;
+    font-weight: bold;
   }
 }
 </style>
