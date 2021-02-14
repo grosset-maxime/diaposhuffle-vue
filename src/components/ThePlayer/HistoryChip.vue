@@ -42,9 +42,12 @@ export default {
 
     currentItemCount () {
       let count = 0;
-      this.history.items.forEach((item) => {
-        if (item.src === this.historyItem.src) { count += 1 }
-      });
+
+      if (this.historyItem) {
+        this.history.items.forEach((item) => {
+          if (item.src === this.historyItem.src) { count += 1 }
+        });
+      }
 
       return count;
     },

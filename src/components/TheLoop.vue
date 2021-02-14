@@ -28,6 +28,7 @@ const LOOP_DETERMINATE_COLOR = '#2196f380'; // primary color + 50% opacity.
 const LOOP_INDETERMINATE_COLOR = '#E87B0080'; // $orange-1 + 50% opacity.
 const LOOP_DETERMINATE_HEIGHT = 10;
 const LOOP_INDETERMINATE_HEIGHT = 4;
+const LOOP_ANIMATION_WAIT = 200; // In ms.
 
 export default {
   name: 'TheLoop',
@@ -96,12 +97,13 @@ export default {
       this.looop();
     },
 
-    stopLooping () {
+    async stopLooping () {
+      this.clearTimeoutLoop();
+
       this.isLooping = false;
       this.stop = true;
 
-      this.goToLoopStart();
-      this.clearTimeoutLoop();
+      await this.goToLoopStart();
     },
 
     pauseLooping () {
@@ -115,6 +117,7 @@ export default {
       if (!this.pause) { return }
 
       this.pause = false;
+      this.stop = false;
 
       this.looop();
     },
@@ -138,21 +141,28 @@ export default {
         }
 
         // Add timeout to have feeling that loop reach the end.
-        wait(200).then(() => { this.onLoopEnd() });
+        wait(LOOP_ANIMATION_WAIT).then(() => { this.onLoopEnd() });
       }, this.LOOP_STEP);
     },
 
     clearTimeoutLoop () { clearTimeout(this.id); this.id = null },
 
-    goToLoopEnd () {
+    async goToLoopEnd (options) {
+      const prevValue = this.value;
+
       this.clearTimeoutLoop();
       this.value = this.duration;
-      this.onLoopEnd();
+
+      if (prevValue !== this.duration) { await wait(LOOP_ANIMATION_WAIT) }
+
+      this.onLoopEnd(options);
     },
 
     async goToLoopStart () {
+      const prevValue = this.value;
       this.value = 0;
-      await wait(100);
+
+      if (prevValue) { await wait(LOOP_ANIMATION_WAIT) }
     },
 
     setIndeterminate (isIndeterminate) {
@@ -167,9 +177,9 @@ export default {
       }
     },
 
-    onLoopEnd () {
+    onLoopEnd ({ noEvent = false } = {}) {
       this.isLooping = false;
-      this.$emit('onEnd');
+      if (!noEvent) { this.$emit('onEnd') }
     },
   },
 };

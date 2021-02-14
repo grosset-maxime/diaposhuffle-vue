@@ -17,8 +17,8 @@
     />
 
     <v-alert
-      :value="alert.show"
       class="alert"
+      :value="alert.show"
       :type="alert.severity"
       dismissible
       prominent
@@ -40,44 +40,23 @@
       @onCancel="hideDeleteModal({ deleteItem: false })"
     />
 
-    <div class="items-ctn">
-      <div
-        v-for="item in getItems()"
-        :key="item.name"
-        :ref="item.name"
-        :class="['item-ctn transition', item.name]"
-        :style="item.styles"
-        @click="onItemClick"
-      >
-        <img
-          v-if="item.src && (item.data || {}).isImage"
-          :src="item.src"
-          class="item img"
-          @load="item.onLoad"
-        >
-        <video
-          v-if="item.src && (item.data || {}).isVideo"
-          :src="item.src"
-          class="item vid"
-          :autoplay="item.videoOptions.autoplay"
-          :loop="item.videoOptions.loop"
-          :muted="item.videoOptions.muted"
-          :controls="item.videoOptions.controls"
-          :controlsList="item.videoOptions.controlsList"
-          @canplay="item.onLoad"
-          @pause="onPauseVideo()"
-          @play="onPlayVideo()"
-          disablePictureInPicture
-        />
-      </div>
-    </div>
+    <ItemsPlayer
+      class="the-items-player"
+      v-bind.sync="itemsPlayer.triggers"
+      :next-item-data="itemsPlayer.props.nextItemData"
+      :animate-switch-items="itemsPlayer.props.animateSwitchItems"
+      :mute-video="itemsPlayer.props.muteVideo"
+      @onClick="onItemsPlayerClick"
+      @onPlayingNextItem="onPlayingNextItem"
+      @playingItemDuration="setLoopDuration"
+    />
 
     <ItemPathChip
       v-if="options.showPath"
-      v-show="hasCurrentItemData"
+      v-show="showTheItemPathChip"
       class="the-item-path-chip"
-      :path-start="currentItemSelectedPath"
-      :path-end="currentItemRandomPath"
+      :path-start="playingItemSelectedPath"
+      :path-end="playingItemRandomPath"
       @onClick="pausePlaying"
     />
   </div>
@@ -107,15 +86,8 @@ import TheLoop from './TheLoop.vue';
 import PauseBtn from './PauseBtn.vue';
 import DeleteModal from './DeleteModal.vue';
 import ItemPathChip from './ItemPathChip.vue';
+import ItemsPlayer from './ItemsPlayer.vue';
 import HistoryChip from './ThePlayer/HistoryChip.vue';
-
-const defaultVideoOptions = {
-  autoplay: false,
-  loop: true,
-  muted: true,
-  controls: true,
-  controlsList: ['nofullscreen', 'nodownload', 'noremoteplayback'].join(' '),
-};
 
 export default {
   name: 'ThePlayer',
@@ -125,6 +97,7 @@ export default {
     PauseBtn,
     DeleteModal,
     ItemPathChip,
+    ItemsPlayer,
     HistoryChip,
   },
 
@@ -136,29 +109,21 @@ export default {
     pause: false,
     stop: true,
 
-    item1: {
-      name: 'item1',
-      src: '',
-      data: null,
-      styles: { opacity: 1, 'z-index': 500 },
-      videoOptions: { ...defaultVideoOptions },
-      onLoadResolve: null,
-      onLoad: () => {},
-    },
+    itemsPlayer: {
+      triggers: {
+        triggerShowNextItem: false,
+        triggerPauseItem: false,
+        triggerPlayItem: false,
+      },
 
-    item2: {
-      name: 'item2',
-      src: '',
-      data: null,
-      styles: { opacity: 0, 'z-index': 1 },
-      videoOptions: { ...defaultVideoOptions },
-      onLoadResolve: null,
-      onLoad: () => {},
-    },
+      props: {
+        nextItemData: undefined,
+        animateSwitchItems: true,
+        muteVideo: true,
+      },
 
-    fetchNextItemPromise: null,
-    currentItemName: 'item1',
-    goingToNextitem: true,
+      playingItemData: undefined,
+    },
 
     deleteModal: {
       show: false,
@@ -173,6 +138,16 @@ export default {
       content: '',
       severity: 'error',
     },
+
+    fetchNextItemPromise: undefined,
+
+    nextItemStates: {
+      startLooping: true,
+      playItem: true,
+      pause: false,
+    },
+
+    isNavigatingIntoHistory: false,
   }),
 
   computed: {
@@ -186,17 +161,15 @@ export default {
 
     loopDuration () { return this.loop.duration },
 
-    nextItemName () { return this.currentItemName === 'item1' ? 'item2' : 'item1' },
+    playingItemData () { return this.itemsPlayer.playingItemData },
 
-    currentItemData () { return this[this.currentItemName].data || {} },
+    playingItemSelectedPath () {
+      return (this.playingItemData || {}).customFolderPath || '';
+    },
 
-    currentItemSrc () { return this.currentItemData.src },
+    playingItemRandomPath () { return (this.playingItemData || {}).randomPublicPath || '' },
 
-    hasCurrentItemData () { return !!Object.keys(this.currentItemData).length },
-
-    currentItemSelectedPath () { return this.currentItemData.customFolderPath },
-
-    currentItemRandomPath () { return this.currentItemData.randomPublicPath },
+    showTheItemPathChip () { return !!this.playingItemData },
 
     history () { return this.$store.getters[`${this.NS}/${PLAYER_G_HISTORY}`] },
 
@@ -220,34 +193,40 @@ export default {
     },
   },
 
-  mounted () {
-    this.item1.onLoad = this.onLoadItem1;
-    this.item2.onLoad = this.onLoadItem2;
-    this.item1.videoOptions.muted = this.options.muteVideo;
-    this.item2.videoOptions.muted = this.options.muteVideo;
-
+  async mounted () {
     this.attachKeyboardPlayerShortcuts();
+
+    this.itemsPlayer.props.muteVideo = this.options.muteVideo;
 
     // Reset history index.
     this.historyIndex = this.historyLength - 1;
 
-    this.currentItemName = 'item1';
-
     this.stop = false;
     this.pause = false;
+
     this.onLoopEnd();
+
+    // TODO: remove TheLoopRef
+  },
+
+  updated () {
+  },
+
+  beforeDestroy () {
+    this.removeKeyboardPlayerShortcuts();
+    this.stopPlaying();
   },
 
   methods: {
-    startPlaying ({ startLooping = true } = {}) {
-      const itemName = this.currentItemName;
-
+    startPlaying ({ startLooping = true, playItem = true } = {}) {
       this.stop = false;
       this.pause = false;
 
       this.TheLoop.goToLoopStart();
 
-      this.startPlayingItem(itemName);
+      if (playItem) {
+        this.startPlayingItem();
+      }
 
       if (startLooping) {
         this.TheLoop.startLooping();
@@ -257,102 +236,87 @@ export default {
     stopPlaying () {
       this.stop = true;
 
-      this.stopPlayingItem(this.currentItemName);
+      this.stopPlayingItem();
 
       this.TheLoop.stopLooping();
 
       this.$store.dispatch(`${INDEX_A_PLAYER_STOP}`);
     },
 
-    pausePlaying ({ pauseItem = true } = {}) {
-      const itemName = this.currentItemName;
-
+    pausePlaying ({ pauseItem = true, pauseLooping = true } = {}) {
       this.pause = true;
 
       if (pauseItem) {
-        this.pausePlayingItem(itemName);
+        this.pausePlayingItem();
       }
 
-      this.TheLoop.pauseLooping();
+      if (pauseLooping) {
+        this.TheLoop.pauseLooping();
+      }
     },
 
-    resumePlaying ({ resumeItem = true } = {}) {
-      const itemName = this.currentItemName;
-
+    resumePlaying ({ resumeItem = true, resumeLooping = true } = {}) {
       this.pause = false;
 
       if (resumeItem) {
-        this.resumePlayingItem(itemName);
+        this.resumePlayingItem();
       }
 
-      this.TheLoop.resumeLooping();
+      if (resumeLooping) {
+        this.TheLoop.resumeLooping();
+      }
     },
 
-    setLoopIndeterminate (state) {
-      this.TheLoop.setIndeterminate(state);
-    },
+    setLoopIndeterminate (state) { this.TheLoop.setIndeterminate(state) },
 
     async onLoopEnd () {
-      await this.TheLoop.goToLoopStart().then(() => {
-        if (this.historyLength
-          && this.historyIndex < this.historyLength - 1
-        ) {
-          return this.goToNextItem({ pausePlaying: false });
-        }
+      await this.TheLoop.stopLooping();
 
-        this.pausePlayingItem(this.currentItemName);
+      if (this.isNavigatingIntoHistory) {
+        return this.goToNextItem();
+      }
 
-        this.setLoopIndeterminate(true);
+      this.nextItemStates.startLooping = true;
+      this.nextItemStates.playItem = true;
+      this.nextItemStates.pause = false;
 
-        return (this.fetchNextItemPromise || this.fetchNextItem()).then(() => {
-          this.fetchNextItemPromise = null;
+      this.setLoopIndeterminate(true);
 
-          this.setLoopIndeterminate(false);
+      let nextItemData;
+      try {
+        nextItemData = await (this.fetchNextItemPromise || this.fetchNextItem());
+      } catch (e) {
+        this.pausePlaying();
+        return Promise.resolve();
+      }
 
-          return this.animateItems().then(() => {
-            this.currentItemName = this.nextItemName;
+      // Next item will start to load.
+      this.itemsPlayer.props.nextItemData = nextItemData;
 
-            this.addHistoryItem(this.currentItemData);
-            this.historyIndex = this.historyLength - 1;
+      this.fetchNextItemPromise = this.fetchNextItem().catch(() => {});
 
-            this.fetchNextItemPromise = this.fetchNextItem().catch(() => {});
+      this.itemsPlayer.props.animateSwitchItems = true;
 
-            this.goingToNextitem = false;
+      // Next tick need to have time to set nextItemData before applying
+      // showNextItem.
+      await this.$nextTick();
 
-            this.startPlaying();
-          });
-        }).catch(() => {});
-      });
+      // Trigger ItemsPlayer to switch to the next item.
+      this.itemsPlayer.triggers.triggerShowNextItem = !this.stop;
+
+      return Promise.resolve();
     },
 
-    async animateItems () {
-      if (this.stop) { return }
+    startPlayingItem () { this.itemsPlayer.triggers.triggerPlayItem = true },
 
-      let currentItemPromiseResolve;
+    stopPlayingItem () { this.pausePlayingItem() },
 
-      const currentItemPromise = new Promise(
-        (resolveCurrent) => { currentItemPromiseResolve = resolveCurrent },
-      );
+    pausePlayingItem () { this.itemsPlayer.triggers.triggerPauseItem = true },
 
-      const currentItemRef = this.getItemRef(this.currentItemName);
+    resumePlayingItem () { this.itemsPlayer.triggers.triggerPlayItem = true },
 
-      const onTransitionEndCurrentItem = () => {
-        currentItemRef.removeEventListener('transitionend', onTransitionEndCurrentItem);
-        currentItemPromiseResolve();
-      };
-
-      currentItemRef.addEventListener('transitionend', onTransitionEndCurrentItem, false);
-
-      this.getItem(this.nextItemName).styles = {
-        'z-index': 500,
-        opacity: 1,
-      };
-      this.getItem(this.currentItemName).styles = {
-        'z-index': 1,
-        opacity: 0,
-      };
-
-      await currentItemPromise;
+    setLoopDuration () {
+      this.loop.duration = Math.max(this.playingItemData.duration, this.intervalOptions);
     },
 
     async fetchNextItem () {
@@ -370,7 +334,6 @@ export default {
       if (response.success) {
         nextItemData = response.item;
       } else {
-        this.pausePlaying();
         this.showAlert({
           content: response.error.publicMessage,
           severity: response.error.severity,
@@ -379,186 +342,64 @@ export default {
         throw new Error('fetchNextItem');
       }
 
-      // Next item will start to load.
-      return this.setItemData(this.nextItemName, nextItemData);
+      return nextItemData;
     },
 
-    createLoadItemPromise (itemName) {
-      return new Promise(
-        (resolve) => { this.getItem(itemName).onLoadResolve = resolve },
-      );
-    },
-
-    onLoadItem1 () { this.item1.onLoadResolve() },
-
-    onLoadItem2 () { this.item2.onLoadResolve() },
-
-    onItemClick (e) {
-      const { currentItemName } = this;
-      const { target } = e;
-
-      let itemEl;
-
-      if (this.isItemImage(currentItemName)) {
-        itemEl = this.getImageEl(currentItemName);
-      } else if (this.isItemVideo(currentItemName)) {
-        itemEl = this.getVideoEl(currentItemName);
+    async goToNextItem ({ pausePlaying = true } = {}) {
+      if (pausePlaying) {
+        this.nextItemStates.playItem = true;
+        this.nextItemStates.startLooping = false;
+        this.nextItemStates.pause = true;
       }
 
-      if (target === e.currentTarget
-        || target === itemEl
-      ) {
-        if (this.pause) {
-          this.resumePlaying();
-        } else {
-          this.pausePlaying();
-        }
-      }
+      await this.TheLoop.stopLooping();
+
+      return this.goToHistoryItem('next');
     },
 
-    onPauseVideo () {},
+    async goToPreviousItem () {
+      this.isNavigatingIntoHistory = true;
 
-    onPlayVideo () {},
+      this.nextItemStates.playItem = true;
+      this.nextItemStates.startLooping = false;
+      this.nextItemStates.pause = true;
 
-    startPlayingItem (itemName) {
-      this.setLoopDuration(itemName);
+      await this.TheLoop.stopLooping();
 
-      if (this.isItemVideo(itemName)) {
-        this.playVideo(itemName);
-      }
+      return this.goToHistoryItem('previous');
     },
 
-    stopPlayingItem (itemName) {
-      if (this.isItemVideo(itemName)) {
-        this.pauseVideo(itemName);
-      }
-    },
+    async goToHistoryItem (direction) {
+      const historyIndex = this.historyIndex + (direction === 'next' ? 1 : -1);
 
-    pausePlayingItem (itemName) {
-      if (this.isItemVideo(itemName)) {
-        this.pauseVideo(itemName);
-      }
-    },
-
-    resumePlayingItem (itemName) {
-      if (this.isItemVideo(itemName)) {
-        this.playVideo(itemName);
-      }
-    },
-
-    pauseVideo (itemName) { this.getVideoEl(itemName).pause() },
-
-    playVideo (itemName) { this.getVideoEl(itemName).play() },
-
-    isItemImage (itemName) { return !this.isItemVideo(itemName) },
-
-    isItemVideo (itemName) { return (this.getItemData(itemName) || {}).isVideo },
-
-    getItem (itemName) { return this[itemName] },
-
-    getItems () { return [this.item1, this.item2] },
-
-    getItemStyles (itemName) { return this.getItem(itemName).styles },
-
-    getItemRef (itemName) { return this.$refs[itemName][0] },
-
-    getImageEl (itemName) {
-      return this.getItemRef(itemName).querySelector('.item.img');
-    },
-
-    getVideoEl (itemName) {
-      return this.getItemRef(itemName).querySelector('.item.vid');
-    },
-
-    setItemData (itemName, data) {
-      const promise = this.createLoadItemPromise(itemName);
-      const item = this.getItem(itemName);
-
-      // To force item.data.src to be always different from previous item
-      // even if it is the same item src.
-      item.src = `${data.src}?b=${Date.now()}`;
-      item.data = data;
-
-      return promise;
-    },
-
-    setLoopDuration (itemName) {
-      let duration = this.intervalOptions;
-
-      if (this.isItemVideo(itemName)) {
-        const videoEl = this.getVideoEl(itemName);
-        duration = Math.max(videoEl.duration * 1000, this.intervalOptions);
-      }
-
-      this.loop.duration = duration;
-    },
-
-    getItemData (itemName) { return this.getItem(itemName).data },
-
-    clearItemOnLoad (itemName) { this.getItem(itemName).onLoadResolve = null },
-
-    goToNextItem ({ pausePlaying = true } = {}) {
-      const itemName = this.currentItemName;
-
-      this.clearItemOnLoad(itemName);
-
-      if (this.historyLength
-        && this.historyIndex < this.historyLength - 1
-      ) {
-        if (pausePlaying) { this.pausePlaying() }
-
-        return this.goToHistoryItem('next')
-          .then(() => {
-            this.startPlaying({ startLooping: !pausePlaying });
-
-            if (pausePlaying) {
-              this.TheLoop.goToLoopStart();
-              this.pausePlaying({ pauseItem: false });
-            }
-          });
-      }
-
-      if (!this.goingToNextitem) {
-        this.goingToNextitem = true;
-        this.TheLoop.goToLoopEnd();
-      }
-
-      return Promise.resolve();
-    },
-
-    goToPreviousItem ({ pausePlaying = true } = {}) {
-      const itemName = this.currentItemName;
-
-      this.clearItemOnLoad(itemName);
-
-      this.TheLoop.goToLoopStart();
-
-      if (pausePlaying) { this.pausePlaying() }
-
-      return this.goToHistoryItem('previous')
-        .then(() => {
-          this.startPlaying({ startLooping: !pausePlaying });
-
-          if (pausePlaying) {
-            this.TheLoop.goToLoopStart();
-            this.pausePlaying({ pauseItem: false });
-          }
-        });
-    },
-
-    goToHistoryItem (direction) {
-      const itemName = this.currentItemName;
-
-      this.historyIndex += (direction === 'next' ? 1 : -1);
-
-      if (this.historyIndex < 0) {
+      if (historyIndex < 0) {
         this.historyIndex = 0;
         return Promise.resolve();
       }
 
+      if (historyIndex >= this.historyLength) {
+        this.historyIndex = this.historyLength - 1;
+        this.isNavigatingIntoHistory = false;
+        return this.onLoopEnd();
+      }
+
+      this.historyIndex = historyIndex;
+
+      // Next item will start to load.
+      this.itemsPlayer.props.nextItemData = this.getHistoryItem(this.historyIndex);
+
+      this.itemsPlayer.props.animateSwitchItems = false;
+
+      // Next tick need to have time to set nextItemData before applying
+      // showNextItem.
+      await this.$nextTick();
+
       this.setLoopIndeterminate(true);
-      return this.setItemData(itemName, this.getHistoryItem(this.historyIndex))
-        .then(() => { this.setLoopIndeterminate(false) });
+
+      // Trigger ItemsPlayer to switch to the next item.
+      this.itemsPlayer.triggers.triggerShowNextItem = !this.stop;
+
+      return Promise.resolve();
     },
 
     getHistoryItem (index) {
@@ -581,7 +422,10 @@ export default {
 
       this.attachKeyboardPlayerShortcuts();
 
-      if (deleteItem) { this.deleteItem(this.currentItemSrc).catch(() => {}) }
+      if (deleteItem) {
+        this.deleteItem(this.itemsPlayer.playingItemData.src)
+          .catch(() => {});
+      }
     },
 
     async deleteItem (itemSrc) {
@@ -599,7 +443,7 @@ export default {
       }
 
       if (response.error) {
-        this.TheLoop.goToLoopStart();
+        this.TheLoop.stopLooping();
         this.pausePlaying();
 
         this.showAlert({
@@ -613,9 +457,7 @@ export default {
       return response;
     },
 
-    showTheHelp () {
-      this.$store.commit(INDEX_M_SHOW_THE_HELP, true);
-    },
+    showTheHelp () { this.$store.commit(INDEX_M_SHOW_THE_HELP, true) },
 
     showAlert ({ content = 'Unknow error.', severity = 'error' } = {}) {
       this.alert.show = true;
@@ -656,7 +498,7 @@ export default {
             break;
 
           case 'ArrowLeft':
-            this.goToPreviousItem({ pausePlaying: true });
+            this.goToPreviousItem();
             break;
 
           case 'Delete':
@@ -678,24 +520,56 @@ export default {
     removeKeyboardPlayerShortcuts () {
       window.removeEventListener('keyup', this.keyboardShortcuts.player);
     },
-  },
 
-  beforeDestroy () {
-    this.removeKeyboardPlayerShortcuts();
-    this.stopPlaying();
+    onItemsPlayerClick () {
+      if (this.pause) {
+        this.resumePlaying();
+      } else {
+        this.pausePlaying();
+      }
+    },
+
+    async onPlayingNextItem (playingItemData) {
+      this.itemsPlayer.playingItemData = playingItemData;
+
+      this.setLoopIndeterminate(false);
+
+      await this.TheLoop.goToLoopStart();
+
+      this.setLoopDuration();
+
+      if (this.nextItemStates.playItem) {
+        this.startPlayingItem();
+      } else {
+        this.pausePlayingItem();
+      }
+
+      if (this.nextItemStates.startLooping) {
+        this.TheLoop.startLooping();
+      } else {
+        this.TheLoop.pauseLooping();
+      }
+
+      this.pause = this.nextItemStates.pause;
+
+      if (!this.isNavigatingIntoHistory) {
+        this.addHistoryItem(playingItemData);
+        this.historyIndex = this.historyLength - 1;
+      }
+    },
   },
 };
 </script>
 
 <style lang="scss" scoped>
 .the-player {
-  width: 100vw;
-  height: 100vh;
-  background-color: $grey-8;
   position: absolute;
   top: 0;
   left: 0;
+  width: 100vw;
+  height: 100vh;
   z-index: 100;
+  background-color: $grey-8;
 
   .the-pause-btn {
     position: absolute;
@@ -722,45 +596,14 @@ export default {
   }
 
   .the-item-path-chip {
+    position: absolute;
     bottom: 5px;
     right: 5px;
-    position: absolute;
     z-index: 1000;
   }
 
-  .items-ctn {
-    width: 100%;
-    height: 100%;
+  .the-items-player {
     position: relative;
-
-    .item-ctn {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: absolute;
-      top: 0;
-      left: 0;
-
-      &.transition {
-        transition: opacity 300ms linear;
-      }
-
-      .item {
-        object-fit: contain;
-        width: 100%;
-        height: 100%;
-        outline: none;
-      }
-
-      .item.vid {
-        &::-webkit-media-controls-fullscreen-button,
-        &::-webkit-media-controls-download-button {
-          display: none;
-        }
-      }
-    }
   }
 
   &.opts-show-the-item-path-chip {

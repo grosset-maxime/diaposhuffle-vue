@@ -85,6 +85,7 @@ const mutations = {
   [PLAYER_M_ADD_HISTORY_ITEM] (state, item) { state.history.items.push(item) },
 
   [PLAYER_M_DELETE_HISTORY_ITEM] (state, itemSrc) {
+    state.history.index -= 1;
     state.history.items = state.history.items.filter(
       (item) => item.src !== itemSrc,
     );
