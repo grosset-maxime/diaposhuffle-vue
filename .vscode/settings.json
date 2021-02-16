@@ -11,6 +11,7 @@
   "files.trimFinalNewlines": true,
 
   "editor.tabSize": 2,
+  "editor.wordWrap": "on",
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
   },

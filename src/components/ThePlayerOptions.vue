@@ -54,10 +54,30 @@
         <span class="v-label theme--dark">
           Tag(s)
         </span>
+
         <v-btn
           class="secondary"
+          @click="showTaggerModal"
         >
           Select...
+        </v-btn>
+
+        <v-chip
+          v-if="nbSelectedTags"
+          class="tags-operator-chip mr-3 mt-0 mb-0"
+          outlined
+          color="orange"
+          filter
+        >
+          And
+        </v-chip>
+
+        <v-btn
+          v-if="nbSelectedTags"
+          class="secondary unselect-all-tags-btn"
+          @click="onUnselectAllTags"
+        >
+          Unselect All
         </v-btn>
       </v-col>
     </v-row>
@@ -160,6 +180,13 @@
       @onClose="onCloseFolderBrowser"
       @onSave="onSaveFolderBrowser"
     />
+
+    <TaggerModal
+      :show="taggerModal.show"
+      :selected="taggerModal.selected"
+      @onClose="onCloseTaggerModal"
+      @onSave="onSaveTaggerModal"
+    />
   </v-container>
 </template>
 
@@ -179,12 +206,14 @@ import {
 } from '../store/types';
 import { getKey } from '../utils/utils';
 import FolderBrowser from './FolderBrowser/FolderBrowser.vue';
+import TaggerModal from './Tagger/TaggerModal.vue';
 
 export default {
   name: 'ThePlayerOptions',
 
   components: {
     FolderBrowser,
+    TaggerModal,
   },
 
   emits: {
@@ -193,6 +222,11 @@ export default {
 
   data: () => ({
     folderBrowser: {
+      show: false,
+      selected: [],
+    },
+
+    taggerModal: {
       show: false,
       selected: [],
     },
@@ -257,6 +291,8 @@ export default {
     theHelp () { return this.$store.getters[INDEX_G_SHOW_THE_HELP] },
 
     nbSelectedFolders () { return this.folderBrowser.selected.length },
+
+    nbSelectedTags () { return this.taggerModal.selected.length },
   },
 
   watch: {
@@ -310,6 +346,36 @@ export default {
     setFolders (selectedFolders) {
       const folders = [...selectedFolders];
       this.$store.commit(`${this.NS}/${PLAYER_M_FILTERS}`, { folders });
+    },
+
+    showTaggerModal () {
+      this.removeKeyboardShortcuts();
+      this.taggerModal.show = true;
+    },
+
+    onCloseTaggerModal () {
+      this.taggerModal.show = false;
+      this.attachKeyboardShortcuts();
+    },
+
+    onSaveTaggerModal (selectedTags) {
+      this.taggerModal.selected = selectedTags;
+      this.setTags(selectedTags);
+    },
+
+    onUnselectAllTags () {
+      this.taggerModal.selected = [];
+      this.setTags([]);
+    },
+
+    onUnselectTag (tag) {
+      this.taggerModal.selected = this.taggerModal.selected.filter((t) => t !== tag);
+      this.setFolders(this.taggerModal.selected);
+    },
+
+    setTags (selectedTags) {
+      const tags = [...selectedTags];
+      this.$store.commit(`${this.NS}/${PLAYER_M_FILTERS}`, { tags });
     },
 
     resetInterval () { this.$store.commit(`${this.NS}/${PLAYER_M_RESET_INTERVAL}`) },

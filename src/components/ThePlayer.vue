@@ -205,8 +205,6 @@ export default {
     this.pause = false;
 
     this.onLoopEnd();
-
-    // TODO: remove TheLoopRef
   },
 
   updated () {

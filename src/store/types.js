@@ -36,6 +36,14 @@ export const PLAYER_A_DELETE_ITEM = 'Delete Item';
 /* ======================= */
 export const FOLDER_BROWSER_G_FOLDERS = 'Get Folders';
 
-export const FOLDER_BROWSER_M_ADD_ERROR = 'Add Error';
+export const FOLDER_BROWSER_M_ADD_ERROR = 'Add Folder Browser Error';
 
 export const FOLDER_BROWSER_A_FETCH_FOLDERS = 'Fetch Folders';
+
+/* === Tagger === */
+/* ============== */
+export const TAGGER_G_TAGS = 'Get Tags';
+
+export const TAGGER_M_ADD_ERROR = 'Add Tagger Error';
+
+export const TAGGER_A_FETCH_TAGS = 'Fetch Tags';
