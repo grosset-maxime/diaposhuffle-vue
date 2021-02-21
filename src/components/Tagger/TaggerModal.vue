@@ -95,9 +95,7 @@ export default {
     show (onShow) { return onShow ? this.onShow() : this.onHide() },
   },
 
-  mounted () {
-    this.fetchTags();
-  },
+  mounted () {},
 
   methods: {
     onShow () {

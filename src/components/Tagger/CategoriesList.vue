@@ -1,31 +1,31 @@
 <template>
-  <div class="tags-list">
+  <div class="categories-list">
     <v-chip
-      v-for="(tag) in tags"
-      :key="tag.id"
-      :class="['tag mr-1 mt-0 mb-1', {
-        selected: tag.selected
+      v-for="(cat) in categories"
+      :key="cat.id"
+      :class="['category mr-1 mt-0 mb-1', {
+        selected: cat.selected
       }]"
-      :color="getColor(tag.selected)"
+      :color="getColor(cat.selected)"
       outlined
       filter
-      @click="onSelect(tag)"
+      @click="onSelect(cat)"
     >
-      {{ tag.name }}
+      {{ cat.name }}
     </v-chip>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'TagsList',
+  name: 'CategoriesList',
 
   components: {
 
   },
 
   props: {
-    tags: {
+    categories: {
       type: Array,
       default: () => ([]),
     },
@@ -54,9 +54,9 @@ export default {
 
     onHide () {},
 
-    onSelect (tag) {
-      this.$set(tag, 'selected', !tag.selected);
-      this.$emit('onSelect', tag);
+    onSelect (cat) {
+      this.$set(cat, 'selected', !cat.selected);
+      this.$emit('onSelect', cat);
     },
 
     getColor (isSelected) {
@@ -69,11 +69,11 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.tags-list {
+.categories-list {
   display: flex;
   flex-wrap: wrap;
 
-  .tag {
+  .category {
     position: relative;
     display: flex;
     cursor: pointer;

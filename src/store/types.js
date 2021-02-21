@@ -43,7 +43,9 @@ export const FOLDER_BROWSER_A_FETCH_FOLDERS = 'Fetch Folders';
 /* === Tagger === */
 /* ============== */
 export const TAGGER_G_TAGS = 'Get Tags';
+export const TAGGER_G_CATEGORIES = 'Get Categories';
 
 export const TAGGER_M_ADD_ERROR = 'Add Tagger Error';
 
 export const TAGGER_A_FETCH_TAGS = 'Fetch Tags';
+export const TAGGER_A_FETCH_CATEGORIES = 'Fetch Categories';

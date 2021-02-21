@@ -10,6 +10,12 @@
       <input type="text">
     </div>
 
+    <div>
+      <CategoriesList
+        :categories="unselectedCategories"
+      />
+    </div>
+
     <div class="unselected-tags">
       <TagsList
         :tags="unselectedTags"
@@ -20,17 +26,21 @@
 
 <script>
 import {
-  TAGGER_A_FETCH_TAGS,
   TAGGER_G_TAGS,
+  TAGGER_G_CATEGORIES,
+  TAGGER_A_FETCH_TAGS,
+  TAGGER_A_FETCH_CATEGORIES,
 } from '../../store/types';
-import { getKey } from '../../utils/utils';
+import { getKey, deepClone } from '../../utils/utils';
 import TagsList from './TagsList.vue';
+import CategoriesList from './CategoriesList.vue';
 
 export default {
   name: 'Tagger',
 
   components: {
     TagsList,
+    CategoriesList,
   },
 
   props: {
@@ -47,6 +57,10 @@ export default {
 
     unselectedTags: [],
 
+    selectedCategories: [],
+
+    unselectedCategories: [],
+
     keyboardShortcuts: {
       main: () => {},
     },
@@ -58,11 +72,15 @@ export default {
     nbSelected () { return this.selectedTags.length },
 
     tags () { return this.$store.getters[`${this.NS}/${TAGGER_G_TAGS}`] },
+
+    categories () { return this.$store.getters[`${this.NS}/${TAGGER_G_CATEGORIES}`] },
   },
 
   watch: {},
 
-  mounted () {},
+  mounted () {
+    this.fetchTags();
+  },
 
   methods: {
     onShow () {
@@ -75,7 +93,8 @@ export default {
         // this.$refs.FolderList.onShow();
       }, 300);
 
-      this.unselectedTags = this.tags;
+      this.unselectedTags = this.tags.map((tag) => deepClone(tag));
+      this.unselectedCategories = this.categories.map((cat) => deepClone(cat));
     },
 
     onHide () { /* this.removeKeyboardShortcuts() */ },
@@ -87,6 +106,7 @@ export default {
     onUnselectAll () { this.selectedTags = [] },
 
     fetchTags () {
+      this.$store.dispatch(`${this.NS}/${TAGGER_A_FETCH_CATEGORIES}`);
       this.$store.dispatch(`${this.NS}/${TAGGER_A_FETCH_TAGS}`);
     },
 

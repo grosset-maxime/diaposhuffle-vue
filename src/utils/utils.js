@@ -15,3 +15,5 @@ export const getKey = (event) => {
   }
   return key;
 };
+
+export const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
