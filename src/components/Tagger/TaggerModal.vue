@@ -5,9 +5,11 @@
     fullscreen
     hide-overlay
     transition="dialog-bottom-transition"
+    persistent
+    no-click-animation
   >
     <v-card>
-      <v-toolbar>
+      <v-toolbar dense>
         <v-btn
           icon
           @click="onCancel"
@@ -38,6 +40,7 @@
         :selected="selected"
         @onSelect="onSelect"
         @onUnselect="onUnselect"
+        @onCancel="onCancel"
       />
     </v-card>
   </v-dialog>
@@ -48,7 +51,6 @@ import {
   TAGGER_A_FETCH_TAGS,
   TAGGER_G_TAGS,
 } from '../../store/types';
-import { getKey } from '../../utils/utils';
 import Tagger from './Tagger.vue';
 
 export default {
@@ -99,8 +101,6 @@ export default {
 
   methods: {
     onShow () {
-      // this.attachKeyboardShortcuts();
-
       // this.tags = [...this.selected];
 
       // Wait for v-dialog transition end before continuing.
@@ -109,7 +109,9 @@ export default {
       }, 300);
     },
 
-    onHide () { /* this.removeKeyboardShortcuts() */ },
+    onHide () {
+      this.$refs.Tagger.onHide();
+    },
 
     onSave () {
       this.$emit(
@@ -143,34 +145,6 @@ export default {
     fetchTags () {
       this.$store.dispatch(`${this.NS}/${TAGGER_A_FETCH_TAGS}`);
     },
-
-    attachKeyboardShortcuts () {
-      this.keyboardShortcuts.main = (e) => {
-        // console.log('FoldersBrowser e:', e);
-
-        const key = getKey(e);
-        switch (key) {
-          case 'Enter':
-            this.onSave();
-            break;
-
-          case 'Escape':
-            this.onCancel();
-            break;
-          default:
-        }
-      };
-
-      window.addEventListener('keyup', this.keyboardShortcuts.main);
-    },
-
-    removeKeyboardShortcuts () {
-      window.removeEventListener('keyup', this.keyboardShortcuts.main);
-    },
-  },
-
-  beforeDestroy () {
-    // this.removeKeyboardShortcuts();
   },
 };
 </script>
@@ -178,10 +152,10 @@ export default {
 <style lang="scss" scoped></style>
 
 <style lang="scss">
+$v-toolbar-height: 48px;
 .tagger-modal {
   .ctn {
-    // 56px (v-toolbar-title height) + 24px (v-container padding top + bottom)
-    height: calc(100vh - 64px);
+    height: calc(100vh - $v-toolbar-height);
     overflow: auto;
     padding: 10px;
     padding-bottom: 40px;

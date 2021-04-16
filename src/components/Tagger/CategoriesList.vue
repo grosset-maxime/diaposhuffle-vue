@@ -1,36 +1,26 @@
 <template>
   <div class="categories-list">
-    <v-chip
+    <categoryChip
       v-for="(cat) in categories"
-      :key="cat.id"
-      :class="['category mr-1 mt-0 mb-1', {
-        selected: cat.selected
-      }]"
-      :color="getColor(cat.selected)"
-      outlined
-      filter
-      @click="onSelect(cat)"
-    >
-      {{ cat.name }}
-    </v-chip>
+      :key="`${cat.id}-${Date.now()}`"
+      :category="cat"
+      @onClick="onClick"
+    />
   </div>
 </template>
 
 <script>
+import CategoryChip from './CategoryChip.vue';
+
 export default {
   name: 'CategoriesList',
 
   components: {
-
+    CategoryChip,
   },
 
   props: {
     categories: {
-      type: Array,
-      default: () => ([]),
-    },
-
-    selected: {
       type: Array,
       default: () => ([]),
     },
@@ -41,7 +31,9 @@ export default {
     onUnselect: null,
   },
 
-  data: () => ({}),
+  data: () => ({
+    selected: {},
+  }),
 
   computed: {},
 
@@ -54,13 +46,14 @@ export default {
 
     onHide () {},
 
-    onSelect (cat) {
-      this.$set(cat, 'selected', !cat.selected);
-      this.$emit('onSelect', cat);
-    },
+    onClick (catId) {
+      this.$set(this.selected, catId, !this.selected[catId]);
 
-    getColor (isSelected) {
-      return isSelected ? 'orange' : undefined;
+      if (this.selected[catId]) {
+        this.$emit('onSelect', catId);
+      } else {
+        this.$emit('onUnselect', catId);
+      }
     },
   },
 

@@ -6,19 +6,41 @@
       />
     </div>
 
-    <div class="filter-form">
-      <input type="text">
+    <div
+      v-if="!selectedTags.length"
+      class="selected-tags-empty"
+    >
+      No tags selected
     </div>
 
-    <div>
-      <CategoriesList
-        :categories="unselectedCategories"
+    <v-divider class="separator" />
+
+    <div class="filter-form">
+      <v-text-field
+        :value="filters.text"
+        @input="filters.text = ($event || '').toLowerCase()"
+        label="Filter tags"
+        prepend-icon="mdi-magnify"
+        clearable
       />
     </div>
+
+    <div class="categories-list">
+      <CategoriesList
+        :categories="categoriesList"
+        @onSelect="onSelectCategory"
+        @onUnselect="onUnselectCategory"
+      />
+    </div>
+
+    <v-divider class="separator" />
 
     <div class="unselected-tags">
       <TagsList
         :tags="unselectedTags"
+        :key="key"
+        :categories-filter="filters.categories"
+        :text-filter="filters.text"
       />
     </div>
   </div>
@@ -26,8 +48,8 @@
 
 <script>
 import {
-  TAGGER_G_TAGS,
-  TAGGER_G_CATEGORIES,
+  TAGGER_G_TAGS_LIST,
+  TAGGER_G_CATEGORIES_LIST,
   TAGGER_A_FETCH_TAGS,
   TAGGER_A_FETCH_CATEGORIES,
 } from '../../store/types';
@@ -50,9 +72,15 @@ export default {
     },
   },
 
-  emits: {},
+  emits: {
+    onCancel: null,
+  },
 
   data: () => ({
+    tagsList: [],
+
+    categoriesList: [],
+
     selectedTags: [],
 
     unselectedTags: [],
@@ -61,9 +89,16 @@ export default {
 
     unselectedCategories: [],
 
+    filters: {
+      text: '',
+      categories: {},
+    },
+
     keyboardShortcuts: {
       main: () => {},
     },
+
+    key: Date.now(),
   }),
 
   computed: {
@@ -71,9 +106,9 @@ export default {
 
     nbSelected () { return this.selectedTags.length },
 
-    tags () { return this.$store.getters[`${this.NS}/${TAGGER_G_TAGS}`] },
+    tagsListStore () { return this.$store.getters[`${this.NS}/${TAGGER_G_TAGS_LIST}`] },
 
-    categories () { return this.$store.getters[`${this.NS}/${TAGGER_G_CATEGORIES}`] },
+    categoriesListStore () { return this.$store.getters[`${this.NS}/${TAGGER_G_CATEGORIES_LIST}`] },
   },
 
   watch: {},
@@ -84,24 +119,35 @@ export default {
 
   methods: {
     onShow () {
-      // this.attachKeyboardShortcuts();
+      this.attachKeyboardShortcuts();
 
-      // this.tags = [...this.selected];
+      this.tagsList = this.tagsListStore.map((tag) => deepClone(tag));
+      this.categoriesList = this.categoriesListStore.map((cat) => deepClone(cat));
 
-      // Wait for v-dialog transition end before continuing.
-      setTimeout(() => {
-        // this.$refs.FolderList.onShow();
-      }, 300);
+      this.unselectedTags = this.tagsList;
+      this.unselectedCategories = this.categoriesList;
 
-      this.unselectedTags = this.tags.map((tag) => deepClone(tag));
-      this.unselectedCategories = this.categories.map((cat) => deepClone(cat));
+      // TODO: find a way to update the view when modal is hide and then show again.
+      this.key = Date.now();
     },
 
-    onHide () { /* this.removeKeyboardShortcuts() */ },
+    onHide () { this.removeKeyboardShortcuts() },
 
     onSelect () {},
 
     onUnSelect () {},
+
+    onCancel () {
+      this.$emit('onCancel');
+    },
+
+    onSelectCategory (catId) {
+      this.$set(this.filters.categories, catId, true);
+    },
+
+    onUnselectCategory (catId) {
+      this.$delete(this.filters.categories, catId);
+    },
 
     onUnselectAll () { this.selectedTags = [] },
 
@@ -112,12 +158,10 @@ export default {
 
     attachKeyboardShortcuts () {
       this.keyboardShortcuts.main = (e) => {
-        // console.log('FoldersBrowser e:', e);
-
         const key = getKey(e);
         switch (key) {
           case 'Enter':
-            this.onSave();
+            // this.onSave();
             break;
 
           case 'Escape':
@@ -143,5 +187,26 @@ export default {
 
 <style lang="scss" scoped>
 .tagger {
+  padding: 4px;
+
+  .selected-tags-empty {
+    text-align: center;
+    padding: 4px;
+    color: $grey-6;
+  }
+
+  .filter-form {
+    margin-bottom: 4px;
+    margin-left: 8px;
+    width: 250px;
+  }
+
+  .categories-list {
+    margin-top: 10px;
+  }
+
+  .separator {
+    margin: 8px 8px;
+  }
 }
 </style>

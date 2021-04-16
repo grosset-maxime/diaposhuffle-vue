@@ -1,27 +1,23 @@
 <template>
   <div class="tags-list">
-    <v-chip
-      v-for="(tag) in tags"
+    <TagChip
+      v-for="(tag) in filteredTags"
       :key="tag.id"
-      :class="['tag mr-1 mt-0 mb-1', {
-        selected: tag.selected
-      }]"
-      :color="getColor(tag.selected)"
-      outlined
-      filter
-      @click="onSelect(tag)"
-    >
-      {{ tag.name }}
-    </v-chip>
+      :tag="tag"
+      @onClick="onSelect"
+    />
   </div>
 </template>
 
 <script>
+import TagChip from '../TagChip.vue';
+import { isEmptyObj } from '../../utils/utils';
+
 export default {
   name: 'TagsList',
 
   components: {
-
+    TagChip,
   },
 
   props: {
@@ -34,6 +30,16 @@ export default {
       type: Array,
       default: () => ([]),
     },
+
+    categoriesFilter: {
+      type: Object,
+      default: undefined,
+    },
+
+    textFilter: {
+      type: String,
+      default: '',
+    },
   },
 
   emits: {
@@ -43,7 +49,34 @@ export default {
 
   data: () => ({}),
 
-  computed: {},
+  computed: {
+    filteredTags () {
+      const hasCategoriesFilter = !isEmptyObj(this.categoriesFilter);
+      const hasTextFilter = !!this.textFilter;
+
+      if (!hasCategoriesFilter && !hasTextFilter) {
+        return this.tags;
+      }
+
+      return this.tags.filter((tag) => {
+        let matchCategoriesFilter = true;
+        let matchTextFilter = true;
+
+        if (hasCategoriesFilter) {
+          matchCategoriesFilter = !!this.categoriesFilter[tag.category];
+        }
+
+        if (hasTextFilter) {
+          matchTextFilter = tag.name.toLowerCase().includes(
+            this.textFilter.toLowerCase(),
+          );
+        }
+
+        return matchCategoriesFilter
+          && matchTextFilter;
+      });
+    },
+  },
 
   watch: {},
 
@@ -54,9 +87,8 @@ export default {
 
     onHide () {},
 
-    onSelect (tag) {
-      this.$set(tag, 'selected', !tag.selected);
-      this.$emit('onSelect', tag);
+    onSelect (tagId) {
+      this.$emit('onSelect', tagId);
     },
 
     getColor (isSelected) {
@@ -72,14 +104,5 @@ export default {
 .tags-list {
   display: flex;
   flex-wrap: wrap;
-
-  .tag {
-    position: relative;
-    display: flex;
-    cursor: pointer;
-
-    &.selected {
-    }
-  }
 }
 </style>

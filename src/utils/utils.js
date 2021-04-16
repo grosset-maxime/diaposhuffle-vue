@@ -17,3 +17,8 @@ export const getKey = (event) => {
 };
 
 export const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
+
+export const isEmptyObj = (obj) => {
+  if (typeof obj !== 'object') { return true }
+  return Object.keys(obj).length === 0;
+};

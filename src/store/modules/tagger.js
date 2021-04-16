@@ -4,20 +4,24 @@
 import { getHeaders } from '../../utils/utils';
 import {
   TAGGER_G_TAGS,
+  TAGGER_G_TAGS_LIST,
+  TAGGER_G_CATEGORIES,
+  TAGGER_G_CATEGORIES_LIST,
+  TAGGER_G_CATEGORY,
+  TAGGER_G_CATEGORY_COLOR,
   TAGGER_M_ADD_ERROR,
   TAGGER_A_FETCH_TAGS,
   TAGGER_A_FETCH_CATEGORIES,
-  TAGGER_G_CATEGORIES,
 } from '../types';
 
 const BASE_URL = process.env.VUE_APP_BASE_URL || '';
 
 const state = () => ({
   tagsFetched: false,
-  tags: [],
+  tags: {},
 
   categoriesFetched: false,
-  categories: [],
+  categories: {},
 
   errors: [],
 });
@@ -25,7 +29,22 @@ const state = () => ({
 const getters = {
   [TAGGER_G_TAGS]: (state) => state.tags,
 
+  [TAGGER_G_TAGS_LIST]: (state) => Object.keys(state.tags).map((id) => state.tags[id]),
+
   [TAGGER_G_CATEGORIES]: (state) => state.categories,
+
+  [TAGGER_G_CATEGORIES_LIST]: (state) => Object.keys(state.categories).map(
+    (id) => state.categories[id],
+  ),
+
+  [TAGGER_G_CATEGORY]: (state) => (id) => state.categories[id],
+
+  [TAGGER_G_CATEGORY_COLOR]: (state) => (id) => {
+    if (!id) { return undefined }
+
+    const category = state.categories[id];
+    return category ? category.color : undefined;
+  },
 };
 
 const mutations = {
@@ -42,21 +61,23 @@ const mutations = {
   _setCategoriesFetched (state, value) { state.categoriesFetched = value },
 
   _setTags (state, tags) {
-    state.tags = tags;
+    tags.forEach((tag) => {
+      state.tags[tag.id] = tag;
+    });
   },
 
   _setCategories (state, categories) {
-    state.categories = categories;
+    categories.forEach((cat) => {
+      state.categories[cat.id] = cat;
+    });
   },
 };
 
 const actions = {
 
   async [TAGGER_A_FETCH_TAGS] ({ state, commit, getters }) {
-    const tags = getters[TAGGER_G_TAGS];
-
-    if (tags && state.tagsFetched) {
-      return tags;
+    if (state.tagsFetched) {
+      return getters[TAGGER_G_TAGS];
     }
 
     const url = `${BASE_URL}/api/getAllTags`;
@@ -92,10 +113,8 @@ const actions = {
   },
 
   async [TAGGER_A_FETCH_CATEGORIES] ({ state, commit, getters }) {
-    const categories = getters[TAGGER_G_CATEGORIES];
-
-    if (categories && state.categoriesFetched) {
-      return categories;
+    if (state.categoriesFetched) {
+      return getters[TAGGER_G_CATEGORIES];
     }
 
     const url = `${BASE_URL}/api/getAllTagCategories`;
