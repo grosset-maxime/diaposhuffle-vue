@@ -19,6 +19,9 @@
       <v-text-field
         :value="filters.text"
         @input="filters.text = ($event || '').toLowerCase()"
+        @focus="onFilterTextFocus"
+        @blur="onFilterTextBlur"
+        ref="filterText"
         label="Filter tags"
         prepend-icon="mdi-magnify"
         clearable
@@ -38,9 +41,12 @@
     <div class="unselected-tags">
       <TagsList
         :tags="unselectedTags"
+        :selected="selectedTagsIds"
         :key="key"
         :categories-filter="filters.categories"
         :text-filter="filters.text"
+        @onSelect="onSelect"
+        @onUnselect="onUnselect"
       />
     </div>
   </div>
@@ -74,6 +80,8 @@ export default {
 
   emits: {
     onCancel: null,
+    onSelect: null,
+    onUnselect: null,
   },
 
   data: () => ({
@@ -85,6 +93,8 @@ export default {
 
     unselectedTags: [],
 
+    selectedTagsIds: {},
+
     selectedCategories: [],
 
     unselectedCategories: [],
@@ -93,6 +103,8 @@ export default {
       text: '',
       categories: {},
     },
+
+    isFilterTextHasFocus: false,
 
     keyboardShortcuts: {
       main: () => {},
@@ -129,13 +141,21 @@ export default {
 
       // TODO: find a way to update the view when modal is hide and then show again.
       this.key = Date.now();
+
+      this.$refs.filterText.focus();
     },
 
     onHide () { this.removeKeyboardShortcuts() },
 
-    onSelect () {},
+    onSelect (tagId) {
+      this.$set(this.selectedTagsIds, tagId, true);
+      this.$emit('onSelect', tagId);
+    },
 
-    onUnSelect () {},
+    onUnselect (tagId) {
+      this.$delete(this.selectedTagsIds, tagId);
+      this.$emit('onUnselect', tagId);
+    },
 
     onCancel () {
       this.$emit('onCancel');
@@ -151,6 +171,18 @@ export default {
 
     onUnselectAll () { this.selectedTags = [] },
 
+    onFilterTextFocus () {
+      this.isFilterTextHasFocus = true;
+    },
+
+    onFilterTextBlur () {
+      this.isFilterTextHasFocus = false;
+    },
+
+    clearFilterText () {
+      this.filters.text = '';
+    },
+
     fetchTags () {
       this.$store.dispatch(`${this.NS}/${TAGGER_A_FETCH_CATEGORIES}`);
       this.$store.dispatch(`${this.NS}/${TAGGER_A_FETCH_TAGS}`);
@@ -165,7 +197,12 @@ export default {
             break;
 
           case 'Escape':
-            this.onCancel();
+            if (!this.isFilterTextHasFocus) {
+              this.onCancel();
+            }
+            if (this.isFilterTextHasFocus) {
+              this.clearFilterText();
+            }
             break;
           default:
         }

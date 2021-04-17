@@ -4,8 +4,17 @@
       v-for="(tag) in filteredTags"
       :key="tag.id"
       :tag="tag"
-      @onClick="onSelect"
+      :selected="selected[tag.id]"
+      clickable
+      @click="onTagClick"
     />
+
+    <div
+      v-if="hasNoResults"
+      class="no-results"
+    >
+      No matching tags.
+    </div>
   </div>
 </template>
 
@@ -27,8 +36,8 @@ export default {
     },
 
     selected: {
-      type: Array,
-      default: () => ([]),
+      type: Object,
+      default: () => ({}),
     },
 
     categoriesFilter: {
@@ -50,23 +59,34 @@ export default {
   data: () => ({}),
 
   computed: {
-    filteredTags () {
-      const hasCategoriesFilter = !isEmptyObj(this.categoriesFilter);
-      const hasTextFilter = !!this.textFilter;
+    isFiltering () {
+      return this.hasCategoriesFilter || this.hasTextFilter;
+    },
 
-      if (!hasCategoriesFilter && !hasTextFilter) {
-        return this.tags;
-      }
+    hasCategoriesFilter () {
+      return !isEmptyObj(this.categoriesFilter);
+    },
+
+    hasTextFilter () {
+      return !!this.textFilter;
+    },
+
+    hasNoResults () {
+      return this.isFiltering && this.filteredTags.length === 0;
+    },
+
+    filteredTags () {
+      if (!this.isFiltering) { return this.tags }
 
       return this.tags.filter((tag) => {
         let matchCategoriesFilter = true;
         let matchTextFilter = true;
 
-        if (hasCategoriesFilter) {
+        if (this.hasCategoriesFilter) {
           matchCategoriesFilter = !!this.categoriesFilter[tag.category];
         }
 
-        if (hasTextFilter) {
+        if (this.hasTextFilter) {
           matchTextFilter = tag.name.toLowerCase().includes(
             this.textFilter.toLowerCase(),
           );
@@ -87,8 +107,14 @@ export default {
 
     onHide () {},
 
-    onSelect (tagId) {
-      this.$emit('onSelect', tagId);
+    onTagClick (tagId) {
+      if (this.selected[tagId]) {
+        this.$delete(this.selected, tagId);
+        this.$emit('onUnselect', tagId);
+      } else {
+        this.$set(this.selected, tagId, true);
+        this.$emit('onSelect', tagId);
+      }
     },
 
     getColor (isSelected) {
@@ -104,5 +130,12 @@ export default {
 .tags-list {
   display: flex;
   flex-wrap: wrap;
+
+  .no-results {
+    text-align: center;
+    padding: 4px;
+    color: $grey-6;
+    width: 100%;
+  }
 }
 </style>

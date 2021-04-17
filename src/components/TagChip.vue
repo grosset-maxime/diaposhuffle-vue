@@ -2,14 +2,27 @@
   <div
     class="tag-chip"
     :class="['tag', {
-      selected: isSelected,
+      selected,
+      clickable,
       'has-no-category': !hasCategory
     }]"
     :style="styles"
-    @click="onClick"
+    @click="click"
   >
-    <span>
+    <span class="tag-content">
       {{ tag.name }}
+
+      <v-btn
+        v-if="close"
+        icon
+        x-small
+        class="close-btn"
+      >
+        <v-icon
+          @click="$emit('click:close', tag.id)"
+          class="close-icon"
+        >mdi-close-circle</v-icon>
+      </v-btn>
     </span>
   </div>
 </template>
@@ -28,10 +41,26 @@ export default {
       type: Object,
       default: () => ({}),
     },
+
+    selected: {
+      type: Boolean,
+      default: false,
+    },
+
+    clickable: {
+      type: Boolean,
+      default: false,
+    },
+
+    close: {
+      type: Boolean,
+      default: false,
+    },
   },
 
   emits: {
-    onClick: null,
+    click: null,
+    'click:close': null,
   },
 
   data: () => ({
@@ -40,8 +69,6 @@ export default {
 
   computed: {
     NS () { return 'tagger' },
-
-    isSelected () { return this.tag.selected },
 
     categoryId () { return this.tag.category },
 
@@ -60,7 +87,7 @@ export default {
     tagColor () {
       let color;
       if (this.hasCategory) {
-        color = this.isSelected
+        color = this.selected
           ? `#${this.categoryColor}FF`
           : `#${this.categoryColor}FF`;
       }
@@ -70,7 +97,7 @@ export default {
     tagBgColor () {
       let color;
       if (this.hasCategory) {
-        color = this.isSelected
+        color = this.selected
           ? `#${this.categoryColor}AA`
           : `#${this.categoryColor}20`;
       } else if (this.tag.selected) {
@@ -82,7 +109,7 @@ export default {
     tagBoxShadow () {
       let boxShadow;
 
-      if (this.isSelected) {
+      if (this.selected) {
         if (this.hasCategory) {
           boxShadow = `0 0 7px 0 ${this.tagColor}`;
         } else {
@@ -96,12 +123,16 @@ export default {
     tagFontWeight () {
       let weight;
 
-      if (this.isSelected) {
+      if (this.selected) {
         weight = 'bold';
       }
 
       return weight;
     },
+  },
+
+  watch: {
+    selected () { this.setStyles() },
   },
 
   mounted () {
@@ -118,11 +149,7 @@ export default {
       };
     },
 
-    onClick () {
-      this.$set(this.tag, 'selected', !this.isSelected);
-      this.setStyles();
-      this.$emit('onClick', this.tag.id);
-    },
+    click () { this.$emit('click', this.tag.id) },
   },
 };
 </script>
@@ -130,15 +157,32 @@ export default {
 <style lang="scss" scoped>
 .tag-chip {
   position: relative;
-  display: flex;
-  cursor: pointer;
+  display: inline-flex;
   height: 32px;
   border-radius: 16px;
   border: 1px solid #ffffff;
   padding: 0 12px;
   margin: 0 8px 10px 0;
-  line-height: 32px;
   user-select: none;
+
+  .tag-content {
+    height: 100%;
+    display: inline-flex;
+    align-items: center;
+
+    .close-btn {
+      margin-left: 6px;
+      margin-right: -4px;
+
+      .close-icon:hover {
+        opacity: 0.72;
+      }
+    }
+  }
+
+  &.clickable {
+    cursor: pointer;
+  }
 
   &.has-no-category {
     border-style: dashed;

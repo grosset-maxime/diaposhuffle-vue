@@ -64,7 +64,7 @@
 
         <v-chip
           v-if="nbSelectedTags"
-          class="tags-operator-chip mr-3 mt-0 mb-0"
+          class="tags-operator-chip ml-5 mr-5 mt-0 mb-0"
           outlined
           color="orange"
           filter
@@ -79,6 +79,22 @@
         >
           Unselect All
         </v-btn>
+      </v-col>
+    </v-row>
+
+    <v-row
+      v-if="taggerModal.selected.length"
+      align="center"
+      class="selected-tags"
+    >
+      <v-col>
+        <TagChip
+          v-for="tag in taggerModal.selected"
+          :key="tag.id"
+          :tag="tag"
+          close
+          @click:close="onUnselectTag"
+        />
       </v-col>
     </v-row>
 
@@ -207,6 +223,7 @@ import {
 import { getKey } from '../utils/utils';
 import FolderBrowser from './FolderBrowser/FolderBrowser.vue';
 import TaggerModal from './Tagger/TaggerModal.vue';
+import TagChip from './TagChip.vue';
 
 export default {
   name: 'ThePlayerOptions',
@@ -214,6 +231,7 @@ export default {
   components: {
     FolderBrowser,
     TaggerModal,
+    TagChip,
   },
 
   emits: {
@@ -368,8 +386,8 @@ export default {
       this.setTags([]);
     },
 
-    onUnselectTag (tag) {
-      this.taggerModal.selected = this.taggerModal.selected.filter((t) => t !== tag);
+    onUnselectTag (tagId) {
+      this.taggerModal.selected = this.taggerModal.selected.filter((tag) => tag.id !== tagId);
       this.setFolders(this.taggerModal.selected);
     },
 
@@ -421,16 +439,20 @@ export default {
   margin-right: 5px;
   @include w-scrollbar;
 }
+
 .v-label {
   margin-right: 20px;
 }
+
 .interval-col {
   padding-right: 20%;
 }
+
 .unselect-all-folders-btn {
   text-transform: none;
   margin-left: 60px;
 }
+
 .nb-selected-folders {
   margin-left: 20px;
 }

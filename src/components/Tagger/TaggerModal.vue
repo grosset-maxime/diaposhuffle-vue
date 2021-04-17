@@ -78,7 +78,7 @@ export default {
   },
 
   data: () => ({
-    selectedTags: [],
+    selectedTagsIds: {},
 
     keyboardShortcuts: {
       main: () => {},
@@ -88,7 +88,7 @@ export default {
   computed: {
     NS () { return 'tagger' },
 
-    nbSelected () { return this.selectedTags.length },
+    nbSelected () { return Object.keys(this.selectedTagsIds).length },
 
     tags () { return this.$store.getters[`${this.NS}/${TAGGER_G_TAGS}`] },
   },
@@ -116,7 +116,7 @@ export default {
     onSave () {
       this.$emit(
         'onSave',
-        [...this.selectedTags],
+        Object.keys(this.selectedTagsIds).map((id) => this.tags[id]),
       );
       this.onClose();
     },
@@ -130,17 +130,15 @@ export default {
       this.$emit('onClose');
     },
 
-    onSelect (tag) {
-      if (!this.selectedTags.includes(tag)) {
-        this.selectedTags.push(tag);
-      }
+    onSelect (tagId) {
+      this.$set(this.selectedTagsIds, tagId, true);
     },
 
-    onUnselect (tag) {
-      this.selectedTags = this.selectedTags.filter((t) => t !== tag);
+    onUnselect (tagId) {
+      this.$delete(this.selectedTagsIds, tagId);
     },
 
-    onUnselectAll () { this.selectedTags = [] },
+    onUnselectAll () { this.selectedTags = {} },
 
     fetchTags () {
       this.$store.dispatch(`${this.NS}/${TAGGER_A_FETCH_TAGS}`);
