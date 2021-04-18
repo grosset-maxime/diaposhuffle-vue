@@ -27,7 +27,7 @@
 
 <script>
 import TagChip from '../TagChip.vue';
-import { isEmptyObj } from '../../utils/utils';
+import { isEmptyObj, getRandomElement } from '../../utils/utils';
 
 export default {
   name: 'TagsList',
@@ -126,6 +126,16 @@ export default {
 
     getColor (isSelected) {
       return isSelected ? 'orange' : undefined;
+    },
+
+    selectRandom () {
+      const randomdTag = getRandomElement(
+        this.filteredTags.filter((tag) => !this.selected[tag.id]),
+      );
+
+      if (randomdTag) {
+        this.onTagClick(randomdTag.id);
+      }
     },
   },
 
