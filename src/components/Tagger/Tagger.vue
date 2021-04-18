@@ -48,6 +48,11 @@
         @onSelect="onSelect"
         @onUnselect="onUnselect"
       />
+
+      <CircularLoading
+        v-if="isLoading"
+        indeterminate
+      />
     </div>
   </div>
 </template>
@@ -60,15 +65,17 @@ import {
   TAGGER_A_FETCH_CATEGORIES,
 } from '../../store/types';
 import { getKey, deepClone } from '../../utils/utils';
-import TagsList from './TagsList.vue';
 import CategoriesList from './CategoriesList.vue';
+import CircularLoading from '../CircularLoading.vue';
+import TagsList from './TagsList.vue';
 
 export default {
   name: 'Tagger',
 
   components: {
-    TagsList,
     CategoriesList,
+    CircularLoading,
+    TagsList,
   },
 
   props: {
@@ -111,6 +118,8 @@ export default {
     },
 
     key: Date.now(),
+
+    isLoading: true,
   }),
 
   computed: {
@@ -125,22 +134,27 @@ export default {
 
   watch: {},
 
-  mounted () {
-    this.fetchTags();
-  },
+  mounted () {},
 
   methods: {
     onShow () {
       this.attachKeyboardShortcuts();
 
-      this.tagsList = this.tagsListStore.map((tag) => deepClone(tag));
-      this.categoriesList = this.categoriesListStore.map((cat) => deepClone(cat));
+      this.fetchTags()
+        .then(() => {
+          this.isLoading = false;
 
-      this.unselectedTags = this.tagsList;
-      this.unselectedCategories = this.categoriesList;
+          this.tagsList = this.tagsListStore.map((tag) => deepClone(tag));
+          this.categoriesList = this.categoriesListStore.map((cat) => deepClone(cat));
 
-      // TODO: find a way to update the view when modal is hide and then show again.
-      this.key = Date.now();
+          this.unselectedTags = this.tagsList;
+          this.unselectedCategories = this.categoriesList;
+
+          this.selectedTagsIds = Object.fromEntries(this.selected.map((tag) => [tag.id, true]));
+
+          // TODO: find a way to update the view when modal is hide and then show again.
+          this.key = Date.now();
+        });
 
       this.$refs.filterText.focus();
     },
@@ -184,8 +198,10 @@ export default {
     },
 
     fetchTags () {
-      this.$store.dispatch(`${this.NS}/${TAGGER_A_FETCH_CATEGORIES}`);
-      this.$store.dispatch(`${this.NS}/${TAGGER_A_FETCH_TAGS}`);
+      return Promise.all([
+        this.$store.dispatch(`${this.NS}/${TAGGER_A_FETCH_TAGS}`),
+        this.$store.dispatch(`${this.NS}/${TAGGER_A_FETCH_CATEGORIES}`),
+      ]);
     },
 
     attachKeyboardShortcuts () {

@@ -1,6 +1,6 @@
 /* eslint-disable no-shadow */
 /* eslint-disable no-param-reassign */
-// import Vue from 'vue';
+import Vue from 'vue';
 import { getHeaders } from '../../utils/utils';
 import {
   FOLDER_BROWSER_G_FOLDERS,
@@ -50,7 +50,7 @@ const mutations = {
       );
     }
 
-    folder.fetching = isFetching;
+    Vue.set(folder, 'fetching', isFetching);
   },
 
   _setChildren (state, { folder, path = '', children = [] }) {
@@ -61,10 +61,10 @@ const mutations = {
       );
     }
 
-    state.folders.pathes[folder.path || '/'] = folder;
+    Vue.set(state.folders.pathes, folder.path || '/', folder);
 
-    folder.fetched = true;
-    folder.fetching = false;
+    Vue.set(folder, 'fetched', true);
+    Vue.set(folder, 'fetching', true);
 
     children.forEach((childName) => {
       const childPath = `${path}/${childName}`;
@@ -75,7 +75,7 @@ const mutations = {
         fetched: false,
       };
 
-      state.folders.pathes[childPath] = child;
+      Vue.set(state.folders.pathes, childPath, child);
 
       folder.children.push(child);
     });

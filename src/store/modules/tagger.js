@@ -61,15 +61,11 @@ const mutations = {
   _setCategoriesFetched (state, value) { state.categoriesFetched = value },
 
   _setTags (state, tags) {
-    tags.forEach((tag) => {
-      state.tags[tag.id] = tag;
-    });
+    state.tags = Object.fromEntries(tags.map((tag) => [tag.id, tag]));
   },
 
   _setCategories (state, categories) {
-    categories.forEach((cat) => {
-      state.categories[cat.id] = cat;
-    });
+    state.categories = Object.fromEntries(categories.map((cat) => [cat.id, cat]));
   },
 };
 

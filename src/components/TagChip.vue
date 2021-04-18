@@ -119,16 +119,6 @@ export default {
 
       return boxShadow;
     },
-
-    tagFontWeight () {
-      let weight;
-
-      if (this.selected) {
-        weight = 'bold';
-      }
-
-      return weight;
-    },
   },
 
   watch: {
@@ -145,7 +135,6 @@ export default {
         'background-color': this.tagBgColor,
         'border-color': this.tagColor,
         'box-shadow': this.tagBoxShadow,
-        'font-weight': this.tagFontWeight,
       };
     },
 
@@ -189,6 +178,7 @@ export default {
   }
 
   &.selected {
+    text-shadow: 0 0 1px #ffffff;
   }
 }
 </style>

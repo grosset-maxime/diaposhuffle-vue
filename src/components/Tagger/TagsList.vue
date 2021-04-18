@@ -15,6 +15,13 @@
     >
       No matching tags.
     </div>
+
+    <div
+      v-if="!tags.length && false"
+      class="no-tags"
+    >
+      No tags.
+    </div>
   </div>
 </template>
 
