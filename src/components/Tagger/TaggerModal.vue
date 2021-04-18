@@ -101,8 +101,6 @@ export default {
 
   methods: {
     onShow () {
-      // this.tags = [...this.selected];
-
       // Wait for v-dialog transition end before continuing.
       setTimeout(() => {
         this.$refs.Tagger.onShow();
@@ -128,6 +126,7 @@ export default {
     onClose () {
       this.onHide();
       this.$emit('onClose');
+      this.selectedTagsIds = {};
     },
 
     onSelect (tagId) {

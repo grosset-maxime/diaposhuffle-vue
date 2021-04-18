@@ -41,7 +41,7 @@
     <div class="unselected-tags">
       <TagsList
         :tags="unselectedTags"
-        :selected="selectedTagsIds"
+        :selected="selectedIds"
         :key="key"
         :categories-filter="filters.categories"
         :text-filter="filters.text"
@@ -100,7 +100,7 @@ export default {
 
     unselectedTags: [],
 
-    selectedTagsIds: {},
+    selectedIds: {},
 
     selectedCategories: [],
 
@@ -150,7 +150,7 @@ export default {
           this.unselectedTags = this.tagsList;
           this.unselectedCategories = this.categoriesList;
 
-          this.selectedTagsIds = Object.fromEntries(this.selected.map((tag) => [tag.id, true]));
+          this.selectedIds = Object.fromEntries(this.selected.map((tag) => [tag.id, true]));
 
           // TODO: find a way to update the view when modal is hide and then show again.
           this.key = Date.now();
@@ -162,12 +162,12 @@ export default {
     onHide () { this.removeKeyboardShortcuts() },
 
     onSelect (tagId) {
-      this.$set(this.selectedTagsIds, tagId, true);
+      this.$set(this.selectedIds, tagId, true);
       this.$emit('onSelect', tagId);
     },
 
     onUnselect (tagId) {
-      this.$delete(this.selectedTagsIds, tagId);
+      this.$delete(this.selectedIds, tagId);
       this.$emit('onUnselect', tagId);
     },
 
