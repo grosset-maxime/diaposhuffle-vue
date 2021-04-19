@@ -2,9 +2,10 @@
   <div class="categories-list">
     <categoryChip
       v-for="(cat) in categories"
-      :key="`${cat.id}-${Date.now()}`"
+      :key="`cat-${cat.id}`"
       :category="cat"
-      @onClick="onClick"
+      :selected="selected[cat.id]"
+      @click="onCategoryClick"
     />
   </div>
 </template>
@@ -24,6 +25,11 @@ export default {
       type: Array,
       default: () => ([]),
     },
+
+    selected: {
+      type: Object,
+      default: () => ({}),
+    },
   },
 
   emits: {
@@ -31,9 +37,7 @@ export default {
     onUnselect: null,
   },
 
-  data: () => ({
-    selected: {},
-  }),
+  data: () => ({}),
 
   computed: {},
 
@@ -42,22 +46,14 @@ export default {
   mounted () {},
 
   methods: {
-    onShow () {},
-
-    onHide () {},
-
-    onClick (catId) {
-      this.$set(this.selected, catId, !this.selected[catId]);
-
-      if (this.selected[catId]) {
+    onCategoryClick (catId) {
+      if (!this.selected[catId]) {
         this.$emit('onSelect', catId);
       } else {
         this.$emit('onUnselect', catId);
       }
     },
   },
-
-  beforeDestroy () {},
 };
 </script>
 
@@ -65,14 +61,5 @@ export default {
 .categories-list {
   display: flex;
   flex-wrap: wrap;
-
-  .category {
-    position: relative;
-    display: flex;
-    cursor: pointer;
-
-    &.selected {
-    }
-  }
 }
 </style>

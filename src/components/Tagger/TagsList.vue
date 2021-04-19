@@ -2,7 +2,7 @@
   <div class="tags-list">
     <TagChip
       v-for="(tag) in filteredTags"
-      :key="tag.id"
+      :key="`tag-${tag.id}`"
       :tag="tag"
       :selected="selected[tag.id]"
       clickable
@@ -110,10 +110,6 @@ export default {
   mounted () {},
 
   methods: {
-    onShow () {},
-
-    onHide () {},
-
     onTagClick (tagId) {
       if (this.selected[tagId]) {
         this.$delete(this.selected, tagId);

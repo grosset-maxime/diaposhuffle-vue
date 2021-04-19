@@ -49,6 +49,7 @@
     <div class="categories-list">
       <CategoriesList
         :categories="categoriesList"
+        :selected="selectedCategoriesIds"
         @onSelect="onSelectCategory"
         @onUnselect="onUnselectCategory"
       />
@@ -120,6 +121,7 @@ export default {
     unselectedTags: [],
 
     selectedIds: {},
+    selectedCategoriesIds: {},
 
     selectedCategories: [],
 
@@ -169,10 +171,11 @@ export default {
           this.tagsList = this.tagsListStore.map((tag) => deepClone(tag));
           this.categoriesList = this.categoriesListStore.map((cat) => deepClone(cat));
 
-          this.unselectedTags = this.tagsList;
-          this.unselectedCategories = this.categoriesList;
-
           this.selectedIds = Object.fromEntries(this.selected.map((tag) => [tag.id, true]));
+
+          this.unselectedTags = this.tagsList.filter((tag) => !this.selectedIds[tag.id]);
+          this.selectedTags = this.tagsList.filter((tag) => this.selectedIds[tag.id]);
+          this.unselectedCategories = this.categoriesList;
 
           // TODO: find a way to update the view when modal is hide and then show again.
           this.key = Date.now();
@@ -198,10 +201,12 @@ export default {
     },
 
     onSelectCategory (catId) {
+      this.$set(this.selectedCategoriesIds, catId, true);
       this.$set(this.filters.categories, catId, true);
     },
 
     onUnselectCategory (catId) {
+      this.$delete(this.selectedCategoriesIds, catId);
       this.$delete(this.filters.categories, catId);
     },
 
@@ -275,7 +280,7 @@ export default {
 
 <style lang="scss" scoped>
 .tagger {
-  padding: 4px;
+  padding: 4px 12px;
 
   .selected-tags-empty {
     text-align: center;
@@ -289,7 +294,6 @@ export default {
 
     .filter-form {
       margin-bottom: 4px;
-      margin-left: 8px;
       width: 250px;
     }
 
@@ -304,7 +308,7 @@ export default {
   }
 
   .separator {
-    margin: 8px 8px;
+    margin: 8px 0;
   }
 }
 </style>

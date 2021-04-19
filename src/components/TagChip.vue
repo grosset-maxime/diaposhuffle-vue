@@ -21,7 +21,23 @@
         <v-icon
           @click="$emit('click:close', tag.id)"
           class="close-icon"
-        >mdi-close-circle</v-icon>
+        >
+          mdi-close-circle
+        </v-icon>
+      </v-btn>
+
+      <v-btn
+        v-if="edit"
+        icon
+        x-small
+        class="edit-btn"
+      >
+        <v-icon
+          @click="$emit('click:edit', tag.id)"
+          class="edit-icon"
+        >
+          mdi-pencil
+        </v-icon>
       </v-btn>
     </span>
   </div>
@@ -56,11 +72,17 @@ export default {
       type: Boolean,
       default: false,
     },
+
+    edit: {
+      type: Boolean,
+      default: false,
+    },
   },
 
   emits: {
     click: null,
     'click:close': null,
+    'click:edit': null,
   },
 
   data: () => ({
@@ -151,7 +173,7 @@ export default {
   border-radius: 16px;
   border: 1px solid #ffffff;
   padding: 0 12px;
-  margin: 0 8px 10px 0;
+  margin: 5px 8px 5px 0;
   user-select: none;
 
   .tag-content {
@@ -159,11 +181,13 @@ export default {
     display: inline-flex;
     align-items: center;
 
-    .close-btn {
+    .close-btn,
+    .edit-btn {
       margin-left: 6px;
       margin-right: -4px;
 
-      .close-icon:hover {
+      .close-icon:hover,
+      .edit-icon:hover {
         opacity: 0.72;
       }
     }
