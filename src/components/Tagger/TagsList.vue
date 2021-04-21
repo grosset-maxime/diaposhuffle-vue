@@ -17,7 +17,7 @@
     </div>
 
     <div
-      v-if="!tags.length && false"
+      v-if="showNoTags && !hasTags"
       class="no-tags"
     >
       No tags.
@@ -56,6 +56,11 @@ export default {
       type: String,
       default: '',
     },
+
+    showNoTags: {
+      type: Boolean,
+      default: false,
+    },
   },
 
   emits: {
@@ -70,16 +75,14 @@ export default {
       return this.hasCategoriesFilter || this.hasTextFilter;
     },
 
-    hasCategoriesFilter () {
-      return !isEmptyObj(this.categoriesFilter);
-    },
+    hasCategoriesFilter () { return !isEmptyObj(this.categoriesFilter) },
 
-    hasTextFilter () {
-      return !!this.textFilter;
-    },
+    hasTextFilter () { return !!this.textFilter },
+
+    hasTags () { return this.tags.length > 0 },
 
     hasNoResults () {
-      return this.isFiltering && this.filteredTags.length === 0;
+      return this.hasTags && this.isFiltering && this.filteredTags.length === 0;
     },
 
     filteredTags () {
@@ -112,10 +115,8 @@ export default {
   methods: {
     onTagClick (tagId) {
       if (this.selected[tagId]) {
-        this.$delete(this.selected, tagId);
         this.$emit('onUnselect', tagId);
       } else {
-        this.$set(this.selected, tagId, true);
         this.$emit('onSelect', tagId);
       }
     },
@@ -144,7 +145,8 @@ export default {
   display: flex;
   flex-wrap: wrap;
 
-  .no-results {
+  .no-results,
+  .no-tags {
     text-align: center;
     padding: 4px;
     color: $grey-6;

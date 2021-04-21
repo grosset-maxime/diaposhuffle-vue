@@ -3,6 +3,9 @@
     <div class="selected-tags">
       <TagsList
         :tags="selectedTags"
+        :selected="selectedIds"
+        @onSelect="onSelectSelected"
+        @onUnselect="onUnselectSelected"
       />
     </div>
 
@@ -62,11 +65,11 @@
         ref="unselectedTagsList"
         :tags="unselectedTags"
         :selected="selectedIds"
-        :key="key"
         :categories-filter="filters.categories"
         :text-filter="filters.text"
-        @onSelect="onSelect"
-        @onUnselect="onUnselect"
+        show-no-tags
+        @onSelect="onSelectUnselected"
+        @onUnselect="onUnselectUnselected"
       />
 
       <CircularLoading
@@ -138,8 +141,6 @@ export default {
       main: () => {},
     },
 
-    key: Date.now(),
-
     isLoading: true,
   }),
 
@@ -166,32 +167,44 @@ export default {
 
       this.fetchTags()
         .then(() => {
+          this.onFetchTags();
+        })
+        .finally(() => {
           this.isLoading = false;
-
-          this.tagsList = this.tagsListStore.map((tag) => deepClone(tag));
-          this.categoriesList = this.categoriesListStore.map((cat) => deepClone(cat));
-
-          this.selectedIds = Object.fromEntries(this.selected.map((tag) => [tag.id, true]));
-
-          this.unselectedTags = this.tagsList.filter((tag) => !this.selectedIds[tag.id]);
-          this.selectedTags = this.tagsList.filter((tag) => this.selectedIds[tag.id]);
-          this.unselectedCategories = this.categoriesList;
-
-          // TODO: find a way to update the view when modal is hide and then show again.
-          this.key = Date.now();
         });
 
       this.setFilterTextFocus();
     },
 
+    onFetchTags () {
+      this.tagsList = this.tagsListStore.map((tag) => deepClone(tag));
+      this.categoriesList = this.categoriesListStore.map((cat) => deepClone(cat));
+
+      this.updateSelectedIds();
+
+      this.unselectedTags = this.tagsList.filter((tag) => !this.selectedIds[tag.id]);
+      this.selectedTags = this.tagsList.filter((tag) => this.selectedIds[tag.id]);
+      this.unselectedCategories = this.categoriesList;
+    },
+
     onHide () { this.removeKeyboardShortcuts() },
 
-    onSelect (tagId) {
+    onSelectUnselected (tagId) {
       this.$set(this.selectedIds, tagId, true);
       this.$emit('onSelect', tagId);
     },
 
-    onUnselect (tagId) {
+    onUnselectUnselected (tagId) {
+      this.$delete(this.selectedIds, tagId);
+      this.$emit('onUnselect', tagId);
+    },
+
+    onSelectSelected (tagId) {
+      this.$set(this.selectedIds, tagId, true);
+      this.$emit('onSelect', tagId);
+    },
+
+    onUnselectSelected (tagId) {
       this.$delete(this.selectedIds, tagId);
       this.$emit('onUnselect', tagId);
     },
@@ -242,6 +255,12 @@ export default {
         this.$store.dispatch(`${this.NS}/${TAGGER_A_FETCH_TAGS}`),
         this.$store.dispatch(`${this.NS}/${TAGGER_A_FETCH_CATEGORIES}`),
       ]);
+    },
+
+    updateSelectedIds () {
+      this.selectedIds = Object.fromEntries(
+        this.selected.map((tag) => [tag.id, true]),
+      );
     },
 
     attachKeyboardShortcuts () {

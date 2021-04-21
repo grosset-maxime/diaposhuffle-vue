@@ -101,6 +101,8 @@ export default {
 
   methods: {
     onShow () {
+      this.selectedTagsIds = Object.fromEntries(this.selected.map((tag) => [tag.id, true]));
+
       // Wait for v-dialog transition end before continuing.
       setTimeout(() => {
         this.$refs.Tagger.onShow();

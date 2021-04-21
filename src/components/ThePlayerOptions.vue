@@ -414,6 +414,9 @@ export default {
           case 'h':
             this.$emit('showTheHelp');
             break;
+          case 't':
+            this.showTaggerModal();
+            break;
           default:
         }
       };
