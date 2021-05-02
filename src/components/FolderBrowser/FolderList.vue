@@ -35,9 +35,9 @@ export default {
         selected: this.selected.includes(folder.path),
       },
       on: {
-        onExpand: (path) => { this.fetchFolder(path) },
-        onSelect: (path) => { this.$emit('select', path) },
-        onUnselect: (path) => { this.$emit('unselect', path) },
+        expand: (path) => { this.fetchFolder(path) },
+        select: (path) => { this.$emit('select', path) },
+        unselect: (path) => { this.$emit('unselect', path) },
       },
       slot: 'sub-folders',
     }, folder.children.map((f) => buildFolder(f, level + 1)));
