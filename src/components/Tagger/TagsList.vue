@@ -5,8 +5,10 @@
       :key="`tag-${tag.id}`"
       :tag="tag"
       :selected="selected[tag.id]"
+      :edit="editMode"
       clickable
       @click="onTagClick"
+      @click:edit="onTagEditClick"
     />
 
     <div
@@ -62,11 +64,17 @@ export default {
       type: Boolean,
       default: false,
     },
+
+    editMode: {
+      type: Boolean,
+      default: false,
+    },
   },
 
   emits: {
     select: null,
     unselect: null,
+    editTag: null,
   },
 
   data: () => ({}),
@@ -84,28 +92,6 @@ export default {
 
     hasNoResults () {
       return this.hasTags && this.isFiltering && this.filteredTags.length === 0;
-    },
-
-    filteredTagsORG () {
-      if (!this.isFiltering) { return this.tags }
-
-      return this.tags.filter((tag) => {
-        let matchCategoriesFilter = true;
-        let matchTextFilter = true;
-
-        if (this.hasCategoriesFilter) {
-          matchCategoriesFilter = !!this.categoriesFilter[tag.category];
-        }
-
-        if (this.hasTextFilter) {
-          matchTextFilter = tag.name.toLowerCase().includes(
-            this.textFilter.toLowerCase(),
-          );
-        }
-
-        return matchCategoriesFilter
-          && matchTextFilter;
-      });
     },
 
     filteredTags () {
@@ -157,6 +143,10 @@ export default {
       if (randomdTag) {
         this.onTagClick(randomdTag.id);
       }
+    },
+
+    onTagEditClick (tagId) {
+      this.$emit('editTag', tagId);
     },
   },
 

@@ -1,14 +1,12 @@
 /* eslint-disable no-shadow */
 /* eslint-disable no-param-reassign */
 import Vue from 'vue';
-import { getHeaders } from '../../utils/utils';
+import { getFolders } from '../../api/folders';
 import {
   FOLDER_BROWSER_G_FOLDERS,
   FOLDER_BROWSER_M_ADD_ERROR,
   FOLDER_BROWSER_A_FETCH_FOLDERS,
 } from '../types';
-
-const BASE_URL = process.env.VUE_APP_BASE_URL || '';
 
 const findFolder = (folder, pathParts, level = 0) => {
   if (level >= pathParts.length) {
@@ -85,6 +83,7 @@ const mutations = {
 const actions = {
 
   async [FOLDER_BROWSER_A_FETCH_FOLDERS] ({ commit, getters }, path = '') {
+    let children;
     const folders = getters[FOLDER_BROWSER_G_FOLDERS];
     const folder = folders.pathes[path || '/'];
 
@@ -94,67 +93,19 @@ const actions = {
 
     commit('_setFetching', { folder, path, isFetching: true });
 
-    const url = `${BASE_URL}/api/getFolderList`;
-    const opts = {
-      method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify({
-        folder: path,
-      }),
-    };
-
-    const onError = (error) => {
+    try {
+      children = await getFolders({ path });
+      commit('_setChildren', { folder, path, children });
+    } catch (error) {
       commit(FOLDER_BROWSER_M_ADD_ERROR, {
         actionName: FOLDER_BROWSER_A_FETCH_FOLDERS, error,
       });
-      return error;
-    };
+    }
 
-    const response = await fetch(url, opts)
-      .then((response) => response.json().then((json) => {
-        if (json.success) {
-          const children = json.folderList;
-          commit('_setChildren', { folder, path, children });
-        }
+    commit('_setFetching', { folder, path, isFetching: false });
 
-        if (json.error) { onError(json) }
-
-        return getters[FOLDER_BROWSER_G_FOLDERS];
-      }))
-      .catch((error) => onError({ error: true, publicMessage: error.toString() }))
-      .finally(() => {
-        commit('_setFetching', { folder, path, isFetching: false });
-      });
-
-    return response;
+    return getters[FOLDER_BROWSER_G_FOLDERS];
   },
-
-  // async [PLAYER_A_DELETE_ITEM] ({ commit }, itemSrc) {
-  //   const url = `${BASE_URL}/api/deletePic`;
-  //   const opts = {
-  //     method: 'POST',
-  //     headers: getHeaders(),
-  //     body: JSON.stringify({
-  //       picPath: itemSrc,
-  //       continueIfNotExist: false,
-  //       deleteOnlyFromBdd: false,
-  //     }),
-  //   };
-
-  //   const onError = (error) => {
-  //     commit(PLAYER_M_ADD_ERROR, { actionName: PLAYER_A_DELETE_ITEM, error });
-  //     return error;
-  //   };
-
-  //   const response = await fetch(url, opts)
-  //     .then((response) => response.json().then((json) => {
-  //       if (json.error) { onError(json) }
-  //       return json;
-  //     }))
-  //     .catch((error) => onError({ error: true, publicMessage: error.toString() }));
-
-  //   return response;
-  // },
 };
 
 export default {

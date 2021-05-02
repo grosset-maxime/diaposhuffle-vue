@@ -19,7 +19,7 @@
         class="close-btn"
       >
         <v-icon
-          @click="$emit('click:close', tag.id)"
+          @click.stop="$emit('click:close', tag.id)"
           class="close-icon"
         >
           mdi-close-circle
@@ -33,7 +33,7 @@
         class="edit-btn"
       >
         <v-icon
-          @click="$emit('click:edit', tag.id)"
+          @click.stop="$emit('click:edit', tag.id)"
           class="edit-icon"
         >
           mdi-pencil

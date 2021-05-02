@@ -1,7 +1,7 @@
 /* eslint-disable no-shadow */
 /* eslint-disable no-param-reassign */
 import Vue from 'vue';
-import { fetchRandomItem, deleteItem } from '../../api/api';
+import { fetchRandomItem, deleteItem } from '../../api/items';
 import {
   PLAYER_G_FILTER_FILE_TYPES,
   PLAYER_G_FILTERS,

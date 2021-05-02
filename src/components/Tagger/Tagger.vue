@@ -5,8 +5,10 @@
         :tags="selectedTags"
         :selected="selectedIds"
         :text-filter="filters.text"
+        :edit-mode="editMode"
         @select="onSelectSelected"
         @unselect="onUnselectSelected"
+        @editTag="onEditTag"
       />
     </div>
 
@@ -68,9 +70,11 @@
         :selected="selectedIds"
         :categories-filter="filters.categories"
         :text-filter="filters.text"
+        :edit-mode="editMode"
         show-no-tags
         @select="onSelectUnselected"
         @unselect="onUnselectUnselected"
+        @editTag="onEditTag"
       />
 
       <CircularLoading
@@ -145,6 +149,10 @@ export default {
     isLoading: true,
 
     editMode: false,
+
+    editTagModal: {
+      show: false,
+    },
   }),
 
   computed: {
@@ -234,6 +242,10 @@ export default {
 
     onFilterTextBlur () {
       this.isFilterTextHasFocus = false;
+    },
+
+    onEditTag () {
+      // this.
     },
 
     clearFilterText () {

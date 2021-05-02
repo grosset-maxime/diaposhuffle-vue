@@ -1,7 +1,7 @@
 /* eslint-disable no-shadow */
 /* eslint-disable no-param-reassign */
 // import Vue from 'vue';
-import { fetchTags, fetchCategories } from '../../api/api';
+import { fetchTags, fetchCategories } from '../../api/tags';
 import {
   TAGGER_G_TAGS,
   TAGGER_G_TAGS_LIST,
