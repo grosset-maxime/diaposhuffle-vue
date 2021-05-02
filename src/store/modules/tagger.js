@@ -1,7 +1,7 @@
 /* eslint-disable no-shadow */
 /* eslint-disable no-param-reassign */
 // import Vue from 'vue';
-import { getHeaders } from '../../utils/utils';
+import { fetchTags, fetchCategories } from '../../api/api';
 import {
   TAGGER_G_TAGS,
   TAGGER_G_TAGS_LIST,
@@ -13,8 +13,6 @@ import {
   TAGGER_A_FETCH_TAGS,
   TAGGER_A_FETCH_CATEGORIES,
 } from '../types';
-
-const BASE_URL = process.env.VUE_APP_BASE_URL || '';
 
 const state = () => ({
   tagsFetched: false,
@@ -72,77 +70,45 @@ const mutations = {
 const actions = {
 
   async [TAGGER_A_FETCH_TAGS] ({ state, commit, getters }) {
+    let tags = getters[TAGGER_G_TAGS];
+
     if (state.tagsFetched) {
-      return getters[TAGGER_G_TAGS];
+      return tags;
     }
 
-    const url = `${BASE_URL}/api/getAllTags`;
-    const opts = {
-      method: 'POST', // TODO: should be a GET ?
-      headers: getHeaders(),
-    };
-
-    const onError = (error) => {
+    try {
+      tags = await fetchTags();
+      commit('_setTags', tags);
+    } catch (error) {
       commit(TAGGER_M_ADD_ERROR, {
         actionName: TAGGER_A_FETCH_TAGS, error,
       });
-      return error;
-    };
+    }
 
-    const response = await fetch(url, opts)
-      .then((response) => response.json().then((json) => {
-        if (json.success) {
-          const { tags } = json;
-          commit('_setTags', tags);
-        }
+    commit('_setTagsFetched', true);
 
-        if (json.error) { onError(json) }
-
-        return getters[TAGGER_G_TAGS];
-      }))
-      .catch((error) => onError({ error: true, publicMessage: error.toString() }))
-      .finally(() => {
-        commit('_setTagsFetched', true);
-      });
-
-    return response;
+    return getters[TAGGER_G_TAGS];
   },
 
   async [TAGGER_A_FETCH_CATEGORIES] ({ state, commit, getters }) {
+    let categories = getters[TAGGER_G_CATEGORIES];
+
     if (state.categoriesFetched) {
-      return getters[TAGGER_G_CATEGORIES];
+      return categories;
     }
 
-    const url = `${BASE_URL}/api/getAllTagCategories`;
-    const opts = {
-      method: 'POST', // TODO: should be a GET ?
-      headers: getHeaders(),
-    };
-
-    const onError = (error) => {
+    try {
+      categories = await fetchCategories();
+      commit('_setCategories', categories);
+    } catch (error) {
       commit(TAGGER_M_ADD_ERROR, {
-        actionName: TAGGER_A_FETCH_CATEGORIES, error,
+        actionName: TAGGER_A_FETCH_TAGS, error,
       });
-      return error;
-    };
+    }
 
-    const response = await fetch(url, opts)
-      .then((response) => response.json().then((json) => {
-        if (json.success) {
-          const categories = json.tagCategories;
-          commit('_setCategories', categories);
-        }
+    commit('_setCategoriesFetched', true);
 
-        if (json.error) { onError(json) }
-
-        return getters[TAGGER_G_CATEGORIES];
-      }))
-      .catch((error) => onError({ error: true, publicMessage: error.toString() }))
-      .finally(() => {
-        commit('_setCategoriesFetched', true);
-      });
-
-    return response;
+    return getters[TAGGER_G_CATEGORIES];
   },
 };
 

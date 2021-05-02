@@ -254,6 +254,7 @@ export default {
     },
 
     resumePlaying ({ resumeItem = true, resumeLooping = true } = {}) {
+      this.stop = false;
       this.pause = false;
 
       if (resumeItem) {
@@ -269,6 +270,10 @@ export default {
 
     async onLoopEnd () {
       await this.TheLoop.stopLooping();
+
+      if (this.stop) {
+        return Promise.resolve();
+      }
 
       if (this.isNavigatingIntoHistory) {
         return this.goToNextItem();
@@ -435,18 +440,20 @@ export default {
 
       let response;
       try {
-        response = await this.$store.dispatch(`${this.NS}/${PLAYER_A_DELETE_ITEM}`, itemSrc);
+        response = await this.$store.dispatch(
+          `${this.NS}/${PLAYER_A_DELETE_ITEM}`,
+          itemSrc,
+        );
       } catch (e) {
-        response = { error: true, publicMessage: e };
+        response = e;
       }
 
       if (response.error) {
-        this.TheLoop.stopLooping();
-        this.pausePlaying();
+        this.stop = true;
 
         this.showAlert({
-          content: response.error.publicMessage,
-          severity: response.error.severity,
+          content: response.publicMessage,
+          severity: response.severity,
         });
 
         throw new Error('deleteItem');

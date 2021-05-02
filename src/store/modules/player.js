@@ -1,8 +1,7 @@
 /* eslint-disable no-shadow */
 /* eslint-disable no-param-reassign */
 import Vue from 'vue';
-import { getHeaders } from '../../utils/utils';
-import { createItem } from '../../models/item';
+import { fetchRandomItem, deleteItem } from '../../api/api';
 import {
   PLAYER_G_FILTER_FILE_TYPES,
   PLAYER_G_FILTERS,
@@ -23,8 +22,6 @@ import {
   PLAYER_A_FETCH_NEXT,
   PLAYER_A_DELETE_ITEM,
 } from '../types';
-
-const BASE_URL = process.env.VUE_APP_BASE_URL || '';
 
 const INTERVAL_DEFAULT = 3; // seconds
 
@@ -102,66 +99,46 @@ const mutations = {
     e[actionName] = error;
     state.errors.push(e);
     // eslint-disable-next-line no-console
-    console.error(actionName, error);
+    console.error(`Error from "${actionName}":`, error);
   },
 };
 
 const actions = {
 
   async [PLAYER_A_FETCH_NEXT] ({ commit, getters }) {
-    const url = `${BASE_URL}/api/getRandomPic`;
-    const opts = {
-      method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify({
-        customFolders: getters[PLAYER_G_FILTERS].folders,
-      }),
-    };
+    let result;
 
-    const onError = (error) => {
+    const filters = getters[PLAYER_G_FILTERS].folders;
+
+    try {
+      // if (filters.tags.length) {
+      //   result = await fetchRandomItemFromBdd({
+      //     tags: filters.tags,
+      //   });
+      // } else {
+      result = await fetchRandomItem({
+        folders: filters.folders,
+      });
+      // }
+    } catch (error) {
       commit(PLAYER_M_ADD_ERROR, { actionName: PLAYER_A_FETCH_NEXT, error });
-      return error;
-    };
+      throw error;
+    }
 
-    const response = await fetch(url, opts)
-      .then((response) => response.json().then((json) => {
-        if (json.success) {
-          json.item = createItem(json.pic);
-        }
-        if (json.error) { onError(json) }
-
-        return json;
-      }))
-      .catch((error) => onError({ error: true, publicMessage: error.toString() }));
-
-    return response;
+    return result;
   },
 
   async [PLAYER_A_DELETE_ITEM] ({ commit }, itemSrc) {
-    const url = `${BASE_URL}/api/deletePic`;
-    const opts = {
-      method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify({
-        picPath: itemSrc,
-        continueIfNotExist: false,
-        deleteOnlyFromBdd: false,
-      }),
-    };
+    let result = false;
 
-    const onError = (error) => {
+    try {
+      result = await deleteItem({ itemSrc });
+    } catch (error) {
       commit(PLAYER_M_ADD_ERROR, { actionName: PLAYER_A_DELETE_ITEM, error });
-      return error;
-    };
+      throw error;
+    }
 
-    const response = await fetch(url, opts)
-      .then((response) => response.json().then((json) => {
-        if (json.error) { onError(json) }
-        return json;
-      }))
-      .catch((error) => onError({ error: true, publicMessage: error.toString() }));
-
-    return response;
+    return result;
   },
 };
 
