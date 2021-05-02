@@ -22,8 +22,8 @@ export default {
   },
 
   emits: {
-    onSelect: null,
-    onUnselect: null,
+    select: null,
+    unselect: null,
   },
 
   data: () => ({}),
@@ -36,8 +36,8 @@ export default {
       },
       on: {
         onExpand: (path) => { this.fetchFolder(path) },
-        onSelect: (path) => { this.$emit('onSelect', path) },
-        onUnselect: (path) => { this.$emit('onUnselect', path) },
+        onSelect: (path) => { this.$emit('select', path) },
+        onUnselect: (path) => { this.$emit('unselect', path) },
       },
       slot: 'sub-folders',
     }, folder.children.map((f) => buildFolder(f, level + 1)));

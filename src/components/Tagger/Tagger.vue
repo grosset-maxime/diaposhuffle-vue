@@ -4,8 +4,9 @@
       <TagsList
         :tags="selectedTags"
         :selected="selectedIds"
-        @onSelect="onSelectSelected"
-        @onUnselect="onUnselectSelected"
+        :text-filter="filters.text"
+        @select="onSelectSelected"
+        @unselect="onUnselectSelected"
       />
     </div>
 
@@ -43,7 +44,7 @@
       <v-btn
         class="toggle-edit-btn secondary"
         small
-        @click="toggleEdit"
+        @click="toggleEditMode"
       >
         Edit
       </v-btn>
@@ -53,8 +54,8 @@
       <CategoriesList
         :categories="categoriesList"
         :selected="selectedCategoriesIds"
-        @onSelect="onSelectCategory"
-        @onUnselect="onUnselectCategory"
+        @select="onSelectCategory"
+        @unselect="onUnselectCategory"
       />
     </div>
 
@@ -68,8 +69,8 @@
         :categories-filter="filters.categories"
         :text-filter="filters.text"
         show-no-tags
-        @onSelect="onSelectUnselected"
-        @onUnselect="onUnselectUnselected"
+        @select="onSelectUnselected"
+        @unselect="onUnselectUnselected"
       />
 
       <CircularLoading
@@ -109,9 +110,9 @@ export default {
   },
 
   emits: {
-    onCancel: null,
-    onSelect: null,
-    onUnselect: null,
+    cancel: null,
+    select: null,
+    unselect: null,
   },
 
   data: () => ({
@@ -142,6 +143,8 @@ export default {
     },
 
     isLoading: true,
+
+    editMode: false,
   }),
 
   computed: {
@@ -191,26 +194,26 @@ export default {
 
     onSelectUnselected (tagId) {
       this.$set(this.selectedIds, tagId, true);
-      this.$emit('onSelect', tagId);
+      this.$emit('select', tagId);
     },
 
     onUnselectUnselected (tagId) {
       this.$delete(this.selectedIds, tagId);
-      this.$emit('onUnselect', tagId);
+      this.$emit('unselect', tagId);
     },
 
     onSelectSelected (tagId) {
       this.$set(this.selectedIds, tagId, true);
-      this.$emit('onSelect', tagId);
+      this.$emit('select', tagId);
     },
 
     onUnselectSelected (tagId) {
       this.$delete(this.selectedIds, tagId);
-      this.$emit('onUnselect', tagId);
+      this.$emit('unselect', tagId);
     },
 
     onCancel () {
-      this.$emit('onCancel');
+      this.$emit('cancel');
     },
 
     onSelectCategory (catId) {
@@ -246,8 +249,8 @@ export default {
       this.setFilterTextFocus();
     },
 
-    toggleEdit () {
-
+    toggleEditMode () {
+      this.editMode = !this.editMode;
     },
 
     fetchTags () {

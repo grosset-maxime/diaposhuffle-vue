@@ -71,9 +71,9 @@ export default {
   },
 
   emits: {
-    onExpand: null,
-    onSelect: null,
-    onUnselect: null,
+    expand: null,
+    select: null,
+    unselect: null,
   },
 
   data: () => ({
@@ -97,12 +97,12 @@ export default {
     onExpandBtnClick () {
       if (!this.hasNoSubFolders) {
         this.states.isExpanded = !this.states.isExpanded;
-        this.$emit('onExpand', this.folder.path);
+        this.$emit('expand', this.folder.path);
       }
     },
 
     onSelectedChange (isSelected) {
-      this.$emit(isSelected ? 'onSelect' : 'onUnselect', this.folder.path);
+      this.$emit(isSelected ? 'select' : 'unselect', this.folder.path);
     },
 
     onFolderLineClick (e) {

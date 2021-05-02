@@ -65,8 +65,8 @@ export default {
   },
 
   emits: {
-    onSelect: null,
-    onUnselect: null,
+    select: null,
+    unselect: null,
   },
 
   data: () => ({}),
@@ -139,9 +139,9 @@ export default {
   methods: {
     onTagClick (tagId) {
       if (this.selected[tagId]) {
-        this.$emit('onUnselect', tagId);
+        this.$emit('unselect', tagId);
       } else {
-        this.$emit('onSelect', tagId);
+        this.$emit('select', tagId);
       }
     },
 

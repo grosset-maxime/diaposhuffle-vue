@@ -40,8 +40,8 @@ export default {
   },
 
   emits: {
-    onConfirm: null,
-    onCancel: null,
+    confirm: null,
+    cancel: null,
   },
 
   data: () => ({
@@ -61,9 +61,9 @@ export default {
   },
 
   methods: {
-    onConfirm () { this.$emit('onConfirm') },
+    onConfirm () { this.$emit('confirm') },
 
-    onCancel () { this.$emit('onCancel') },
+    onCancel () { this.$emit('cancel') },
 
     attachKeyboardShortcuts () {
       this.keyboardShortcuts = (e) => {

@@ -7,13 +7,13 @@
     <TheLoop
       ref="TheLoop"
       :duration="loopDuration"
-      @onEnd="onLoopEnd"
+      @end="onLoopEnd"
     />
 
     <PauseBtn
       v-show="pause"
       class="the-pause-btn"
-      @onClick="resumePlaying"
+      @click="resumePlaying"
     />
 
     <v-alert
@@ -31,13 +31,13 @@
     <HistoryChip
       v-show="!!historyLength"
       class="the-history-chip"
-      @onClick="pausePlaying"
+      @click="pausePlaying"
     />
 
     <DeleteModal
       :show="deleteModal.show"
-      @onConfirm="hideDeleteModal({ deleteItem: true })"
-      @onCancel="hideDeleteModal({ deleteItem: false })"
+      @confirm="hideDeleteModal({ deleteItem: true })"
+      @cancel="hideDeleteModal({ deleteItem: false })"
     />
 
     <ItemsPlayer
@@ -46,8 +46,8 @@
       :next-item-data="itemsPlayer.props.nextItemData"
       :animate-switch-items="itemsPlayer.props.animateSwitchItems"
       :mute-video="itemsPlayer.props.muteVideo"
-      @onClick="onItemsPlayerClick"
-      @onPlayingNextItem="onPlayingNextItem"
+      @click="onItemsPlayerClick"
+      @playingNextItem="onPlayingNextItem"
       @playingItemDuration="setLoopDuration"
     />
 
@@ -57,7 +57,7 @@
       class="the-item-path-chip"
       :path-start="playingItemSelectedPath"
       :path-end="playingItemRandomPath"
-      @onClick="pausePlaying"
+      @click="pausePlaying"
     />
   </div>
 </template>

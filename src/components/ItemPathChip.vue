@@ -33,7 +33,7 @@ export default {
   },
 
   emits: {
-    onClick: null,
+    click: null,
   },
 
   data: () => ({}),
@@ -41,7 +41,7 @@ export default {
   computed: {},
 
   methods: {
-    onClick () { this.$emit('onClick') },
+    onClick () { this.$emit('click') },
   },
 };
 </script>

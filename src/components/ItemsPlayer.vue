@@ -83,10 +83,10 @@ export default {
     triggerPauseItem: null,
     triggerPlayItem: null,
 
-    onClick: null,
-    onPauseVideo: null,
-    onPlayVideo: null,
-    onPlayingNextItem: null,
+    click: null,
+    pauseVideo: null,
+    playVideo: null,
+    playingNextItem: null,
   },
 
   data: () => ({
@@ -232,7 +232,7 @@ export default {
 
       await this.getItem(this.currentItemName).onLoadPromise;
 
-      this.$emit('onPlayingNextItem', this.currentItemData);
+      this.$emit('playingNextItem', this.currentItemData);
     },
 
     pauseItem (itemName = this.currentItemName) {
@@ -291,11 +291,11 @@ export default {
 
     onLoadItem2 () { this.item2.onLoadResolve() },
 
-    onClick () { this.$emit('onClick') },
+    onClick () { this.$emit('click') },
 
-    onPauseVideo () { this.$emit('onPauseVideo') },
+    onPauseVideo () { this.$emit('pauseVideo') },
 
-    onPlayVideo () { this.$emit('onPlayVideo') },
+    onPlayVideo () { this.$emit('playVideo') },
   },
 };
 </script>

@@ -41,7 +41,7 @@ export default {
   },
 
   emits: {
-    onEnd: null,
+    end: null,
   },
 
   data: () => ({
@@ -179,7 +179,7 @@ export default {
 
     onLoopEnd ({ noEvent = false } = {}) {
       this.isLooping = false;
-      if (!noEvent) { this.$emit('onEnd') }
+      if (!noEvent) { this.$emit('end') }
     },
   },
 };

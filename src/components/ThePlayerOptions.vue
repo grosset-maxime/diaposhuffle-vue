@@ -193,15 +193,15 @@
     <FolderBrowser
       :show="folderBrowser.show"
       :selected="folderBrowser.selected"
-      @onClose="onCloseFolderBrowser"
-      @onSave="onSaveFolderBrowser"
+      @close="onCloseFolderBrowser"
+      @save="onSaveFolderBrowser"
     />
 
     <TaggerModal
       :show="taggerModal.show"
       :selected="taggerModal.selected"
-      @onClose="onCloseTaggerModal"
-      @onSave="onSaveTaggerModal"
+      @close="onCloseTaggerModal"
+      @save="onSaveTaggerModal"
     />
   </v-container>
 </template>

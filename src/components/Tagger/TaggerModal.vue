@@ -38,9 +38,9 @@
       <Tagger
         ref="Tagger"
         :selected="selected"
-        @onSelect="onSelect"
-        @onUnselect="onUnselect"
-        @onCancel="onCancel"
+        @select="onSelect"
+        @unselect="onUnselect"
+        @cancel="onCancel"
       />
     </v-card>
   </v-dialog>
@@ -73,8 +73,8 @@ export default {
   },
 
   emits: {
-    onClose: null,
-    onSave: null,
+    close: null,
+    save: null,
   },
 
   data: () => ({
@@ -115,7 +115,7 @@ export default {
 
     onSave () {
       this.$emit(
-        'onSave',
+        'save',
         Object.keys(this.selectedTagsIds).map((id) => this.tags[id]),
       );
       this.onClose();
@@ -127,7 +127,7 @@ export default {
 
     onClose () {
       this.onHide();
-      this.$emit('onClose');
+      this.$emit('close');
       this.selectedTagsIds = {};
     },
 

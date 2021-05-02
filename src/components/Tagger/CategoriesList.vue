@@ -33,8 +33,8 @@ export default {
   },
 
   emits: {
-    onSelect: null,
-    onUnselect: null,
+    select: null,
+    unselect: null,
   },
 
   data: () => ({}),
@@ -48,9 +48,9 @@ export default {
   methods: {
     onCategoryClick (catId) {
       if (!this.selected[catId]) {
-        this.$emit('onSelect', catId);
+        this.$emit('select', catId);
       } else {
-        this.$emit('onUnselect', catId);
+        this.$emit('unselect', catId);
       }
     },
   },

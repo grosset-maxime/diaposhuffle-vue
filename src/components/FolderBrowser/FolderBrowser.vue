@@ -46,8 +46,8 @@
         <FolderList
           ref="FolderList"
           :selected="selectedFolders"
-          @onSelect="onSelect"
-          @onUnselect="onUnSelect"
+          @select="onSelect"
+          @unselect="onUnSelect"
         />
       </div>
     </v-card>
@@ -78,8 +78,8 @@ export default {
   },
 
   emits: {
-    onClose: null,
-    onSave: null,
+    close: null,
+    save: null,
   },
 
   data: () => ({
@@ -116,7 +116,7 @@ export default {
 
     onSave () {
       this.$emit(
-        'onSave',
+        'save',
         [...this.selectedFolders],
       );
       this.onClose();
@@ -128,7 +128,7 @@ export default {
 
     onClose () {
       this.onHide();
-      this.$emit('onClose');
+      this.$emit('close');
     },
 
     onSelect (path) {

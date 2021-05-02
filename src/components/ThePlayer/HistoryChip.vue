@@ -22,7 +22,7 @@ export default {
   props: {},
 
   emits: {
-    onClick: null,
+    click: null,
   },
 
   data: () => ({}),
@@ -54,7 +54,7 @@ export default {
   },
 
   methods: {
-    onClick () { this.$emit('onClick') },
+    onClick () { this.$emit('click') },
   },
 };
 </script>
