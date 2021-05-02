@@ -22,7 +22,7 @@
       <div class="filter-form">
         <v-text-field
           :value="filters.text"
-          @input="filters.text = ($event || '').toLowerCase()"
+          @input="filters.text = $event || ''"
           @focus="onFilterTextFocus"
           @blur="onFilterTextBlur"
           ref="filterText"

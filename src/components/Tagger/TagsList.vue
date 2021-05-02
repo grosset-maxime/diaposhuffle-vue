@@ -26,6 +26,7 @@
 </template>
 
 <script>
+import Fuse from 'fuse.js';
 import TagChip from '../TagChip.vue';
 import { isEmptyObj, getRandomElement } from '../../utils/utils';
 
@@ -85,7 +86,7 @@ export default {
       return this.hasTags && this.isFiltering && this.filteredTags.length === 0;
     },
 
-    filteredTags () {
+    filteredTagsORG () {
       if (!this.isFiltering) { return this.tags }
 
       return this.tags.filter((tag) => {
@@ -105,6 +106,29 @@ export default {
         return matchCategoriesFilter
           && matchTextFilter;
       });
+    },
+
+    filteredTags () {
+      if (!this.isFiltering) { return this.tags }
+
+      let filteredTags = this.tags;
+
+      if (this.hasCategoriesFilter) {
+        filteredTags = filteredTags.filter((tag) => !!this.categoriesFilter[tag.category]);
+      }
+
+      if (this.hasTextFilter) {
+        const options = {
+          includeScore: true,
+          includeMatches: true,
+          keys: ['name'],
+        };
+
+        const fuse = new Fuse(filteredTags, options);
+        filteredTags = fuse.search(this.textFilter).map((r) => r.item);
+      }
+
+      return filteredTags;
     },
   },
 
