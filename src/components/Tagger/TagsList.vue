@@ -1,5 +1,23 @@
 <template>
-  <div class="tags-list">
+  <div
+    :class="['tags-list', {
+      'edit-mode': editMode
+    }]"
+  >
+    <v-btn
+      v-if="editMode"
+      class="add-tag-btn"
+      icon
+      outlined
+      left
+      color="orange"
+      @click="$emit('addTag')"
+    >
+      <v-icon>
+        mdi-plus
+      </v-icon>
+    </v-btn>
+
     <TagChip
       v-for="(tag) in filteredTags"
       :key="`tag-${tag.id}`"
@@ -21,10 +39,10 @@
     </div>
 
     <div
-      v-if="showNoTags && !hasTags"
+      v-if="!hasTags"
       class="no-tags"
     >
-      No tags.
+      {{ noTagsText }}
     </div>
   </div>
 </template>
@@ -67,9 +85,9 @@ export default {
       default: false,
     },
 
-    showNoTags: {
-      type: Boolean,
-      default: false,
+    noTagsText: {
+      type: String,
+      default: 'No tags',
     },
 
     editMode: {
@@ -83,6 +101,7 @@ export default {
     unselect: null,
     closeTag: null,
     editTag: null,
+    addTag: null,
   },
 
   data: () => ({}),
@@ -167,12 +186,21 @@ export default {
   display: flex;
   flex-wrap: wrap;
 
+  .add-tag-btn {
+    width: $tag-height;
+    height: $tag-height;
+    margin: $tag-margin;
+    z-index: 2;
+  }
+
   .no-results,
   .no-tags {
+    position: absolute;
     text-align: center;
-    padding: 4px;
+    padding: 8px;
     color: $grey-6;
     width: 100%;
+    z-index: 1;
   }
 }
 </style>

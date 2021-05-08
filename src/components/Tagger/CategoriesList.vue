@@ -1,11 +1,32 @@
 <template>
-  <div class="categories-list">
-    <categoryChip
+  <div
+    :class="['categories-list', {
+      'edit-mode': editMode
+    }]"
+  >
+    <v-btn
+      v-if="editMode"
+      class="add-category-btn"
+      icon
+      outlined
+      tile
+      left
+      color="orange"
+      @click="$emit('addCategory')"
+    >
+      <v-icon>
+        mdi-plus
+      </v-icon>
+    </v-btn>
+
+    <CategoryChip
       v-for="(cat) in categories"
       :key="`cat-${cat.id}`"
       :category="cat"
       :selected="selected[cat.id]"
+      :edit="editMode"
       @click="onCategoryClick"
+      @click:edit="onCategoryEditClick"
     />
   </div>
 </template>
@@ -30,11 +51,18 @@ export default {
       type: Object,
       default: () => ({}),
     },
+
+    editMode: {
+      type: Boolean,
+      default: false,
+    },
   },
 
   emits: {
     select: null,
     unselect: null,
+    addCategory: null,
+    editCategory: null,
   },
 
   data: () => ({}),
@@ -53,6 +81,10 @@ export default {
         this.$emit('unselect', catId);
       }
     },
+
+    onCategoryEditClick (catId) {
+      this.$emit('editCategory', catId);
+    },
   },
 };
 </script>
@@ -61,5 +93,11 @@ export default {
 .categories-list {
   display: flex;
   flex-wrap: wrap;
+
+  .add-category-btn {
+    width: $category-height;
+    height: $category-height;
+    margin: $category-margin;
+  }
 }
 </style>

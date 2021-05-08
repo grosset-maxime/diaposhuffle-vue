@@ -18,8 +18,8 @@
         class="edit-btn"
       >
         <v-icon
-          @click="$emit('click:edit', tag.id)"
           class="edit-icon"
+          @click.stop="$emit('click:edit', category.id)"
         >
           mdi-pencil
         </v-icon>
@@ -120,11 +120,11 @@ export default {
 .category-chip {
   position: relative;
   display: inline-flex;
-  height: 32px;
+  height: $category-height;
   border-radius: 4px;
   border: 1px solid #ffffff;
   padding: 0 12px;
-  margin: 5px 8px 5px 0;
+  margin: $category-margin;
   user-select: none;
 
   .category-content {
@@ -135,9 +135,17 @@ export default {
     .edit-btn {
       margin-left: 6px;
       margin-right: -4px;
+    }
 
-      .edit-icon:hover {
-        opacity: 0.72;
+    .edit-btn {
+      color: $grey-6;
+
+      &:hover {
+        color: white;
+      }
+
+      .edit-icon {
+        font-size: 14px;
       }
     }
   }

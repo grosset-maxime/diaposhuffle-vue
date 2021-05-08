@@ -6,18 +6,13 @@
         :selected="selectedIds"
         :text-filter="filters.text"
         :edit-mode="editMode"
+        :no-tags-text="'No tags selected'"
         closable-tags
         @unselect="onUnselectSelected"
         @closeTag="onUnselectSelected"
+        @addTag="showAddTagModal"
         @editTag="showEditTagModal"
       />
-    </div>
-
-    <div
-      v-if="!selectedTags.length"
-      class="selected-tags-empty"
-    >
-      No tags selected
     </div>
 
     <v-divider class="separator" />
@@ -34,6 +29,7 @@
           @input="filters.text = $event || ''"
           @focus="onFilterTextFocus"
           @blur="onFilterTextBlur"
+          @click:prepend="setFilterTextFocus"
         />
       </div>
 
@@ -61,6 +57,8 @@
         :edit-mode="editMode"
         @select="onSelectCategory"
         @unselect="onUnselectCategory"
+        @addCategory="showAddCategoryModal"
+        @editCategory="showEditCategoryModal"
       />
     </div>
 
@@ -77,9 +75,9 @@
         :categories-filter="filters.categories"
         :text-filter="filters.text"
         :edit-mode="editMode"
-        show-no-tags
         @select="onSelectUnselected"
         @unselect="onUnselectUnselected"
+        @addTag="showAddTagModal"
         @editTag="showEditTagModal"
       />
 
@@ -97,6 +95,8 @@
       @confirm="onConfirmEditTagModal"
       @cancel="onCancelEditTagModal"
     />
+
+    <!-- TODO: Add Edit Category Modal -->
   </div>
 </template>
 
@@ -153,10 +153,6 @@ export default {
     selectedIds: {},
     selectedCategoriesIds: {},
 
-    selectedCategories: [],
-
-    unselectedCategories: [],
-
     filters: {
       text: '',
       categories: {},
@@ -174,6 +170,12 @@ export default {
       show: false,
       add: false,
       tag: undefined,
+    },
+
+    editCategoryModal: {
+      show: false,
+      add: false,
+      category: undefined,
     },
   }),
 
@@ -215,7 +217,6 @@ export default {
 
       this.unselectedTags = this.tagsList.filter((tag) => !this.selectedIds[tag.id]);
       this.selectedTags = this.tagsList.filter((tag) => this.selectedIds[tag.id]);
-      this.unselectedCategories = this.categoriesList;
     },
 
     onHide () { this.removeKeyboardShortcuts() },
@@ -276,15 +277,55 @@ export default {
       this.hideEditTagModal();
     },
 
+    showAddTagModal () {
+      this.removeKeyboardShortcuts();
+      this.editTagModal.add = true;
+      this.editTagModal.tag = undefined;
+      this.editTagModal.show = true;
+    },
+
     showEditTagModal (tagId) {
       this.removeKeyboardShortcuts();
-      this.editTagModal.show = true;
       this.editTagModal.add = false;
       this.editTagModal.tag = this.tagsList.find((tag) => tag.id === tagId);
+      this.editTagModal.show = true;
     },
 
     hideEditTagModal () {
       this.editTagModal.show = false;
+      this.attachKeyboardShortcuts();
+    },
+
+    onDeleteEditCategoryModal () {
+      // TODO: delete category.
+      this.hideEditCategoryModal();
+    },
+
+    onConfirmEditCategoryModal () {
+      // TODO: add new category or edit category.
+      this.hideEditCategoryModal();
+    },
+
+    onCancelEditCategoryModal () {
+      this.hideEditCategoryModal();
+    },
+
+    showAddCategoryModal () {
+      this.removeKeyboardShortcuts();
+      this.editCategoryModal.add = true;
+      this.editCategoryModal.category = undefined;
+      this.editCategoryModal.show = true;
+    },
+
+    showEditCategoryModal (catId) {
+      this.removeKeyboardShortcuts();
+      this.editCategoryModal.add = false;
+      this.editCategoryModal.category = this.categoriesList.find((cat) => cat.id === catId);
+      this.editCategoryModal.show = true;
+    },
+
+    hideEditCategoryModal () {
+      this.editCategoryModal.show = false;
       this.attachKeyboardShortcuts();
     },
 
@@ -354,10 +395,8 @@ export default {
 .tagger {
   padding: 4px 12px;
 
-  .selected-tags-empty {
-    text-align: center;
-    padding: 4px;
-    color: $grey-6;
+  .selected-tags {
+    min-height: $tag-height;
   }
 
   .actions-bar {

@@ -169,11 +169,11 @@ export default {
 .tag-chip {
   position: relative;
   display: inline-flex;
-  height: 32px;
+  height: $tag-height;
   border-radius: 16px;
   border: 1px solid #ffffff;
   padding: 0 12px;
-  margin: 5px 8px 5px 0;
+  margin: $tag-margin;
   user-select: none;
 
   .tag-content {
