@@ -185,10 +185,23 @@ export default {
     .edit-btn {
       margin-left: 6px;
       margin-right: -4px;
+    }
 
-      .close-icon:hover,
-      .edit-icon:hover {
+    .close-btn {
+      .close-icon:hover {
         opacity: 0.72;
+      }
+    }
+
+    .edit-btn {
+      color: $grey-6;
+
+      &:hover {
+        color: white;
+      }
+
+      .edit-icon {
+        font-size: 14px;
       }
     }
   }

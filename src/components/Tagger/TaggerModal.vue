@@ -9,15 +9,42 @@
     no-click-animation
   >
     <v-card>
-      <v-toolbar dense>
+      <v-toolbar
+        class="tagger-modal-toolbar"
+        dense
+      >
         <v-btn
           icon
           @click="onCancel"
         >
           <v-icon>mdi-close</v-icon>
         </v-btn>
+
         <v-toolbar-title>Tagger</v-toolbar-title>
+
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+              class="edit-btn ml-3"
+              icon
+              small
+              v-bind="attrs"
+              v-on="on"
+              @click="toggleEditMode"
+            >
+              <v-icon
+                class="edit-icon"
+                dense
+              >
+                mdi-pencil
+              </v-icon>
+            </v-btn>
+          </template>
+          <span>Edit Mode</span>
+        </v-tooltip>
+
         <v-spacer />
+
         <v-toolbar-items>
           <v-btn
             class="cancel-btn"
@@ -38,6 +65,7 @@
       <Tagger
         ref="Tagger"
         :selected="selected"
+        :edit-mode="editMode"
         @select="onSelect"
         @unselect="onUnselect"
         @cancel="onCancel"
@@ -80,6 +108,8 @@ export default {
   data: () => ({
     selectedTagsIds: {},
 
+    editMode: false,
+
     keyboardShortcuts: {
       main: () => {},
     },
@@ -101,6 +131,8 @@ export default {
 
   methods: {
     onShow () {
+      this.editMode = false;
+
       this.selectedTagsIds = Object.fromEntries(this.selected.map((tag) => [tag.id, true]));
 
       // Wait for v-dialog transition end before continuing.
@@ -141,6 +173,10 @@ export default {
 
     onUnselectAll () { this.selectedTags = {} },
 
+    toggleEditMode () {
+      this.editMode = !this.editMode;
+    },
+
     fetchTags () {
       this.$store.dispatch(`${this.NS}/${TAGGER_A_FETCH_TAGS}`);
     },
@@ -160,11 +196,18 @@ $v-toolbar-height: 48px;
     padding-bottom: 40px;
   }
 
-  .cancel-btn {
-    text-transform: none;
-    color: $grey-6;
-    &:hover {
-      color: white;
+  .tagger-modal-toolbar {
+    .cancel-btn,
+    .edit-btn {
+      text-transform: none;
+      color: $grey-6;
+      &:hover {
+        color: white;
+      }
+    }
+
+    .edit-btn .edit-icon {
+      font-size: 18px;
     }
   }
 }

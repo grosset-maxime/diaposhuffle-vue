@@ -6,9 +6,10 @@
         :selected="selectedIds"
         :text-filter="filters.text"
         :edit-mode="editMode"
-        @select="onSelectSelected"
+        closable-tags
         @unselect="onUnselectSelected"
-        @editTag="onEditTag"
+        @closeTag="onUnselectSelected"
+        @editTag="showEditTagModal"
       />
     </div>
 
@@ -25,15 +26,18 @@
       <div class="filter-form">
         <v-text-field
           :value="filters.text"
-          @input="filters.text = $event || ''"
-          @focus="onFilterTextFocus"
-          @blur="onFilterTextBlur"
           ref="filterText"
           label="Filter tags"
           prepend-icon="mdi-magnify"
           clearable
+          autofocus
+          @input="filters.text = $event || ''"
+          @focus="onFilterTextFocus"
+          @blur="onFilterTextBlur"
         />
       </div>
+
+      <!-- TODO: Add sort tags by categories, sort by name (A-Z) and (Z-A) -->
 
       <v-btn
         class="select-random-btn secondary"
@@ -42,20 +46,19 @@
       >
         Select random
       </v-btn>
-
-      <v-btn
-        class="toggle-edit-btn secondary"
-        small
-        @click="toggleEditMode"
-      >
-        Edit
-      </v-btn>
     </div>
 
+    <!-- TODO: Show latest used tags -->
+    <!-- TODO: on filtering latest used tags, do not hide it but set opacity. -->
+
+    <!-- TODO: Show nb tags per categories -->
+    <!-- TODO: on filtering show remaining tags per categories -->
+    <!-- TODO: on filtering, do not hide category but set opacity -->
     <div class="categories-list">
       <CategoriesList
         :categories="categoriesList"
         :selected="selectedCategoriesIds"
+        :edit-mode="editMode"
         @select="onSelectCategory"
         @unselect="onUnselectCategory"
       />
@@ -63,6 +66,9 @@
 
     <v-divider class="separator" />
 
+    <!-- TODO: Allow focus tags and select/unselect by using keyboard -->
+    <!-- TODO: Allow to navigate through tags section using keyboard -->
+    <!-- TODO: Highlight matching text with filtering text -->
     <div class="unselected-tags">
       <TagsList
         ref="unselectedTagsList"
@@ -74,7 +80,7 @@
         show-no-tags
         @select="onSelectUnselected"
         @unselect="onUnselectUnselected"
-        @editTag="onEditTag"
+        @editTag="showEditTagModal"
       />
 
       <CircularLoading
@@ -82,6 +88,15 @@
         indeterminate
       />
     </div>
+
+    <EditTagModal
+      :show="editTagModal.show"
+      :add="editTagModal.add"
+      :tag="editTagModal.tag"
+      @delete="onDeleteEditTagModal"
+      @confirm="onConfirmEditTagModal"
+      @cancel="onCancelEditTagModal"
+    />
   </div>
 </template>
 
@@ -96,6 +111,7 @@ import { getKey, deepClone } from '../../utils/utils';
 import CategoriesList from './CategoriesList.vue';
 import CircularLoading from '../CircularLoading.vue';
 import TagsList from './TagsList.vue';
+import EditTagModal from './EditTagModal.vue';
 
 export default {
   name: 'Tagger',
@@ -104,12 +120,18 @@ export default {
     CategoriesList,
     CircularLoading,
     TagsList,
+    EditTagModal,
   },
 
   props: {
     selected: {
       type: Array,
       default: () => ([]),
+    },
+
+    editMode: {
+      type: Boolean,
+      default: false,
     },
   },
 
@@ -148,10 +170,10 @@ export default {
 
     isLoading: true,
 
-    editMode: false,
-
     editTagModal: {
       show: false,
+      add: false,
+      tag: undefined,
     },
   }),
 
@@ -168,7 +190,7 @@ export default {
   watch: {},
 
   mounted () {
-    // TODO: only for testing purpose
+    // TODO: TEMP: only for testing purpose
     setTimeout(() => { if (this.isLoading) { this.onShow() } }, 2000);
   },
 
@@ -183,8 +205,6 @@ export default {
         .finally(() => {
           this.isLoading = false;
         });
-
-      this.setFilterTextFocus();
     },
 
     onFetchTags () {
@@ -210,13 +230,11 @@ export default {
       this.$emit('unselect', tagId);
     },
 
-    onSelectSelected (tagId) {
-      this.$set(this.selectedIds, tagId, true);
-      this.$emit('select', tagId);
-    },
-
     onUnselectSelected (tagId) {
       this.$delete(this.selectedIds, tagId);
+      this.selectedTags = this.selectedTags.filter((tag) => tagId !== tag.id);
+      this.unselectedTags = this.tagsList.filter((tag) => !this.selectedIds[tag.id]);
+
       this.$emit('unselect', tagId);
     },
 
@@ -244,8 +262,30 @@ export default {
       this.isFilterTextHasFocus = false;
     },
 
-    onEditTag () {
-      // this.
+    onDeleteEditTagModal () {
+      // TODO: delete tag.
+      this.hideEditTagModal();
+    },
+
+    onConfirmEditTagModal () {
+      // TODO: add new tag or edit tag.
+      this.hideEditTagModal();
+    },
+
+    onCancelEditTagModal () {
+      this.hideEditTagModal();
+    },
+
+    showEditTagModal (tagId) {
+      this.removeKeyboardShortcuts();
+      this.editTagModal.show = true;
+      this.editTagModal.add = false;
+      this.editTagModal.tag = this.tagsList.find((tag) => tag.id === tagId);
+    },
+
+    hideEditTagModal () {
+      this.editTagModal.show = false;
+      this.attachKeyboardShortcuts();
     },
 
     clearFilterText () {
@@ -259,10 +299,6 @@ export default {
     selectRandom () {
       this.$refs.unselectedTagsList.selectRandom();
       this.setFilterTextFocus();
-    },
-
-    toggleEditMode () {
-      this.editMode = !this.editMode;
     },
 
     fetchTags () {
@@ -281,6 +317,8 @@ export default {
     attachKeyboardShortcuts () {
       this.keyboardShortcuts.main = (e) => {
         const key = getKey(e);
+        // TODO: on any key, focus tag filter input and start filtering.
+        // TODO: imagine a combo key (CTRL + enter for example) to trigger save.
         switch (key) {
           case 'Enter':
             // this.onSave();

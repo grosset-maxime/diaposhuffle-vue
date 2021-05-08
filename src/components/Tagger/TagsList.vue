@@ -6,8 +6,10 @@
       :tag="tag"
       :selected="selected[tag.id]"
       :edit="editMode"
+      :close="closableTags"
       clickable
       @click="onTagClick"
+      @click:close="$emit('closeTag', tag.id)"
       @click:edit="onTagEditClick"
     />
 
@@ -60,6 +62,11 @@ export default {
       default: '',
     },
 
+    closableTags: {
+      type: Boolean,
+      default: false,
+    },
+
     showNoTags: {
       type: Boolean,
       default: false,
@@ -74,6 +81,7 @@ export default {
   emits: {
     select: null,
     unselect: null,
+    closeTag: null,
     editTag: null,
   },
 
