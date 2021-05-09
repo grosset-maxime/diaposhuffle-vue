@@ -185,7 +185,9 @@ export default {
   },
 
   mounted () {
-    this.setModel(this.tag);
+    if (this.tag && this.tag.id) {
+      this.setModel(this.tag);
+    }
   },
 
   methods: {

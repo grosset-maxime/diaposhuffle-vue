@@ -189,6 +189,8 @@ export default {
 <style lang="scss">
 $v-toolbar-height: 48px;
 .tagger-modal {
+  overflow-x: hidden;
+
   .ctn {
     height: calc(100vh - $v-toolbar-height);
     overflow: auto;

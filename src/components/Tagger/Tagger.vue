@@ -96,7 +96,14 @@
       @cancel="onCancelEditTagModal"
     />
 
-    <!-- TODO: Add Edit Category Modal -->
+    <EditCategoryModal
+      :show="editCategoryModal.show"
+      :add="editCategoryModal.add"
+      :category="editCategoryModal.category"
+      @delete="onDeleteEditCategoryModal"
+      @confirm="onConfirmEditCategoryModal"
+      @cancel="onCancelEditCategoryModal"
+    />
   </div>
 </template>
 
@@ -112,6 +119,7 @@ import CategoriesList from './CategoriesList.vue';
 import CircularLoading from '../CircularLoading.vue';
 import TagsList from './TagsList.vue';
 import EditTagModal from './EditTagModal.vue';
+import EditCategoryModal from './EditCategoryModal.vue';
 
 export default {
   name: 'Tagger',
@@ -121,6 +129,7 @@ export default {
     CircularLoading,
     TagsList,
     EditTagModal,
+    EditCategoryModal,
   },
 
   props: {

@@ -13,20 +13,6 @@
       {{ tag.name }}
 
       <v-btn
-        v-if="close"
-        icon
-        x-small
-        class="close-btn"
-      >
-        <v-icon
-          @click.stop="$emit('click:close', tag.id)"
-          class="close-icon"
-        >
-          mdi-close-circle
-        </v-icon>
-      </v-btn>
-
-      <v-btn
         v-if="edit"
         icon
         x-small
@@ -37,6 +23,20 @@
           class="edit-icon"
         >
           mdi-pencil
+        </v-icon>
+      </v-btn>
+
+      <v-btn
+        v-if="close"
+        icon
+        x-small
+        class="close-btn"
+      >
+        <v-icon
+          @click.stop="$emit('click:close', tag.id)"
+          class="close-icon"
+        >
+          mdi-close-circle
         </v-icon>
       </v-btn>
     </span>
