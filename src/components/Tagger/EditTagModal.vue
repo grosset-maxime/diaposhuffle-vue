@@ -14,70 +14,77 @@
 
       <v-card-text>
         <v-container>
-          <v-row>
-            <v-col
-              cols="12"
-            >
-              <!-- TODO: check if not empty with rules and required. -->
-              <v-text-field
-                v-model="model.id"
-                :disabled="!add"
-                :autofocus="add"
-                label="Id"
-                required
-              />
-            </v-col>
-            <v-col cols="12">
-              <!-- TODO: check if not empty with rules and required. -->
-              <v-text-field
-                v-model="model.name"
-                :autofocus="!add"
-                label="Name"
-                required
-              />
-            </v-col>
-            <v-col
-              cols="12"
-            >
-              <v-autocomplete
-                v-model="model.category"
-                :items="categories"
-                item-text="name"
-                item-value="id"
-                label="Category"
-                chips
-                deletable-chips
-                hide-selected
-              >
-                <template v-slot:selection="data">
-                  <v-chip
-                    v-bind="data.attrs"
-                    :color="getCategoryColor(data.item)"
-                    text-color="white"
-                    close
-                    outlined
-                    @click:close="model.category = 0"
-                  >
-                    <v-avatar
-                      left
-                      :color="getCategoryColor(data.item)"
-                    />
-                    {{ data.item.name }}
-                  </v-chip>
-                </template>
+          <v-form
+            v-model="isFormValid"
+            ref="form"
+          >
+            <v-row>
+              <v-col cols="12">
+                <v-text-field
+                  :value="model.id"
+                  :disabled="!add"
+                  :autofocus="add"
+                  :rules="[rules.required, isIdNotExists]"
+                  label="Id"
+                  required
+                  @input="updateModel('id', $event)"
+                />
+              </v-col>
 
-                <template v-slot:item="data">
-                  <v-list-item-avatar
-                    :color="getCategoryColor(data.item)"
-                    size="30"
-                  />
-                  <v-list-item-content>
-                    <v-list-item-title v-html="data.item.name" />
-                  </v-list-item-content>
-                </template>
-              </v-autocomplete>
-            </v-col>
-          </v-row>
+              <v-col cols="12">
+                <v-text-field
+                  :value="model.name"
+                  :autofocus="!add"
+                  :rules="[rules.required]"
+                  :hint="nameWarningMsg"
+                  label="Name"
+                  required
+                  @input="updateModel('name', $event)"
+                />
+              </v-col>
+
+              <v-col cols="12">
+                <v-autocomplete
+                  :value="model.category"
+                  :items="categories"
+                  item-text="name"
+                  item-value="id"
+                  label="Category"
+                  chips
+                  deletable-chips
+                  hide-selected
+                  @input="updateModel('category', $event)"
+                >
+                  <template v-slot:selection="data">
+                    <v-chip
+                      v-bind="data.attrs"
+                      :color="getCategoryColor(data.item)"
+                      text-color="white"
+                      close
+                      outlined
+                      @click:close="model.category = 0"
+                    >
+                      <v-avatar
+                        left
+                        :color="getCategoryColor(data.item)"
+                      />
+                      {{ data.item.name }}
+                    </v-chip>
+                  </template>
+
+                  <template v-slot:item="data">
+                    <v-list-item-avatar
+                      :color="getCategoryColor(data.item)"
+                      size="30"
+                    />
+                    <v-list-item-content>
+                      <v-list-item-title v-html="data.item.name" />
+                    </v-list-item-content>
+                  </template>
+                </v-autocomplete>
+              </v-col>
+            </v-row>
+          </v-form>
         </v-container>
       </v-card-text>
 
@@ -104,6 +111,7 @@
 
         <v-btn
           class="modal-btn primary"
+          :disabled="!isFormValid"
           tabindex="0"
           @click="onConfirm"
         >
@@ -115,7 +123,7 @@
 </template>
 
 <script>
-import { TAGGER_G_CATEGORIES_LIST } from '../../store/types';
+import { TAGGER_G_CATEGORIES_LIST, TAGGER_G_TAGS_LIST } from '../../store/types';
 import { deepClone, getKey } from '../../utils/utils';
 
 export default {
@@ -151,6 +159,14 @@ export default {
       category: 0,
     },
 
+    isFormValid: false,
+
+    nameWarningMsg: '',
+
+    rules: {
+      required: (value) => !!value || 'Required.',
+    },
+
     keyboardShortcuts: () => {},
   }),
 
@@ -161,26 +177,39 @@ export default {
       return this.add ? 'Add new tag' : 'Edit tag';
     },
 
-    confirmBtnText () {
-      return this.add ? 'Add' : 'Edit';
-    },
+    confirmBtnText () { return this.add ? 'Add' : 'Edit' },
 
     categories () {
       return this.$store.getters[`${this.NS}/${TAGGER_G_CATEGORIES_LIST}`];
     },
+
+    tags () {
+      return this.$store.getters[`${this.NS}/${TAGGER_G_TAGS_LIST}`];
+    },
+
+    modelName () { return this.model.name },
   },
 
   watch: {
     show (isShow) {
       if (isShow) {
         this.attachKeyboardShortcuts();
+
+        if (this.add) { this.resetForm() }
       } else {
         this.removeKeyboardShortcuts();
+        this.resetForm();
       }
     },
 
     tag (tag) {
       this.setModel(tag);
+    },
+
+    modelName (name) {
+      this.nameWarningMsg = (name || '').trim() && this.isNameExists(name)
+        ? 'Name already exists.'
+        : '';
     },
   },
 
@@ -196,25 +225,62 @@ export default {
     },
 
     setModel (tag) {
-      if (tag) { this.model = deepClone(tag) }
+      if (!tag || !tag.id) {
+        this.resetForm();
+        return;
+      }
+
+      this.model = deepClone(tag);
     },
 
-    onConfirm () { this.$emit('confirm', this.model) },
+    resetForm () {
+      this.model = {
+        id: '',
+        name: '',
+        category: 0,
+      };
+
+      if (this.$refs.form) {
+        this.$refs.form.reset();
+      }
+    },
+
+    isIdNotExists (value) {
+      return !value
+        || !this.add
+        || !this.tags.some(
+          (tag) => tag.id.toLowerCase() === value.trim().toLowerCase(),
+        )
+        || 'Id already exists.';
+    },
+
+    isNameExists (value) {
+      return this.tags.some(
+        (tag) => tag.name.toLowerCase() === (value || '').trim().toLowerCase(),
+      );
+    },
+
+    updateModel (key, value) {
+      this.$set(this.model, key, value);
+    },
+
+    onConfirm () {
+      const isFormValid = this.$refs.form.validate();
+
+      if (isFormValid) {
+        this.$emit('confirm', { ...this.model });
+      }
+    },
 
     onCancel () { this.$emit('cancel') },
 
+    // TODO: on delete show confirm modal before emiting delete.
     onDelete () { this.$emit('delete', this.tag.id) },
 
     attachKeyboardShortcuts () {
       this.keyboardShortcuts = (e) => {
         const key = getKey(e);
         switch (key) {
-          case 'Enter':
-            // TODO: to confirm, user has to click to the confirm btn or focus to it and enter.
-            // TODO: do not confirm if id or/and name is empty.
-            // this.onConfirm();
-            break;
-
           case 'Escape':
             this.onCancel();
             break;

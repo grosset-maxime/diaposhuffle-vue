@@ -37,11 +37,13 @@
                 cols="12"
               >
                 <v-text-field
-                  v-model.trim="model.name"
+                  :value="model.name"
                   autofocus
-                  :rules="[rules.required, isNameExists]"
+                  :rules="[rules.required]"
+                  :hint="nameWarningMsg"
                   label="Name"
                   required
+                  @input="updateModel('name', $event)"
                 />
               </v-col>
 
@@ -135,7 +137,7 @@ export default {
 
   data: () => ({
     model: {
-      id: '',
+      id: 0,
       name: '',
       color: '',
     },
@@ -143,6 +145,8 @@ export default {
     color: '',
 
     isFormValid: false,
+
+    nameWarningMsg: '',
 
     rules: {
       required: (value) => !!value || 'Required.',
@@ -167,6 +171,8 @@ export default {
         `${this.NS}/${TAGGER_G_CATEGORIES_LIST}`
       ];
     },
+
+    modelName () { return this.model.name },
   },
 
   watch: {
@@ -192,7 +198,14 @@ export default {
         this.color = value.substr(0, 7);
       }
 
-      this.model.color = this.color;
+      // TODO: test if the color already set to another category and then display a warning message.
+      this.$set(this.model, 'color', this.color);
+    },
+
+    modelName (name) {
+      this.nameWarningMsg = (name || '').trim() && this.isNameExists(name)
+        ? 'Name already exists.'
+        : '';
     },
   },
 
@@ -203,10 +216,6 @@ export default {
   },
 
   methods: {
-    getCategoryColor (category) {
-      return `#${category.color}`;
-    },
-
     setModel (category) {
       if (!category || !category.id) {
         this.resetForm();
@@ -218,9 +227,11 @@ export default {
     },
 
     resetForm () {
-      this.model.id = '';
-      this.model.name = '';
-      this.model.color = '';
+      this.model = {
+        id: 0,
+        name: '',
+        color: '',
+      };
       this.color = '';
 
       if (this.$refs.form) {
@@ -229,25 +240,26 @@ export default {
     },
 
     isNameExists (value) {
-      return !value
-        || !this.categories.some(
-          (cat) => cat.name.toLowerCase() === value.trim().toLowerCase(),
-        )
-        || 'Name already exists.';
+      return this.categories.some(
+        (cat) => cat.name.toLowerCase() === (value || '').trim().toLowerCase(),
+      );
+    },
+
+    updateModel (key, value) {
+      this.$set(this.model, key, value);
     },
 
     onConfirm () {
       const isFormValid = this.$refs.form.validate();
 
       if (isFormValid) {
-        this.$emit('confirm', this.model);
+        this.$emit('confirm', { ...this.model });
       }
     },
 
-    onCancel () {
-      this.$emit('cancel');
-    },
+    onCancel () { this.$emit('cancel') },
 
+    // TODO: on delete show confirm modal before emiting delete.
     onDelete () { this.$emit('delete', this.category.id) },
 
     attachKeyboardShortcuts () {
