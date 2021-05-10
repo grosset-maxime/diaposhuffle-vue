@@ -94,6 +94,8 @@ export default {
 
   watch: {
     selected () { this.setStyles() },
+
+    categoryColor () { this.setStyles() },
   },
 
   mounted () {

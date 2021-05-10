@@ -109,6 +109,12 @@
       </v-card-actions>
     </v-card>
 
+    <CircularLoading
+      class="loading"
+      v-if="loading"
+      indeterminate
+    />
+
     <DeleteModal
       v-if="!add"
       :show="showDeleteModal"
@@ -125,12 +131,20 @@
 import { TAGGER_G_CATEGORIES_LIST } from '../../store/types';
 import { deepClone, getKey } from '../../utils/utils';
 import DeleteModal from '../DeleteModal.vue';
+import CircularLoading from '../CircularLoading.vue';
+
+const EMPTY_MODEL = {
+  id: '',
+  name: '',
+  color: '',
+};
 
 export default {
   name: 'EditCategoryModal',
 
   components: {
     DeleteModal,
+    CircularLoading,
   },
 
   props: {
@@ -141,11 +155,7 @@ export default {
 
     category: {
       type: Object,
-      default: () => ({
-        id: 0,
-        name: '',
-        color: '',
-      }),
+      default: () => ({ ...EMPTY_MODEL }),
     },
 
     add: {
@@ -161,11 +171,7 @@ export default {
   },
 
   data: () => ({
-    model: {
-      id: 0,
-      name: '',
-      color: '',
-    },
+    model: { ...EMPTY_MODEL },
 
     color: '',
 
@@ -179,6 +185,8 @@ export default {
     isFormValid: false,
 
     showDeleteModal: false,
+
+    loading: false,
 
     keyboardShortcuts: () => {},
   }),
@@ -206,6 +214,7 @@ export default {
   watch: {
     show (isShow) {
       if (isShow) {
+        this.loading = false;
         this.attachKeyboardShortcuts();
 
         if (this.add) {
@@ -228,12 +237,12 @@ export default {
       // temporary fix while there is no way to disable the alpha channel in the
       // colorpicker component: https://github.com/vuetifyjs/vuetify/issues/9590
       if (value.toString().match(/#[a-zA-Z0-9]{8}/)) {
-        this.color = value.substr(0, 7);
+        this.color = value.substring(0, 7);
       }
 
-      if (this.color.includes(this.model.color)) { return }
+      if (this.model.color && this.color.includes(this.model.color)) { return }
 
-      this.$set(this.model, 'color', this.color);
+      this.$set(this.model, 'color', this.color.substring(1));
 
       const isColorAlreadyAssigned = this.categories.some(
         (cat) => this.color.toLowerCase().includes(cat.color.toLowerCase())
@@ -261,6 +270,8 @@ export default {
   },
 
   mounted () {
+    this.loading = false;
+
     if (this.category && this.category.id) {
       this.setModel(this.category);
     }
@@ -278,11 +289,7 @@ export default {
     },
 
     resetForm () {
-      this.model = {
-        id: 0,
-        name: '',
-        color: '',
-      };
+      this.model = { ...EMPTY_MODEL };
       this.color = '';
 
       if (this.$refs.form) {
@@ -309,6 +316,7 @@ export default {
       const isFormValid = this.$refs.form.validate();
 
       if (isFormValid) {
+        this.loading = true;
         this.$emit('confirm', { ...this.model });
       }
     },
@@ -316,6 +324,7 @@ export default {
     onCancel () { this.$emit('cancel') },
 
     onDelete () {
+      this.loading = true;
       this.$emit('delete', this.category.id);
       this.onCancel();
     },
@@ -365,6 +374,14 @@ export default {
       margin-bottom: -10px;
       z-index: 1;
     }
+  }
+
+  .loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: #{$grey-8 + '80'};
+    z-index: 100;
   }
 }
 </style>

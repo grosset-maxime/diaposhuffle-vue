@@ -9,6 +9,9 @@ import {
   updateTag,
   deleteTag,
   fetchCategories,
+  addCategory,
+  updateCategory,
+  deleteCategory,
 } from '../../api/tags';
 import {
   TAGGER_G_TAGS,
@@ -23,6 +26,9 @@ import {
   TAGGER_A_UPDATE_TAG,
   TAGGER_A_DELETE_TAG,
   TAGGER_A_FETCH_CATEGORIES,
+  TAGGER_A_ADD_CATEGORY,
+  TAGGER_A_UPDATE_CATEGORY,
+  TAGGER_A_DELETE_CATEGORY,
 } from '../types';
 
 const state = () => ({
@@ -82,6 +88,12 @@ const mutations = {
   _setCategories (state, categories) {
     state.categories = Object.fromEntries(categories.map((cat) => [cat.id, cat]));
   },
+
+  _addCategory (state, category) { Vue.set(state.categories, category.id, category) },
+
+  _updateCategory (state, category) { Vue.set(state.categories, category.id, category) },
+
+  _deleteCategory (state, id) { Vue.delete(state.categories, id) },
 };
 
 const actions = {
@@ -182,6 +194,62 @@ const actions = {
     commit('_setCategoriesFetched', true);
 
     return getters[TAGGER_G_CATEGORIES];
+  },
+
+  async [TAGGER_A_ADD_CATEGORY] ({ commit }, category) {
+    try {
+      const categoryId = await addCategory({
+        name: category.name,
+        color: category.color,
+      });
+
+      if (!categoryId) {
+        throw buildError('Fail to add a new category.');
+      }
+
+      category.id = categoryId;
+      commit('_addCategory', category);
+    } catch (error) {
+      commit(TAGGER_M_ADD_ERROR, {
+        actionName: TAGGER_A_ADD_CATEGORY, error,
+      });
+    }
+  },
+
+  async [TAGGER_A_UPDATE_CATEGORY] ({ commit }, category) {
+    try {
+      const success = await updateCategory({
+        id: category.id,
+        name: category.name,
+        color: category.color,
+      });
+
+      if (!success) {
+        throw buildError('Fail to update category.');
+      }
+
+      commit('_updateCategory', category);
+    } catch (error) {
+      commit(TAGGER_M_ADD_ERROR, {
+        actionName: TAGGER_A_UPDATE_CATEGORY, error,
+      });
+    }
+  },
+
+  async [TAGGER_A_DELETE_CATEGORY] ({ commit }, id) {
+    try {
+      const success = await deleteCategory({ id });
+
+      if (!success) {
+        throw buildError('Fail to delete category.');
+      }
+
+      commit('_deleteCategory', id);
+    } catch (error) {
+      commit(TAGGER_M_ADD_ERROR, {
+        actionName: TAGGER_A_DELETE_CATEGORY, error,
+      });
+    }
   },
 };
 

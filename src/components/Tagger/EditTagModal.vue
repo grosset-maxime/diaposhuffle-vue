@@ -144,6 +144,12 @@ import { deepClone, getKey } from '../../utils/utils';
 import DeleteModal from '../DeleteModal.vue';
 import CircularLoading from '../CircularLoading.vue';
 
+const EMPTY_MODEL = {
+  id: '',
+  name: '',
+  category: '',
+};
+
 export default {
   name: 'EditTagModal',
 
@@ -160,7 +166,7 @@ export default {
 
     tag: {
       type: Object,
-      default: () => ({}),
+      default: () => ({ ...EMPTY_MODEL }),
     },
 
     add: {
@@ -176,11 +182,7 @@ export default {
   },
 
   data: () => ({
-    model: {
-      id: '',
-      name: '',
-      category: '',
-    },
+    model: { ...EMPTY_MODEL },
 
     nameWarningMsg: '',
 
@@ -276,11 +278,7 @@ export default {
     },
 
     resetForm () {
-      this.model = {
-        id: '',
-        name: '',
-        category: '',
-      };
+      this.model = { ...EMPTY_MODEL };
 
       if (this.$refs.form) {
         this.$refs.form.reset();

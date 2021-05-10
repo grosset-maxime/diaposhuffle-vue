@@ -56,3 +56,6 @@ export const TAGGER_A_ADD_TAG = 'Add New Tag';
 export const TAGGER_A_UPDATE_TAG = 'Update Tag';
 export const TAGGER_A_DELETE_TAG = 'Delete Tag';
 export const TAGGER_A_FETCH_CATEGORIES = 'Fetch Categories';
+export const TAGGER_A_ADD_CATEGORY = 'Add New Category';
+export const TAGGER_A_UPDATE_CATEGORY = 'Update Category';
+export const TAGGER_A_DELETE_CATEGORY = 'Delete Category';

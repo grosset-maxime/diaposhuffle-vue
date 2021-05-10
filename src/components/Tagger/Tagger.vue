@@ -116,6 +116,9 @@ import {
   TAGGER_A_UPDATE_TAG,
   TAGGER_A_DELETE_TAG,
   TAGGER_A_FETCH_CATEGORIES,
+  TAGGER_A_ADD_CATEGORY,
+  TAGGER_A_UPDATE_CATEGORY,
+  TAGGER_A_DELETE_CATEGORY,
 } from '../../store/types';
 import { getKey, deepClone } from '../../utils/utils';
 import CategoriesList from './CategoriesList.vue';
@@ -214,8 +217,9 @@ export default {
     onShow () {
       this.attachKeyboardShortcuts();
 
-      this.fetchTags()
+      this.fetchTagsAndCategories()
         .then(() => {
+          this.onFetchCategories();
           this.onFetchTags();
         })
         .finally(() => {
@@ -225,12 +229,15 @@ export default {
 
     onFetchTags () {
       this.tagsList = this.tagsListStore.map((tag) => deepClone(tag));
-      this.categoriesList = this.categoriesListStore.map((cat) => deepClone(cat));
 
       this.updateSelectedIds();
 
       this.unselectedTags = this.tagsList.filter((tag) => !this.selectedIds[tag.id]);
       this.selectedTags = this.tagsList.filter((tag) => this.selectedIds[tag.id]);
+    },
+
+    onFetchCategories () {
+      this.categoriesList = this.categoriesListStore.map((cat) => deepClone(cat));
     },
 
     onHide () { this.removeKeyboardShortcuts() },
@@ -285,15 +292,11 @@ export default {
     },
 
     async onConfirmEditTagModal (tag) {
-      this.editTagModal.loading = true;
-
       if (this.editTagModal.add) {
         await this.$store.dispatch(`${this.NS}/${TAGGER_A_ADD_TAG}`, tag);
       } else {
         await this.$store.dispatch(`${this.NS}/${TAGGER_A_UPDATE_TAG}`, tag);
       }
-
-      this.editTagModal.loading = false;
 
       this.onFetchTags();
       this.hideEditTagModal();
@@ -322,13 +325,21 @@ export default {
       this.attachKeyboardShortcuts();
     },
 
-    onDeleteEditCategoryModal () {
-      // TODO: delete category.
+    async onDeleteEditCategoryModal (catId) {
+      await this.$store.dispatch(`${this.NS}/${TAGGER_A_DELETE_CATEGORY}`, catId);
+
+      this.onFetchCategories();
       this.hideEditCategoryModal();
     },
 
-    onConfirmEditCategoryModal () {
-      // TODO: add new category or edit category.
+    async onConfirmEditCategoryModal (category) {
+      if (this.editCategoryModal.add) {
+        await this.$store.dispatch(`${this.NS}/${TAGGER_A_ADD_CATEGORY}`, category);
+      } else {
+        await this.$store.dispatch(`${this.NS}/${TAGGER_A_UPDATE_CATEGORY}`, category);
+      }
+
+      this.onFetchCategories();
       this.hideEditCategoryModal();
     },
 
@@ -368,7 +379,7 @@ export default {
       this.setFilterTextFocus();
     },
 
-    fetchTags () {
+    fetchTagsAndCategories () {
       return Promise.all([
         this.$store.dispatch(`${this.NS}/${TAGGER_A_FETCH_TAGS}`),
         this.$store.dispatch(`${this.NS}/${TAGGER_A_FETCH_CATEGORIES}`),
