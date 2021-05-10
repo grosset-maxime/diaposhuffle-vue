@@ -96,7 +96,7 @@
           v-if="!add"
           class="modal-btn"
           tabindex="-1"
-          @click="onDelete"
+          @click="onDeleteBtnClick"
         >
           Delete
         </v-btn>
@@ -119,15 +119,30 @@
         </v-btn>
       </v-card-actions>
     </v-card>
+
+    <DeleteModal
+      v-if="!add"
+      :show="showDeleteModal"
+      @confirm="closeConfirmDelete({ deleteTag: true })"
+      @cancel="closeConfirmDelete"
+      @click:outside="closeConfirmDelete"
+    >
+      Delete this tag?
+    </DeleteModal>
   </v-dialog>
 </template>
 
 <script>
 import { TAGGER_G_CATEGORIES_LIST, TAGGER_G_TAGS_LIST } from '../../store/types';
 import { deepClone, getKey } from '../../utils/utils';
+import DeleteModal from '../DeleteModal.vue';
 
 export default {
   name: 'EditTagModal',
+
+  components: {
+    DeleteModal,
+  },
 
   props: {
     show: {
@@ -159,13 +174,15 @@ export default {
       category: 0,
     },
 
-    isFormValid: false,
-
     nameWarningMsg: '',
 
     rules: {
       required: (value) => !!value || 'Required.',
     },
+
+    isFormValid: false,
+
+    showDeleteModal: false,
 
     keyboardShortcuts: () => {},
   }),
@@ -213,6 +230,14 @@ export default {
       this.nameWarningMsg = (name || '').trim() && this.isNameExists(name)
         ? 'Name already exists.'
         : '';
+    },
+
+    showDeleteModal (shouldShow) {
+      if (shouldShow) {
+        this.removeKeyboardShortcuts();
+      } else {
+        this.attachKeyboardShortcuts();
+      }
     },
   },
 
@@ -270,9 +295,7 @@ export default {
       );
     },
 
-    updateModel (key, value) {
-      this.$set(this.model, key, value);
-    },
+    updateModel (key, value) { this.$set(this.model, key, value) },
 
     onConfirm () {
       const isFormValid = this.$refs.form.validate();
@@ -284,8 +307,18 @@ export default {
 
     onCancel () { this.$emit('cancel') },
 
-    // TODO: on delete show confirm modal before emiting delete.
-    onDelete () { this.$emit('delete', this.tag.id) },
+    onDelete () {
+      this.$emit('delete', this.tag.id);
+      this.onCancel();
+    },
+
+    onDeleteBtnClick () { this.showDeleteModal = true },
+
+    closeConfirmDelete ({ deleteTag } = {}) {
+      this.showDeleteModal = false;
+
+      if (deleteTag) { this.onDelete() }
+    },
 
     attachKeyboardShortcuts () {
       this.keyboardShortcuts = (e) => {

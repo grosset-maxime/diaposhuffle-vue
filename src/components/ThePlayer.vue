@@ -37,7 +37,8 @@
     <DeleteModal
       :show="deleteModal.show"
       @confirm="hideDeleteModal({ deleteItem: true })"
-      @cancel="hideDeleteModal({ deleteItem: false })"
+      @cancel="hideDeleteModal"
+      @click:outside="hideDeleteModal"
     />
 
     <ItemsPlayer

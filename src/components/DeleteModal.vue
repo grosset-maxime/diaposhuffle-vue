@@ -2,8 +2,12 @@
   <v-dialog
     content-class="delete-modal"
     :value="show"
+    @click:outside="$emit('click:outside')"
   >
-    <div>{{ message }}</div>
+    <div class="delete-modal-body">
+      <!-- @slot Default slot to display delete confirm message -->
+      <slot>Delete this item?</slot>
+    </div>
 
     <v-btn
       class="modal-btn"
@@ -32,16 +36,12 @@ export default {
       type: Boolean,
       default: false,
     },
-
-    message: {
-      type: String,
-      default: 'Delete this item ?',
-    },
   },
 
   emits: {
     confirm: null,
     cancel: null,
+    'click:outside': null,
   },
 
   data: () => ({
@@ -104,7 +104,11 @@ export default {
   align-items: center;
   background: $grey-7#{AA};
   padding: 15px;
-  width: 400px;
+  width: 600px;
+
+  .delete-modal-body {
+    text-align: center;
+  }
 
   .modal-btn {
     width: 100px;
