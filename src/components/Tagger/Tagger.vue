@@ -112,6 +112,9 @@ import {
   TAGGER_G_TAGS_LIST,
   TAGGER_G_CATEGORIES_LIST,
   TAGGER_A_FETCH_TAGS,
+  TAGGER_A_ADD_TAG,
+  TAGGER_A_UPDATE_TAG,
+  TAGGER_A_DELETE_TAG,
   TAGGER_A_FETCH_CATEGORIES,
 } from '../../store/types';
 import { getKey, deepClone } from '../../utils/utils';
@@ -195,7 +198,9 @@ export default {
 
     tagsListStore () { return this.$store.getters[`${this.NS}/${TAGGER_G_TAGS_LIST}`] },
 
-    categoriesListStore () { return this.$store.getters[`${this.NS}/${TAGGER_G_CATEGORIES_LIST}`] },
+    categoriesListStore () {
+      return this.$store.getters[`${this.NS}/${TAGGER_G_CATEGORIES_LIST}`];
+    },
   },
 
   watch: {},
@@ -272,13 +277,25 @@ export default {
       this.isFilterTextHasFocus = false;
     },
 
-    onDeleteEditTagModal () {
-      // TODO: delete tag.
+    async onDeleteEditTagModal (tagId) {
+      await this.$store.dispatch(`${this.NS}/${TAGGER_A_DELETE_TAG}`, tagId);
+
+      this.onFetchTags();
       this.hideEditTagModal();
     },
 
-    onConfirmEditTagModal () {
-      // TODO: add new tag or edit tag.
+    async onConfirmEditTagModal (tag) {
+      this.editTagModal.loading = true;
+
+      if (this.editTagModal.add) {
+        await this.$store.dispatch(`${this.NS}/${TAGGER_A_ADD_TAG}`, tag);
+      } else {
+        await this.$store.dispatch(`${this.NS}/${TAGGER_A_UPDATE_TAG}`, tag);
+      }
+
+      this.editTagModal.loading = false;
+
+      this.onFetchTags();
       this.hideEditTagModal();
     },
 

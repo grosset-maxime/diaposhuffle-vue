@@ -62,7 +62,7 @@
                       text-color="white"
                       close
                       outlined
-                      @click:close="model.category = 0"
+                      @click:close="updateModel('category', '')"
                     >
                       <v-avatar
                         left
@@ -120,6 +120,12 @@
       </v-card-actions>
     </v-card>
 
+    <CircularLoading
+      class="loading"
+      v-if="loading"
+      indeterminate
+    />
+
     <DeleteModal
       v-if="!add"
       :show="showDeleteModal"
@@ -136,12 +142,14 @@
 import { TAGGER_G_CATEGORIES_LIST, TAGGER_G_TAGS_LIST } from '../../store/types';
 import { deepClone, getKey } from '../../utils/utils';
 import DeleteModal from '../DeleteModal.vue';
+import CircularLoading from '../CircularLoading.vue';
 
 export default {
   name: 'EditTagModal',
 
   components: {
     DeleteModal,
+    CircularLoading,
   },
 
   props: {
@@ -171,7 +179,7 @@ export default {
     model: {
       id: '',
       name: '',
-      category: 0,
+      category: '',
     },
 
     nameWarningMsg: '',
@@ -183,6 +191,8 @@ export default {
     isFormValid: false,
 
     showDeleteModal: false,
+
+    loading: false,
 
     keyboardShortcuts: () => {},
   }),
@@ -210,6 +220,8 @@ export default {
   watch: {
     show (isShow) {
       if (isShow) {
+        this.loading = false;
+
         this.attachKeyboardShortcuts();
 
         if (this.add) {
@@ -242,6 +254,8 @@ export default {
   },
 
   mounted () {
+    this.loading = false;
+
     if (this.tag && this.tag.id) {
       this.setModel(this.tag);
     }
@@ -265,7 +279,7 @@ export default {
       this.model = {
         id: '',
         name: '',
-        category: 0,
+        category: '',
       };
 
       if (this.$refs.form) {
@@ -301,6 +315,7 @@ export default {
       const isFormValid = this.$refs.form.validate();
 
       if (isFormValid) {
+        this.loading = true;
         this.$emit('confirm', { ...this.model });
       }
     },
@@ -308,6 +323,7 @@ export default {
     onCancel () { this.$emit('cancel') },
 
     onDelete () {
+      this.loading = true;
       this.$emit('delete', this.tag.id);
       this.onCancel();
     },
@@ -349,7 +365,12 @@ export default {
 /* FYI: As Vuetify v-dialog is injected at root in DOM, style cannot be scoped. */
 
 .edit-tag-modal {
-  .modal-btn {
+  .loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: #{$grey-8 + '80'};
+    z-index: 100;
   }
 }
 </style>

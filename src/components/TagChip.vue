@@ -145,6 +145,8 @@ export default {
 
   watch: {
     selected () { this.setStyles() },
+
+    categoryId () { this.setStyles() },
   },
 
   mounted () {

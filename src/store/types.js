@@ -52,4 +52,7 @@ export const TAGGER_G_CATEGORY_COLOR = 'Get Tag Color';
 export const TAGGER_M_ADD_ERROR = 'Add Tagger Error';
 
 export const TAGGER_A_FETCH_TAGS = 'Fetch Tags';
+export const TAGGER_A_ADD_TAG = 'Add New Tag';
+export const TAGGER_A_UPDATE_TAG = 'Update Tag';
+export const TAGGER_A_DELETE_TAG = 'Delete Tag';
 export const TAGGER_A_FETCH_CATEGORIES = 'Fetch Categories';

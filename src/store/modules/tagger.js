@@ -1,7 +1,15 @@
 /* eslint-disable no-shadow */
 /* eslint-disable no-param-reassign */
 // import Vue from 'vue';
-import { fetchTags, fetchCategories } from '../../api/tags';
+import Vue from 'vue';
+import { buildError } from '../../api/api';
+import {
+  fetchTags,
+  addTag,
+  updateTag,
+  deleteTag,
+  fetchCategories,
+} from '../../api/tags';
 import {
   TAGGER_G_TAGS,
   TAGGER_G_TAGS_LIST,
@@ -11,6 +19,9 @@ import {
   TAGGER_G_CATEGORY_COLOR,
   TAGGER_M_ADD_ERROR,
   TAGGER_A_FETCH_TAGS,
+  TAGGER_A_ADD_TAG,
+  TAGGER_A_UPDATE_TAG,
+  TAGGER_A_DELETE_TAG,
   TAGGER_A_FETCH_CATEGORIES,
 } from '../types';
 
@@ -62,6 +73,12 @@ const mutations = {
     state.tags = Object.fromEntries(tags.map((tag) => [tag.id, tag]));
   },
 
+  _addTag (state, tag) { Vue.set(state.tags, tag.id, tag) },
+
+  _updateTag (state, tag) { Vue.set(state.tags, tag.id, tag) },
+
+  _deleteTag (state, id) { Vue.delete(state.tags, id) },
+
   _setCategories (state, categories) {
     state.categories = Object.fromEntries(categories.map((cat) => [cat.id, cat]));
   },
@@ -88,6 +105,62 @@ const actions = {
     commit('_setTagsFetched', true);
 
     return getters[TAGGER_G_TAGS];
+  },
+
+  async [TAGGER_A_ADD_TAG] ({ commit }, tag) {
+    try {
+      const success = await addTag({
+        id: tag.id,
+        name: tag.name,
+        category: tag.category,
+      });
+
+      if (!success) {
+        throw buildError('Fail to add a new tag.');
+      }
+
+      commit('_addTag', tag);
+    } catch (error) {
+      commit(TAGGER_M_ADD_ERROR, {
+        actionName: TAGGER_A_ADD_TAG, error,
+      });
+    }
+  },
+
+  async [TAGGER_A_UPDATE_TAG] ({ commit }, tag) {
+    try {
+      const success = await updateTag({
+        id: tag.id,
+        name: tag.name,
+        category: tag.category,
+      });
+
+      if (!success) {
+        throw buildError('Fail to update tag.');
+      }
+
+      commit('_updateTag', tag);
+    } catch (error) {
+      commit(TAGGER_M_ADD_ERROR, {
+        actionName: TAGGER_A_UPDATE_TAG, error,
+      });
+    }
+  },
+
+  async [TAGGER_A_DELETE_TAG] ({ commit }, id) {
+    try {
+      const success = await deleteTag({ id });
+
+      if (!success) {
+        throw buildError('Fail to delete tag.');
+      }
+
+      commit('_deleteTag', id);
+    } catch (error) {
+      commit(TAGGER_M_ADD_ERROR, {
+        actionName: TAGGER_A_DELETE_TAG, error,
+      });
+    }
   },
 
   async [TAGGER_A_FETCH_CATEGORIES] ({ state, commit, getters }) {
