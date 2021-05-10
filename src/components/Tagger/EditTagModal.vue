@@ -195,10 +195,13 @@ export default {
       if (isShow) {
         this.attachKeyboardShortcuts();
 
-        if (this.add) { this.resetForm() }
+        if (this.add) {
+          this.resetForm();
+        } else {
+          this.resetFormValidation();
+        }
       } else {
         this.removeKeyboardShortcuts();
-        this.resetForm();
       }
     },
 
@@ -245,6 +248,12 @@ export default {
       }
     },
 
+    resetFormValidation () {
+      if (this.$refs.form) {
+        this.$refs.form.resetValidation();
+      }
+    },
+
     isIdNotExists (value) {
       return !value
         || !this.add
@@ -256,7 +265,8 @@ export default {
 
     isNameExists (value) {
       return this.tags.some(
-        (tag) => tag.name.toLowerCase() === (value || '').trim().toLowerCase(),
+        (tag) => tag.name.toLowerCase() === (value || '').trim().toLowerCase()
+          && tag.id !== this.model.id,
       );
     },
 
@@ -306,17 +316,7 @@ export default {
 /* FYI: As Vuetify v-dialog is injected at root in DOM, style cannot be scoped. */
 
 .edit-tag-modal {
-  // position: absolute;
-  // top: 0;
-  // display: flex;
-  // align-items: center;
-  // background: $grey-7#{AA};
-  // padding: 15px;
-  // width: 400px;
-
   .modal-btn {
-    // width: 100px;
-    // margin-left: 20px;
   }
 }
 </style>

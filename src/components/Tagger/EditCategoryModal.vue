@@ -51,6 +51,16 @@
                 class="pt-0"
                 cols="12"
               >
+                <v-alert
+                  v-if="colorWarningMsg"
+                  class="color-warning-alert"
+                  type="warning"
+                  icon="mdi-alert"
+                  dense
+                >
+                  {{ colorWarningMsg }}
+                </v-alert>
+
                 <v-color-picker
                   v-model="color"
                   class="color-picker"
@@ -147,6 +157,7 @@ export default {
     isFormValid: false,
 
     nameWarningMsg: '',
+    colorWarningMsg: '',
 
     rules: {
       required: (value) => !!value || 'Required.',
@@ -180,10 +191,13 @@ export default {
       if (isShow) {
         this.attachKeyboardShortcuts();
 
-        if (this.add) { this.resetForm() }
+        if (this.add) {
+          this.resetForm();
+        } else {
+          this.resetFormValidation();
+        }
       } else {
         this.removeKeyboardShortcuts();
-        this.resetForm();
       }
     },
 
@@ -192,14 +206,26 @@ export default {
     },
 
     color (value) {
+      if (!value) { return }
+
       // temporary fix while there is no way to disable the alpha channel in the
       // colorpicker component: https://github.com/vuetifyjs/vuetify/issues/9590
       if (value.toString().match(/#[a-zA-Z0-9]{8}/)) {
         this.color = value.substr(0, 7);
       }
 
-      // TODO: test if the color already set to another category and then display a warning message.
+      if (this.color.includes(this.model.color)) { return }
+
       this.$set(this.model, 'color', this.color);
+
+      const isColorAlreadyAssigned = this.categories.some(
+        (cat) => this.color.toLowerCase().includes(cat.color.toLowerCase())
+          && cat.id !== this.model.id,
+      );
+
+      this.colorWarningMsg = isColorAlreadyAssigned
+        ? 'Color already assinged.'
+        : '';
     },
 
     modelName (name) {
@@ -239,9 +265,16 @@ export default {
       }
     },
 
+    resetFormValidation () {
+      if (this.$refs.form) {
+        this.$refs.form.resetValidation();
+      }
+    },
+
     isNameExists (value) {
       return this.categories.some(
-        (cat) => cat.name.toLowerCase() === (value || '').trim().toLowerCase(),
+        (cat) => cat.name.toLowerCase() === (value || '').trim().toLowerCase()
+          && cat.id !== this.model.id,
       );
     },
 
@@ -291,25 +324,14 @@ export default {
 /* FYI: As Vuetify v-dialog is injected at root in DOM, style cannot be scoped. */
 
 .edit-category-modal {
-  // position: absolute;
-  // top: 0;
-  // display: flex;
-  // align-items: center;
-  // background: $grey-7#{AA};
-  // padding: 15px;
-  // width: 400px;
-
   .modal-body {
     height: calc(100vh - 200px);
     overflow: auto;
 
-    // .color-picker {
-    // }
-  }
-
-  .modal-btn {
-    // width: 100px;
-    // margin-left: 20px;
+    .color-warning-alert {
+      margin-bottom: -10px;
+      z-index: 1;
+    }
   }
 }
 </style>
