@@ -64,7 +64,7 @@
 
       <Tagger
         ref="Tagger"
-        :selected="selected"
+        :selected="selectedTagIds"
         :edit-mode="editMode"
         @select="onSelect"
         @unselect="onUnselect"
@@ -94,7 +94,7 @@ export default {
       default: false,
     },
 
-    selected: {
+    selectedTagIds: {
       type: Array,
       default: () => ([]),
     },
@@ -106,7 +106,7 @@ export default {
   },
 
   data: () => ({
-    selectedTagsIds: {},
+    selectedTagsIdsMap: {},
 
     editMode: false,
 
@@ -117,8 +117,6 @@ export default {
 
   computed: {
     NS () { return 'tagger' },
-
-    nbSelected () { return Object.keys(this.selectedTagsIds).length },
 
     tags () { return this.$store.getters[`${this.NS}/${TAGGER_G_TAGS}`] },
   },
@@ -133,7 +131,7 @@ export default {
     onShow () {
       this.editMode = false;
 
-      this.selectedTagsIds = Object.fromEntries(this.selected.map((tag) => [tag.id, true]));
+      this.selectedTagsIdsMap = Object.fromEntries(this.selectedTagIds.map((tagId) => [tagId, true]));
 
       // Wait for v-dialog transition end before continuing.
       setTimeout(() => {
@@ -148,7 +146,7 @@ export default {
     onSave () {
       this.$emit(
         'save',
-        Object.keys(this.selectedTagsIds).map((id) => this.tags[id]),
+        Object.values(this.selectedTagsIdsMap),
       );
       this.onClose();
     },
@@ -160,15 +158,15 @@ export default {
     onClose () {
       this.onHide();
       this.$emit('close');
-      this.selectedTagsIds = {};
+      this.selectedTagsIdsMap = undefined;
     },
 
     onSelect (tagId) {
-      this.$set(this.selectedTagsIds, tagId, true);
+      this.$set(this.selectedTagsIdsMap, tagId, true);
     },
 
     onUnselect (tagId) {
-      this.$delete(this.selectedTagsIds, tagId);
+      this.$delete(this.selectedTagsIdsSet, tagId);
     },
 
     onUnselectAll () { this.selectedTags = {} },

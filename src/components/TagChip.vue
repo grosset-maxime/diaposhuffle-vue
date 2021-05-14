@@ -6,8 +6,12 @@
       clickable,
       'has-no-category': !hasCategory
     }]"
-    :style="styles"
-    @click="click"
+    :style="{
+      'background-color': tagBgColor,
+      'border-color': tagColor,
+      'box-shadow': tagBoxShadow,
+    }"
+    @click="$emit('click', tagId)"
   >
     <span class="tag-content">
       {{ tag.name }}
@@ -19,7 +23,7 @@
         class="edit-btn"
       >
         <v-icon
-          @click.stop="$emit('click:edit', tag.id)"
+          @click.stop="$emit('click:edit', tagId)"
           class="edit-icon"
         >
           mdi-pencil
@@ -33,7 +37,7 @@
         class="close-btn"
       >
         <v-icon
-          @click.stop="$emit('click:close', tag.id)"
+          @click.stop="$emit('click:close', tagId)"
           class="close-icon"
         >
           mdi-close-circle
@@ -45,6 +49,7 @@
 
 <script>
 import {
+  TAGGER_G_TAG,
   TAGGER_G_CATEGORY,
   TAGGER_G_CATEGORY_COLOR,
 } from '../store/types';
@@ -53,9 +58,9 @@ export default {
   name: 'TagChip',
 
   props: {
-    tag: {
-      type: Object,
-      default: () => ({}),
+    tagId: {
+      type: String,
+      default: '',
     },
 
     selected: {
@@ -92,6 +97,8 @@ export default {
   computed: {
     NS () { return 'tagger' },
 
+    tag () { return this.$store.getters[`${this.NS}/${TAGGER_G_TAG}`](this.tagId) },
+
     categoryId () { return this.tag.category },
 
     hasCategory () {
@@ -108,16 +115,19 @@ export default {
 
     tagColor () {
       let color;
+
       if (this.hasCategory) {
         color = this.selected
           ? `#${this.categoryColor}FF`
           : `#${this.categoryColor}FF`;
       }
+
       return color;
     },
 
     tagBgColor () {
       let color;
+
       if (this.hasCategory) {
         color = this.selected
           ? `#${this.categoryColor}AA`
@@ -125,6 +135,7 @@ export default {
       } else if (this.tag.selected) {
         color = '#FFFFFF80';
       }
+
       return color;
     },
 
@@ -143,27 +154,11 @@ export default {
     },
   },
 
-  watch: {
-    selected () { this.setStyles() },
+  watch: {},
 
-    categoryId () { this.setStyles() },
-  },
+  mounted () {},
 
-  mounted () {
-    this.setStyles();
-  },
-
-  methods: {
-    setStyles () {
-      this.styles = {
-        'background-color': this.tagBgColor,
-        'border-color': this.tagColor,
-        'box-shadow': this.tagBoxShadow,
-      };
-    },
-
-    click () { this.$emit('click', this.tag.id) },
-  },
+  methods: {},
 };
 </script>
 

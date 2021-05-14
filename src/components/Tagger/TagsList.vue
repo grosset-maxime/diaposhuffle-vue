@@ -19,24 +19,17 @@
     </v-btn>
 
     <TagChip
-      v-for="(tag) in filteredTags"
-      :key="`tag-${tag.id}`"
-      :tag="tag"
-      :selected="selected[tag.id]"
+      v-for="(tagId) in tagIds"
+      :key="`tag-${tagId}`"
+      :tag-id="tagId"
+      :selected="selectedIds[tagId]"
       :edit="editMode"
       :close="closableTags"
       clickable
       @click="onTagClick"
-      @click:close="$emit('closeTag', tag.id)"
-      @click:edit="onTagEditClick"
+      @click:close="$emit('closeTag', tagId)"
+      @click:edit="$emit('editTag', tagId);"
     />
-
-    <div
-      v-if="hasNoResults"
-      class="no-results"
-    >
-      No matching tags.
-    </div>
 
     <div
       v-if="!hasTags"
@@ -50,7 +43,7 @@
 <script>
 import Fuse from 'fuse.js';
 import TagChip from '../TagChip.vue';
-import { isEmptyObj, getRandomElement } from '../../utils/utils';
+import { getRandomElement } from '../../utils/utils';
 
 export default {
   name: 'TagsList',
@@ -60,24 +53,14 @@ export default {
   },
 
   props: {
-    tags: {
+    tagIds: {
       type: Array,
       default: () => ([]),
     },
 
-    selected: {
+    selectedIds: {
       type: Object,
       default: () => ({}),
-    },
-
-    categoriesFilter: {
-      type: Object,
-      default: undefined,
-    },
-
-    textFilter: {
-      type: String,
-      default: '',
     },
 
     closableTags: {
@@ -107,20 +90,9 @@ export default {
   data: () => ({}),
 
   computed: {
-    isFiltering () {
-      return this.hasCategoriesFilter || this.hasTextFilter;
-    },
+    hasTags () { return this.tagIds.length > 0 },
 
-    hasCategoriesFilter () { return !isEmptyObj(this.categoriesFilter) },
-
-    hasTextFilter () { return !!this.textFilter },
-
-    hasTags () { return this.tags.length > 0 },
-
-    hasNoResults () {
-      return this.hasTags && this.isFiltering && this.filteredTags.length === 0;
-    },
-
+    // TODO: move this method to Tagger.vue
     filteredTags () {
       if (!this.isFiltering) { return this.tags }
 
@@ -151,33 +123,16 @@ export default {
 
   methods: {
     onTagClick (tagId) {
-      if (this.selected[tagId]) {
-        this.$emit('unselect', tagId);
-      } else {
-        this.$emit('select', tagId);
-      }
-    },
-
-    getColor (isSelected) {
-      return isSelected ? 'orange' : undefined;
+      this.$emit(this.selectedIds[tagId] ? 'unselect' : 'select', tagId);
     },
 
     selectRandom () {
-      const randomdTag = getRandomElement(
-        this.filteredTags.filter((tag) => !this.selected[tag.id]),
-      );
-
-      if (randomdTag) {
-        this.onTagClick(randomdTag.id);
-      }
+      const randomdTagId = getRandomElement(this.tagIds);
+      if (randomdTagId) { this.onTagClick(randomdTagId) }
     },
 
-    onTagEditClick (tagId) {
-      this.$emit('editTag', tagId);
-    },
+    onTagEditClick (tagId) { this.$emit('editTag', tagId) },
   },
-
-  beforeDestroy () {},
 };
 </script>
 
@@ -193,7 +148,6 @@ export default {
     z-index: 2;
   }
 
-  .no-results,
   .no-tags {
     position: absolute;
     text-align: center;

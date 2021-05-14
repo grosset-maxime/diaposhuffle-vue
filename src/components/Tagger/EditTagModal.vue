@@ -139,7 +139,9 @@
 </template>
 
 <script>
-import { TAGGER_G_CATEGORIES_LIST, TAGGER_G_TAGS_LIST } from '../../store/types';
+import {
+  TAGGER_G_CATEGORIES_LIST, TAGGER_G_TAGS, TAGGER_G_TAGS_LIST,
+} from '../../store/types';
 import { deepClone, getKey } from '../../utils/utils';
 import DeleteModal from '../DeleteModal.vue';
 import CircularLoading from '../CircularLoading.vue';
@@ -164,9 +166,9 @@ export default {
       default: false,
     },
 
-    tag: {
-      type: Object,
-      default: () => ({ ...EMPTY_MODEL }),
+    tagId: {
+      type: String,
+      default: '',
     },
 
     add: {
@@ -212,9 +214,9 @@ export default {
       return this.$store.getters[`${this.NS}/${TAGGER_G_CATEGORIES_LIST}`];
     },
 
-    tags () {
-      return this.$store.getters[`${this.NS}/${TAGGER_G_TAGS_LIST}`];
-    },
+    tags () { return this.$store.getters[`${this.NS}/${TAGGER_G_TAGS}`] },
+
+    tagsList () { return this.$store.getters[`${this.NS}/${TAGGER_G_TAGS_LIST}`] },
 
     modelName () { return this.model.name },
   },
@@ -236,12 +238,10 @@ export default {
       }
     },
 
-    tag (tag) {
-      this.setModel(tag);
-    },
+    tagId (tagId) { this.setModel(tagId) },
 
     modelName (name) {
-      this.nameWarningMsg = (name || '').trim() && this.isNameExists(name)
+      this.nameWarningMsg = name?.trim() && this.isNameExists(name)
         ? 'Name already exists.'
         : '';
     },
@@ -257,10 +257,7 @@ export default {
 
   mounted () {
     this.loading = false;
-
-    if (this.tag && this.tag.id) {
-      this.setModel(this.tag);
-    }
+    this.setModel(this.tagId);
   },
 
   methods: {
@@ -268,42 +265,39 @@ export default {
       return `#${category.color}`;
     },
 
-    setModel (tag) {
-      if (!tag || !tag.id) {
+    setModel (tagId) {
+      if (!tagId) {
         this.resetForm();
         return;
       }
 
-      this.model = deepClone(tag);
+      this.model = deepClone(this.tags[tagId]);
     },
 
     resetForm () {
       this.model = { ...EMPTY_MODEL };
-
-      if (this.$refs.form) {
-        this.$refs.form.reset();
-      }
+      // eslint-disable-next-line no-unused-expressions
+      this.$refs.form?.reset();
     },
 
     resetFormValidation () {
-      if (this.$refs.form) {
-        this.$refs.form.resetValidation();
-      }
+      // eslint-disable-next-line no-unused-expressions
+      this.$refs.form?.resetValidation();
     },
 
     isIdNotExists (value) {
       return !value
         || !this.add
-        || !this.tags.some(
+        || !this.tagsList.some(
           (tag) => tag.id.toLowerCase() === value.trim().toLowerCase(),
         )
         || 'Id already exists.';
     },
 
     isNameExists (value) {
-      return this.tags.some(
-        (tag) => tag.name.toLowerCase() === (value || '').trim().toLowerCase()
-          && tag.id !== this.model.id,
+      return this.tagsList.some(
+        (tag) => tag.id !== this.model.id
+          && tag.name.toLowerCase() === value?.trim().toLowerCase(),
       );
     },
 
@@ -322,7 +316,7 @@ export default {
 
     onDelete () {
       this.loading = true;
-      this.$emit('delete', this.tag.id);
+      this.$emit('delete', this.tagId);
       this.onCancel();
     },
 
@@ -339,6 +333,7 @@ export default {
         const key = getKey(e);
         switch (key) {
           case 'Escape':
+            // TODO: ENH: prevent cancel if some input has focus.
             this.onCancel();
             break;
           default:

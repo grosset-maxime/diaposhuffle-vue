@@ -30,7 +30,7 @@ const state = () => ({
 
   filters: {
     folders: [],
-    tags: [],
+    tags: [], // List of tags ids.
     fileTypes: [],
   },
 

@@ -83,15 +83,15 @@
     </v-row>
 
     <v-row
-      v-if="taggerModal.selected.length"
+      v-if="taggerModal.selectedTagIds.length"
       align="center"
       class="selected-tags"
     >
       <v-col>
         <TagChip
-          v-for="tag in taggerModal.selected"
-          :key="tag.id"
-          :tag="tag"
+          v-for="tagId in taggerModal.selectedTagIds"
+          :key="tagId"
+          :tag-id="tagId"
           close
           @click:close="onUnselectTag"
         />
@@ -199,7 +199,7 @@
 
     <TaggerModal
       :show="taggerModal.show"
-      :selected="taggerModal.selected"
+      :selected-tag-ids="taggerModal.selectedTagIds"
       @close="onCloseTaggerModal"
       @save="onSaveTaggerModal"
     />
@@ -246,7 +246,7 @@ export default {
 
     taggerModal: {
       show: false,
-      selected: [],
+      selectedTagIds: [],
     },
 
     keyboardShortcuts: {
@@ -310,7 +310,7 @@ export default {
 
     nbSelectedFolders () { return this.folderBrowser.selected.length },
 
-    nbSelectedTags () { return this.taggerModal.selected.length },
+    nbSelectedTags () { return this.taggerModal.selectedTagIds.length },
   },
 
   watch: {
@@ -376,24 +376,25 @@ export default {
       this.attachKeyboardShortcuts();
     },
 
-    onSaveTaggerModal (selectedTags) {
-      this.taggerModal.selected = selectedTags;
-      this.setTags(selectedTags);
+    onSaveTaggerModal (selectedTagIds) {
+      this.taggerModal.selectedTagIds = selectedTagIds;
+      this.setTags(selectedTagIds);
     },
 
     onUnselectAllTags () {
-      this.taggerModal.selected = [];
+      this.taggerModal.selectedTagIds = [];
       this.setTags([]);
     },
 
     onUnselectTag (tagId) {
-      this.taggerModal.selected = this.taggerModal.selected.filter((tag) => tag.id !== tagId);
-      this.setFolders(this.taggerModal.selected);
+      this.taggerModal.selectedTagIds = this.taggerModal.selectedTagIds.filter(
+        (id) => id !== tagId,
+      );
+      this.setTags(this.taggerModal.selectedTagIds);
     },
 
-    setTags (selectedTags) {
-      const tags = [...selectedTags];
-      this.$store.commit(`${this.NS}/${PLAYER_M_FILTERS}`, { tags });
+    setTags (selectedTagIds) {
+      this.$store.commit(`${this.NS}/${PLAYER_M_FILTERS}`, { tags: [...selectedTagIds] });
     },
 
     resetInterval () { this.$store.commit(`${this.NS}/${PLAYER_M_RESET_INTERVAL}`) },

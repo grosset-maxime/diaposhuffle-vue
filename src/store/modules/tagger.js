@@ -15,6 +15,7 @@ import {
 } from '../../api/tags';
 import {
   TAGGER_G_TAGS,
+  TAGGER_G_TAG,
   TAGGER_G_TAGS_LIST,
   TAGGER_G_CATEGORIES,
   TAGGER_G_CATEGORIES_LIST,
@@ -44,7 +45,9 @@ const state = () => ({
 const getters = {
   [TAGGER_G_TAGS]: (state) => state.tags,
 
-  [TAGGER_G_TAGS_LIST]: (state) => Object.keys(state.tags).map((id) => state.tags[id]),
+  [TAGGER_G_TAG]: (state) => (id) => state.tags[id],
+
+  [TAGGER_G_TAGS_LIST]: (state) => Object.values(state.tags),
 
   [TAGGER_G_CATEGORIES]: (state) => state.categories,
 

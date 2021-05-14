@@ -2,8 +2,8 @@
   <div class="tagger">
     <div class="selected-tags">
       <TagsList
-        :tags="selectedTags"
-        :selected="selectedIds"
+        :tag-ids="selectedTagIds"
+        :selected-ids="selectedTagIdsMap"
         :text-filter="filters.text"
         :edit-mode="editMode"
         :no-tags-text="'No tags selected'"
@@ -70,10 +70,8 @@
     <div class="unselected-tags">
       <TagsList
         ref="unselectedTagsList"
-        :tags="unselectedTags"
-        :selected="selectedIds"
-        :categories-filter="filters.categories"
-        :text-filter="filters.text"
+        :tag-ids="unselectedTagIds"
+        :selected-ids="selectedTagIdsMap"
         :edit-mode="editMode"
         @select="onSelectUnselected"
         @unselect="onUnselectUnselected"
@@ -90,7 +88,7 @@
     <EditTagModal
       :show="editTagModal.show"
       :add="editTagModal.add"
-      :tag="editTagModal.tag"
+      :tag-id="editTagModal.tagId"
       @delete="onDeleteEditTagModal"
       @confirm="onConfirmEditTagModal"
       @cancel="onCancelEditTagModal"
@@ -109,7 +107,8 @@
 
 <script>
 import {
-  TAGGER_G_TAGS_LIST,
+  TAGGER_G_TAGS,
+  // TAGGER_G_TAGS_LIST,
   TAGGER_G_CATEGORIES_LIST,
   TAGGER_A_FETCH_TAGS,
   TAGGER_A_ADD_TAG,
@@ -157,15 +156,9 @@ export default {
   },
 
   data: () => ({
-    tagsList: [],
-
     categoriesList: [],
 
-    selectedTags: [],
-
-    unselectedTags: [],
-
-    selectedIds: {},
+    selectedTagIdsMap: {},
     selectedCategoriesIds: {},
 
     filters: {
@@ -184,7 +177,7 @@ export default {
     editTagModal: {
       show: false,
       add: false,
-      tag: undefined,
+      tagId: undefined,
     },
 
     editCategoryModal: {
@@ -197,12 +190,23 @@ export default {
   computed: {
     NS () { return 'tagger' },
 
-    nbSelected () { return this.selectedTags.length },
+    tags () { return this.$store.getters[`${this.NS}/${TAGGER_G_TAGS}`] },
 
-    tagsListStore () { return this.$store.getters[`${this.NS}/${TAGGER_G_TAGS_LIST}`] },
+    tagIds () { return Object.keys(this.tags) },
 
     categoriesListStore () {
       return this.$store.getters[`${this.NS}/${TAGGER_G_CATEGORIES_LIST}`];
+    },
+
+    // TODO: try to filter/sort tags from here instead of from tagsList.vue.
+    selectedTagIds () {
+      return this.tagIds
+        .filter((id) => this.selectedTagIdsMap[id]);
+    },
+
+    unselectedTagIds () {
+      return this.tagIds
+        .filter((id) => !this.selectedTagIdsMap[id]);
     },
   },
 
@@ -214,27 +218,20 @@ export default {
   },
 
   methods: {
-    onShow () {
+    async onShow () {
       this.attachKeyboardShortcuts();
 
-      this.fetchTagsAndCategories()
-        .then(() => {
-          this.onFetchCategories();
-          this.onFetchTags();
-        })
-        .finally(() => {
-          this.isLoading = false;
-        });
+      try {
+        await this.fetchTagsAndCategories();
+        this.onFetchCategories();
+        this.onFetchTags();
+      // eslint-disable-next-line no-empty
+      } catch (e) {}
+
+      this.isLoading = false;
     },
 
-    onFetchTags () {
-      this.tagsList = this.tagsListStore.map((tag) => deepClone(tag));
-
-      this.updateSelectedIds();
-
-      this.unselectedTags = this.tagsList.filter((tag) => !this.selectedIds[tag.id]);
-      this.selectedTags = this.tagsList.filter((tag) => this.selectedIds[tag.id]);
-    },
+    onFetchTags () { this.updateSelectedTagIdsMap() },
 
     onFetchCategories () {
       this.categoriesList = this.categoriesListStore.map((cat) => deepClone(cat));
@@ -243,26 +240,21 @@ export default {
     onHide () { this.removeKeyboardShortcuts() },
 
     onSelectUnselected (tagId) {
-      this.$set(this.selectedIds, tagId, true);
+      this.$set(this.selectedTagIdsMap, tagId, true);
       this.$emit('select', tagId);
     },
 
     onUnselectUnselected (tagId) {
-      this.$delete(this.selectedIds, tagId);
+      this.$delete(this.selectedTagIdsMap, tagId);
       this.$emit('unselect', tagId);
     },
 
     onUnselectSelected (tagId) {
-      this.$delete(this.selectedIds, tagId);
-      this.selectedTags = this.selectedTags.filter((tag) => tagId !== tag.id);
-      this.unselectedTags = this.tagsList.filter((tag) => !this.selectedIds[tag.id]);
-
+      this.$delete(this.selectedTagIdsMap, tagId);
       this.$emit('unselect', tagId);
     },
 
-    onCancel () {
-      this.$emit('cancel');
-    },
+    onCancel () { this.$emit('cancel') },
 
     onSelectCategory (catId) {
       this.$set(this.selectedCategoriesIds, catId, true);
@@ -274,15 +266,9 @@ export default {
       this.$delete(this.filters.categories, catId);
     },
 
-    onUnselectAll () { this.selectedTags = [] },
+    onFilterTextFocus () { this.isFilterTextHasFocus = true },
 
-    onFilterTextFocus () {
-      this.isFilterTextHasFocus = true;
-    },
-
-    onFilterTextBlur () {
-      this.isFilterTextHasFocus = false;
-    },
+    onFilterTextBlur () { this.isFilterTextHasFocus = false },
 
     async onDeleteEditTagModal (tagId) {
       await this.$store.dispatch(`${this.NS}/${TAGGER_A_DELETE_TAG}`, tagId);
@@ -302,21 +288,19 @@ export default {
       this.hideEditTagModal();
     },
 
-    onCancelEditTagModal () {
-      this.hideEditTagModal();
-    },
+    onCancelEditTagModal () { this.hideEditTagModal() },
 
     showAddTagModal () {
       this.removeKeyboardShortcuts();
       this.editTagModal.add = true;
-      this.editTagModal.tag = undefined;
+      this.editTagModal.tagId = undefined;
       this.editTagModal.show = true;
     },
 
     showEditTagModal (tagId) {
       this.removeKeyboardShortcuts();
       this.editTagModal.add = false;
-      this.editTagModal.tag = this.tagsList.find((tag) => tag.id === tagId);
+      this.editTagModal.tagId = tagId;
       this.editTagModal.show = true;
     },
 
@@ -343,9 +327,7 @@ export default {
       this.hideEditCategoryModal();
     },
 
-    onCancelEditCategoryModal () {
-      this.hideEditCategoryModal();
-    },
+    onCancelEditCategoryModal () { this.hideEditCategoryModal() },
 
     showAddCategoryModal () {
       this.removeKeyboardShortcuts();
@@ -366,13 +348,9 @@ export default {
       this.attachKeyboardShortcuts();
     },
 
-    clearFilterText () {
-      this.filters.text = '';
-    },
+    clearFilterText () { this.filters.text = '' },
 
-    setFilterTextFocus () {
-      this.$refs.filterText.focus();
-    },
+    setFilterTextFocus () { this.$refs.filterText.focus() },
 
     selectRandom () {
       this.$refs.unselectedTagsList.selectRandom();
@@ -386,9 +364,9 @@ export default {
       ]);
     },
 
-    updateSelectedIds () {
-      this.selectedIds = Object.fromEntries(
-        this.selected.map((tag) => [tag.id, true]),
+    updateSelectedTagIdsMap () {
+      this.selectedTagIdsMap = Object.fromEntries(
+        this.selected.map((tagId) => [tagId, true]),
       );
     },
 
