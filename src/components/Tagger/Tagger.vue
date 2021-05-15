@@ -1,13 +1,12 @@
 <template>
   <div class="tagger">
     <div class="selected-tags">
-      <!-- TODO: show "No tag results" when filtering returns no tags -->
       <TagsList
         :tag-ids="selectedTagIds"
         :selected-ids="selectedTagIdsMap"
         :text-filter="filters.text"
         :edit-mode="editMode"
-        :no-tags-text="'No tags selected'"
+        :no-tags-text="noSelectedTagsText"
         closable-tags
         @unselect="onUnselectSelected"
         @closeTag="onUnselectSelected"
@@ -82,13 +81,13 @@
     <!-- TODO: Allow focus tags and select/unselect by using keyboard -->
     <!-- TODO: Allow to navigate through tags section using keyboard -->
     <!-- TODO: Highlight matching text with filtering text -->
-    <!-- TODO: show "No tag results" when filtering returns no tags -->
     <div class="unselected-tags">
       <TagsList
         ref="unselectedTagsList"
         :tag-ids="unselectedTagIds"
         :selected-ids="selectedTagIdsMap"
         :edit-mode="editMode"
+        :no-tags-text="noUnselectedTagsText"
         @select="onSelectUnselected"
         @unselect="onUnselectUnselected"
         @addTag="showAddTagModal"
@@ -306,6 +305,14 @@ export default {
     },
 
     hasCategoriesFilter () { return !isEmptyObj(this.filters.categories) },
+
+    noSelectedTagsText () {
+      return this.isFiltering && !isEmptyObj(this.selectedTagIdsMap)
+        ? 'No tags results'
+        : 'No tags selected';
+    },
+
+    noUnselectedTagsText () { return this.isFiltering ? 'No tags results' : '' },
   },
 
   mounted () {
