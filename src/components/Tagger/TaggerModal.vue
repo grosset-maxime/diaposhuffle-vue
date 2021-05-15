@@ -215,7 +215,8 @@ $v-toolbar-height: 48px;
 
   .tagger-modal-toolbar {
     .cancel-btn,
-    .edit-btn {
+    .edit-btn,
+    .select-random-btn {
       text-transform: none;
       color: $grey-6;
       &:hover {

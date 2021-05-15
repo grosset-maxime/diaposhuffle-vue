@@ -27,6 +27,7 @@
           clearable
           autofocus
           hide-details
+          color="orange"
           @input="filters.text = $event || ''"
           @focus="onFilterTextFocus"
           @blur="onFilterTextBlur"
@@ -38,6 +39,7 @@
         <v-select
           :value="sorts.field"
           :items="sorts.fieldItems"
+          color="orange"
           label="By"
           hide-details
           prepend-icon="mdi-sort"
@@ -52,6 +54,7 @@
           :items="sorts.directionItems"
           label="Direction"
           hide-details
+          color="orange"
           prepend-icon="mdi-sort-alphabetical-variant"
           @input="sorts.direction = $event || ''"
         />
@@ -544,6 +547,7 @@ export default {
     .sort-by-field,
     .sort-direction {
       width: 150px;
+      opacity: 0.6;
     }
   }
 
