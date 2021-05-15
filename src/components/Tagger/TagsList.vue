@@ -41,9 +41,7 @@
 </template>
 
 <script>
-import Fuse from 'fuse.js';
 import TagChip from '../TagChip.vue';
-import { getRandomElement } from '../../utils/utils';
 
 export default {
   name: 'TagsList',
@@ -91,44 +89,11 @@ export default {
 
   computed: {
     hasTags () { return this.tagIds.length > 0 },
-
-    // TODO: move this method to Tagger.vue
-    filteredTags () {
-      if (!this.isFiltering) { return this.tags }
-
-      let filteredTags = this.tags;
-
-      if (this.hasCategoriesFilter) {
-        filteredTags = filteredTags.filter((tag) => !!this.categoriesFilter[tag.category]);
-      }
-
-      if (this.hasTextFilter) {
-        const options = {
-          includeScore: true,
-          includeMatches: true,
-          keys: ['name'],
-        };
-
-        const fuse = new Fuse(filteredTags, options);
-        filteredTags = fuse.search(this.textFilter).map((r) => r.item);
-      }
-
-      return filteredTags;
-    },
   },
-
-  watch: {},
-
-  mounted () {},
 
   methods: {
     onTagClick (tagId) {
       this.$emit(this.selectedIds[tagId] ? 'unselect' : 'select', tagId);
-    },
-
-    selectRandom () {
-      const randomdTagId = getRandomElement(this.tagIds);
-      if (randomdTagId) { this.onTagClick(randomdTagId) }
     },
 
     onTagEditClick (tagId) { this.$emit('editTag', tagId) },

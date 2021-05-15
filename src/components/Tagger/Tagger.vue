@@ -1,6 +1,7 @@
 <template>
   <div class="tagger">
     <div class="selected-tags">
+      <!-- TODO: show "No tag results" when filtering returns no tags -->
       <TagsList
         :tag-ids="selectedTagIds"
         :selected-ids="selectedTagIdsMap"
@@ -18,7 +19,7 @@
     <v-divider class="separator" />
 
     <div class="actions-bar">
-      <div class="filter-form">
+      <div class="filter-form input-action">
         <v-text-field
           :value="filters.text"
           ref="filterText"
@@ -26,6 +27,7 @@
           prepend-icon="mdi-magnify"
           clearable
           autofocus
+          hide-details
           @input="filters.text = $event || ''"
           @focus="onFilterTextFocus"
           @blur="onFilterTextBlur"
@@ -33,15 +35,28 @@
         />
       </div>
 
-      <!-- TODO: Add sort tags by categories, sort by name (A-Z) and (Z-A) -->
+      <div class="sort-by-field input-action">
+        <v-select
+          :value="sorts.field"
+          :items="sorts.fieldItems"
+          label="By"
+          hide-details
+          prepend-icon="mdi-sort"
+          @input="sorts.field = $event || ''"
+        />
+      </div>
 
-      <v-btn
-        class="select-random-btn secondary"
-        small
-        @click="selectRandom"
-      >
-        Select random
-      </v-btn>
+      <div class="sort-by-field input-action">
+        <v-select
+          class="sort-direction"
+          :value="sorts.direction"
+          :items="sorts.directionItems"
+          label="Direction"
+          hide-details
+          prepend-icon="mdi-sort-alphabetical-variant"
+          @input="sorts.direction = $event || ''"
+        />
+      </div>
     </div>
 
     <!-- TODO: Show latest used tags -->
@@ -67,6 +82,7 @@
     <!-- TODO: Allow focus tags and select/unselect by using keyboard -->
     <!-- TODO: Allow to navigate through tags section using keyboard -->
     <!-- TODO: Highlight matching text with filtering text -->
+    <!-- TODO: show "No tag results" when filtering returns no tags -->
     <div class="unselected-tags">
       <TagsList
         ref="unselectedTagsList"
@@ -106,6 +122,7 @@
 </template>
 
 <script>
+import Fuse from 'fuse.js';
 import {
   TAGGER_G_TAGS,
   // TAGGER_G_TAGS_LIST,
@@ -119,7 +136,12 @@ import {
   TAGGER_A_UPDATE_CATEGORY,
   TAGGER_A_DELETE_CATEGORY,
 } from '../../store/types';
-import { getKey, deepClone } from '../../utils/utils';
+import {
+  getKey,
+  deepClone,
+  isEmptyObj,
+  getRandomElement,
+} from '../../utils/utils';
 import CategoriesList from './CategoriesList.vue';
 import CircularLoading from '../CircularLoading.vue';
 import TagsList from './TagsList.vue';
@@ -166,6 +188,21 @@ export default {
       categories: {},
     },
 
+    sorts: {
+      field: 'name',
+      direction: 'asc',
+
+      fieldItems: [
+        { text: 'Name', value: 'name' },
+        { text: 'Category', value: 'category' },
+      ],
+
+      directionItems: [
+        { text: 'A - Z', value: 'asc' },
+        { text: 'Z - A', value: 'desc' },
+      ],
+    },
+
     isFilterTextHasFocus: false,
 
     keyboardShortcuts: {
@@ -190,27 +227,72 @@ export default {
   computed: {
     NS () { return 'tagger' },
 
-    tags () { return this.$store.getters[`${this.NS}/${TAGGER_G_TAGS}`] },
+    tagsMap () { return this.$store.getters[`${this.NS}/${TAGGER_G_TAGS}`] },
 
-    tagIds () { return Object.keys(this.tags) },
+    tags () {
+      return Object.values(this.tagsMap).sort(
+        (tagA, tagB) => {
+          let sort = 0;
+          const direction = this.sorts.direction === 'asc' ? 1 : -1;
+          const field = this.sorts.field || 'name';
+
+          if (field === 'name') {
+            sort = tagA.name.localeCompare(tagB.name);
+          } if (field === 'category') {
+            sort = tagA.category - tagB.category;
+          }
+
+          return direction * sort;
+        },
+      );
+    },
 
     categoriesListStore () {
       return this.$store.getters[`${this.NS}/${TAGGER_G_CATEGORIES_LIST}`];
     },
 
-    // TODO: try to filter/sort tags from here instead of from tagsList.vue.
     selectedTagIds () {
-      return this.tagIds
-        .filter((id) => this.selectedTagIdsMap[id]);
+      let { tags } = this;
+
+      tags = tags.filter((tag) => !!this.selectedTagIdsMap[tag.id]);
+
+      if (this.isFiltering) {
+        if (this.hasCategoriesFilter) {
+          tags = this.applyCategoriesFilter(tags);
+        }
+
+        if (this.filters.text) {
+          tags = this.applyTextFilter(tags);
+        }
+      }
+
+      return tags.map((tag) => tag.id);
     },
 
     unselectedTagIds () {
-      return this.tagIds
-        .filter((id) => !this.selectedTagIdsMap[id]);
-    },
-  },
+      let { tags } = this;
 
-  watch: {},
+      tags = tags.filter((tag) => !this.selectedTagIdsMap[tag.id]);
+
+      if (this.isFiltering) {
+        if (this.hasCategoriesFilter) {
+          tags = this.applyCategoriesFilter(tags);
+        }
+
+        if (this.filters.text) {
+          tags = this.applyTextFilter(tags);
+        }
+      }
+
+      return tags.map((tag) => tag.id);
+    },
+
+    isFiltering () {
+      return this.hasCategoriesFilter || this.filters.text;
+    },
+
+    hasCategoriesFilter () { return !isEmptyObj(this.filters.categories) },
+  },
 
   mounted () {
     // TODO: TEMP: only for testing purpose
@@ -353,8 +435,26 @@ export default {
     setFilterTextFocus () { this.$refs.filterText.focus() },
 
     selectRandom () {
-      this.$refs.unselectedTagsList.selectRandom();
+      const randomdTagId = getRandomElement(this.unselectedTagIds);
+
+      if (randomdTagId) { this.onSelectUnselected(randomdTagId) }
+
       this.setFilterTextFocus();
+    },
+
+    applyCategoriesFilter (tags) {
+      return tags.filter((tag) => !!this.filters.categories[tag.category]);
+    },
+
+    applyTextFilter (tags) {
+      const options = {
+        includeScore: true,
+        includeMatches: true,
+        keys: ['name'],
+      };
+
+      const fuse = new Fuse(tags, options);
+      return fuse.search(this.filters.text).map((r) => r.item);
     },
 
     fetchTagsAndCategories () {
@@ -417,15 +517,19 @@ export default {
   .actions-bar {
     display: flex;
     align-items: center;
+    margin-bottom: 5px;
 
-    .filter-form {
-      margin-bottom: 4px;
-      width: 250px;
+    .input-action {
+      margin-right: 60px;
     }
 
-    .select-random-btn,
-    .toggle-edit-btn {
-      margin-left: 100px;
+    .filter-form {
+      width: 300px;
+    }
+
+    .sort-by-field,
+    .sort-direction {
+      width: 150px;
     }
   }
 

@@ -30,7 +30,7 @@
               small
               v-bind="attrs"
               v-on="on"
-              @click="toggleEditMode"
+              @click="editMode = !editMode"
             >
               <v-icon
                 class="edit-icon"
@@ -41,6 +41,27 @@
             </v-btn>
           </template>
           <span>Edit Mode</span>
+        </v-tooltip>
+
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+              class="select-random-btn ml-3"
+              icon
+              small
+              v-bind="attrs"
+              v-on="on"
+              @click="$refs.Tagger.selectRandom()"
+            >
+              <v-icon
+                class="select-random-icon"
+                dense
+              >
+                mdi-shuffle-variant
+              </v-icon>
+            </v-btn>
+          </template>
+          <span>Select Random</span>
         </v-tooltip>
 
         <v-spacer />
@@ -146,7 +167,7 @@ export default {
     onSave () {
       this.$emit(
         'save',
-        Object.values(this.selectedTagsIdsMap),
+        Object.keys(this.selectedTagsIdsMap),
       );
       this.onClose();
     },
@@ -166,14 +187,10 @@ export default {
     },
 
     onUnselect (tagId) {
-      this.$delete(this.selectedTagsIdsSet, tagId);
+      this.$delete(this.selectedTagsIdsMap, tagId);
     },
 
     onUnselectAll () { this.selectedTags = {} },
-
-    toggleEditMode () {
-      this.editMode = !this.editMode;
-    },
 
     fetchTags () {
       this.$store.dispatch(`${this.NS}/${TAGGER_A_FETCH_TAGS}`);
