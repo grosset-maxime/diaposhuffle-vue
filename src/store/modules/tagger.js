@@ -51,9 +51,7 @@ const getters = {
 
   [TAGGER_G_CATEGORIES]: (state) => state.categories,
 
-  [TAGGER_G_CATEGORIES_LIST]: (state) => Object.keys(state.categories).map(
-    (id) => state.categories[id],
-  ),
+  [TAGGER_G_CATEGORIES_LIST]: (state) => Object.values(state.categories),
 
   [TAGGER_G_CATEGORY]: (state) => (id) => state.categories[id],
 

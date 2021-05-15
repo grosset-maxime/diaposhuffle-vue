@@ -90,9 +90,7 @@ export default {
     'click:edit': null,
   },
 
-  data: () => ({
-    styles: {},
-  }),
+  data: () => ({}),
 
   computed: {
     NS () { return 'tagger' },
@@ -153,12 +151,6 @@ export default {
       return boxShadow;
     },
   },
-
-  watch: {},
-
-  mounted () {},
-
-  methods: {},
 };
 </script>
 

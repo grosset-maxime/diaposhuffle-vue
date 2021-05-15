@@ -67,8 +67,8 @@
     <!-- TODO: on filtering, do not hide category but set opacity -->
     <div class="categories-list">
       <CategoriesList
-        :categories="categoriesList"
-        :selected="selectedCategoriesIds"
+        :category-ids="categoryIds"
+        :selected-ids="selectedCategoryIdsMap"
         :edit-mode="editMode"
         @select="onSelectCategory"
         @unselect="onUnselectCategory"
@@ -113,7 +113,7 @@
     <EditCategoryModal
       :show="editCategoryModal.show"
       :add="editCategoryModal.add"
-      :category="editCategoryModal.category"
+      :category-id="editCategoryModal.categoryId"
       @delete="onDeleteEditCategoryModal"
       @confirm="onConfirmEditCategoryModal"
       @cancel="onCancelEditCategoryModal"
@@ -125,8 +125,7 @@
 import Fuse from 'fuse.js';
 import {
   TAGGER_G_TAGS,
-  // TAGGER_G_TAGS_LIST,
-  TAGGER_G_CATEGORIES_LIST,
+  TAGGER_G_CATEGORIES,
   TAGGER_A_FETCH_TAGS,
   TAGGER_A_ADD_TAG,
   TAGGER_A_UPDATE_TAG,
@@ -138,7 +137,6 @@ import {
 } from '../../store/types';
 import {
   getKey,
-  deepClone,
   isEmptyObj,
   getRandomElement,
 } from '../../utils/utils';
@@ -178,10 +176,8 @@ export default {
   },
 
   data: () => ({
-    categoriesList: [],
-
     selectedTagIdsMap: {},
-    selectedCategoriesIds: {},
+    selectedCategoryIdsMap: {},
 
     filters: {
       text: '',
@@ -220,7 +216,7 @@ export default {
     editCategoryModal: {
       show: false,
       add: false,
-      category: undefined,
+      categoryId: undefined,
     },
   }),
 
@@ -247,8 +243,26 @@ export default {
       );
     },
 
-    categoriesListStore () {
-      return this.$store.getters[`${this.NS}/${TAGGER_G_CATEGORIES_LIST}`];
+    categoriesMap () {
+      return this.$store.getters[`${this.NS}/${TAGGER_G_CATEGORIES}`];
+    },
+
+    categoryIds () {
+      return Object.values(this.categoriesMap).sort(
+        (catA, catB) => {
+          let sort = 0;
+          const direction = this.sorts.direction === 'asc' ? 1 : -1;
+          const field = this.sorts.field || 'name';
+
+          if (field === 'name') {
+            sort = catA.name.localeCompare(catB.name);
+          } if (field === 'category') {
+            sort = catA.id - catB.id;
+          }
+
+          return direction * sort;
+        },
+      ).map((cat) => cat.id);
     },
 
     selectedTagIds () {
@@ -305,7 +319,6 @@ export default {
 
       try {
         await this.fetchTagsAndCategories();
-        this.onFetchCategories();
         this.onFetchTags();
       // eslint-disable-next-line no-empty
       } catch (e) {}
@@ -314,10 +327,6 @@ export default {
     },
 
     onFetchTags () { this.updateSelectedTagIdsMap() },
-
-    onFetchCategories () {
-      this.categoriesList = this.categoriesListStore.map((cat) => deepClone(cat));
-    },
 
     onHide () { this.removeKeyboardShortcuts() },
 
@@ -339,12 +348,12 @@ export default {
     onCancel () { this.$emit('cancel') },
 
     onSelectCategory (catId) {
-      this.$set(this.selectedCategoriesIds, catId, true);
+      this.$set(this.selectedCategoryIdsMap, catId, true);
       this.$set(this.filters.categories, catId, true);
     },
 
     onUnselectCategory (catId) {
-      this.$delete(this.selectedCategoriesIds, catId);
+      this.$delete(this.selectedCategoryIdsMap, catId);
       this.$delete(this.filters.categories, catId);
     },
 
@@ -394,7 +403,6 @@ export default {
     async onDeleteEditCategoryModal (catId) {
       await this.$store.dispatch(`${this.NS}/${TAGGER_A_DELETE_CATEGORY}`, catId);
 
-      this.onFetchCategories();
       this.hideEditCategoryModal();
     },
 
@@ -405,7 +413,6 @@ export default {
         await this.$store.dispatch(`${this.NS}/${TAGGER_A_UPDATE_CATEGORY}`, category);
       }
 
-      this.onFetchCategories();
       this.hideEditCategoryModal();
     },
 
@@ -414,14 +421,14 @@ export default {
     showAddCategoryModal () {
       this.removeKeyboardShortcuts();
       this.editCategoryModal.add = true;
-      this.editCategoryModal.category = undefined;
+      this.editCategoryModal.categoryId = undefined;
       this.editCategoryModal.show = true;
     },
 
     showEditCategoryModal (catId) {
       this.removeKeyboardShortcuts();
       this.editCategoryModal.add = false;
-      this.editCategoryModal.category = this.categoriesList.find((cat) => cat.id === catId);
+      this.editCategoryModal.categoryId = catId;
       this.editCategoryModal.show = true;
     },
 
@@ -517,7 +524,7 @@ export default {
   .actions-bar {
     display: flex;
     align-items: center;
-    margin-bottom: 5px;
+    margin-bottom: 25px;
 
     .input-action {
       margin-right: 60px;
@@ -534,7 +541,7 @@ export default {
   }
 
   .categories-list {
-    margin-top: 10px;
+    display: flex;
   }
 
   .separator {

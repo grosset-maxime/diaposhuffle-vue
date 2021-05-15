@@ -20,13 +20,13 @@
     </v-btn>
 
     <CategoryChip
-      v-for="(cat) in categories"
-      :key="`cat-${cat.id}`"
-      :category="cat"
-      :selected="selected[cat.id]"
+      v-for="catId in categoryIds"
+      :key="`cat-${catId}`"
+      :category-id="catId"
+      :selected="selectedIds[catId]"
       :edit="editMode"
       @click="onCategoryClick"
-      @click:edit="onCategoryEditClick"
+      @click:edit="$emit('editCategory', catId);"
     />
   </div>
 </template>
@@ -42,12 +42,12 @@ export default {
   },
 
   props: {
-    categories: {
+    categoryIds: {
       type: Array,
       default: () => ([]),
     },
 
-    selected: {
+    selectedIds: {
       type: Object,
       default: () => ({}),
     },
@@ -67,23 +67,11 @@ export default {
 
   data: () => ({}),
 
-  computed: {},
-
-  watch: {},
-
   mounted () {},
 
   methods: {
     onCategoryClick (catId) {
-      if (!this.selected[catId]) {
-        this.$emit('select', catId);
-      } else {
-        this.$emit('unselect', catId);
-      }
-    },
-
-    onCategoryEditClick (catId) {
-      this.$emit('editCategory', catId);
+      this.$emit(this.selectedIds[catId] ? 'unselect' : 'select', catId);
     },
   },
 };

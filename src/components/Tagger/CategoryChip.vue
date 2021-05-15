@@ -5,8 +5,12 @@
       selected,
       clickable: true
     }]"
-    :style="styles"
-    @click="onClick"
+    :style="{
+      'background-color': chipBgColor,
+      'border-color': chipColor,
+      'box-shadow': chipBoxShadow,
+    }"
+    @click="$emit('click', categoryId)"
   >
     <span class="category-content">
       {{ category.name }}
@@ -19,7 +23,7 @@
       >
         <v-icon
           class="edit-icon"
-          @click.stop="$emit('click:edit', category.id)"
+          @click.stop="$emit('click:edit', categoryId)"
         >
           mdi-pencil
         </v-icon>
@@ -29,15 +33,15 @@
 </template>
 
 <script>
-import { TAGGER_G_CATEGORY_COLOR } from '../../store/types';
+import { TAGGER_G_CATEGORY, TAGGER_G_CATEGORY_COLOR } from '../../store/types';
 
 export default {
   name: 'CategoryChip',
 
   props: {
-    category: {
-      type: Object,
-      default: () => ({}),
+    categoryId: {
+      type: String,
+      default: '',
     },
 
     selected: {
@@ -56,17 +60,21 @@ export default {
     'click:edit': null,
   },
 
-  data: () => ({
-    styles: {},
-  }),
+  data: () => ({}),
 
   computed: {
     NS () { return 'tagger' },
 
+    category () {
+      return this.$store.getters[
+        `${this.NS}/${TAGGER_G_CATEGORY}`
+      ](this.categoryId);
+    },
+
     categoryColor () {
       return this.$store.getters[
         `${this.NS}/${TAGGER_G_CATEGORY_COLOR}`
-      ](this.category.id);
+      ](this.categoryId);
     },
 
     chipColor () {
@@ -89,30 +97,6 @@ export default {
       }
 
       return boxShadow;
-    },
-  },
-
-  watch: {
-    selected () { this.setStyles() },
-
-    categoryColor () { this.setStyles() },
-  },
-
-  mounted () {
-    this.setStyles();
-  },
-
-  methods: {
-    setStyles () {
-      this.styles = {
-        'background-color': this.chipBgColor,
-        'border-color': this.chipColor,
-        'box-shadow': this.chipBoxShadow,
-      };
-    },
-
-    onClick () {
-      this.$emit('click', this.category.id);
     },
   },
 };

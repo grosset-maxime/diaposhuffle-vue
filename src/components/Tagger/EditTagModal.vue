@@ -214,7 +214,7 @@ export default {
       return this.$store.getters[`${this.NS}/${TAGGER_G_CATEGORIES_LIST}`];
     },
 
-    tags () { return this.$store.getters[`${this.NS}/${TAGGER_G_TAGS}`] },
+    tagsMap () { return this.$store.getters[`${this.NS}/${TAGGER_G_TAGS}`] },
 
     tagsList () { return this.$store.getters[`${this.NS}/${TAGGER_G_TAGS_LIST}`] },
 
@@ -271,7 +271,7 @@ export default {
         return;
       }
 
-      this.model = deepClone(this.tags[tagId]);
+      this.model = deepClone(this.tagsMap[tagId]);
     },
 
     resetForm () {

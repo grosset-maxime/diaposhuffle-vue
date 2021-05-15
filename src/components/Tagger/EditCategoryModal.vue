@@ -128,7 +128,10 @@
 </template>
 
 <script>
-import { TAGGER_G_CATEGORIES_LIST } from '../../store/types';
+import {
+  TAGGER_G_CATEGORIES,
+  TAGGER_G_CATEGORIES_LIST,
+} from '../../store/types';
 import { deepClone, getKey } from '../../utils/utils';
 import DeleteModal from '../DeleteModal.vue';
 import CircularLoading from '../CircularLoading.vue';
@@ -153,9 +156,9 @@ export default {
       default: false,
     },
 
-    category: {
-      type: Object,
-      default: () => ({ ...EMPTY_MODEL }),
+    categoryId: {
+      type: String,
+      default: '',
     },
 
     add: {
@@ -202,10 +205,12 @@ export default {
       return this.add ? 'Add' : 'Edit';
     },
 
-    categories () {
-      return this.$store.getters[
-        `${this.NS}/${TAGGER_G_CATEGORIES_LIST}`
-      ];
+    categoriesMap () {
+      return this.$store.getters[`${this.NS}/${TAGGER_G_CATEGORIES}`];
+    },
+
+    categoriesList () {
+      return this.$store.getters[`${this.NS}/${TAGGER_G_CATEGORIES_LIST}`];
     },
 
     modelName () { return this.model.name },
@@ -227,9 +232,7 @@ export default {
       }
     },
 
-    category (category) {
-      this.setModel(category);
-    },
+    categoryId (categoryId) { this.setModel(categoryId) },
 
     color (value) {
       if (!value) { return }
@@ -244,7 +247,7 @@ export default {
 
       this.$set(this.model, 'color', this.color.substring(1));
 
-      const isColorAlreadyAssigned = this.categories.some(
+      const isColorAlreadyAssigned = this.categoriesList.some(
         (cat) => this.color.toLowerCase().includes(cat.color.toLowerCase())
           && cat.id !== this.model.id,
       );
@@ -255,7 +258,7 @@ export default {
     },
 
     modelName (name) {
-      this.nameWarningMsg = (name || '').trim() && this.isNameExists(name)
+      this.nameWarningMsg = name?.trim() && this.isNameExists(name)
         ? 'Name already exists.'
         : '';
     },
@@ -271,20 +274,17 @@ export default {
 
   mounted () {
     this.loading = false;
-
-    if (this.category && this.category.id) {
-      this.setModel(this.category);
-    }
+    this.setModel(this.categoryId);
   },
 
   methods: {
-    setModel (category) {
-      if (!category || !category.id) {
+    setModel (categoryId) {
+      if (!categoryId) {
         this.resetForm();
         return;
       }
 
-      this.model = deepClone(category);
+      this.model = deepClone(this.categoriesMap[categoryId]);
       this.color = `#${this.model.color}`;
     },
 
@@ -292,21 +292,19 @@ export default {
       this.model = { ...EMPTY_MODEL };
       this.color = '';
 
-      if (this.$refs.form) {
-        this.$refs.form.reset();
-      }
+      // eslint-disable-next-line no-unused-expressions
+      this.$refs.form?.reset();
     },
 
     resetFormValidation () {
-      if (this.$refs.form) {
-        this.$refs.form.resetValidation();
-      }
+      // eslint-disable-next-line no-unused-expressions
+      this.$refs.form?.resetValidation();
     },
 
     isNameExists (value) {
-      return this.categories.some(
-        (cat) => cat.name.toLowerCase() === (value || '').trim().toLowerCase()
-          && cat.id !== this.model.id,
+      return this.categoriesList.some(
+        (cat) => cat.id !== this.model.id
+          && cat.name.toLowerCase() === value?.trim().toLowerCase(),
       );
     },
 
@@ -325,7 +323,7 @@ export default {
 
     onDelete () {
       this.loading = true;
-      this.$emit('delete', this.category.id);
+      this.$emit('delete', this.categoryId);
       this.onCancel();
     },
 
@@ -342,6 +340,7 @@ export default {
         const key = getKey(e);
         switch (key) {
           case 'Escape':
+            // TODO: ENH: prevent cancel if some input has focus.
             this.onCancel();
             break;
           default:

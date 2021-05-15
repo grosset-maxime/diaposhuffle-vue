@@ -19,7 +19,7 @@
     </v-btn>
 
     <TagChip
-      v-for="(tagId) in tagIds"
+      v-for="tagId in tagIds"
       :key="`tag-${tagId}`"
       :tag-id="tagId"
       :selected="selectedIds[tagId]"
@@ -95,8 +95,6 @@ export default {
     onTagClick (tagId) {
       this.$emit(this.selectedIds[tagId] ? 'unselect' : 'select', tagId);
     },
-
-    onTagEditClick (tagId) { this.$emit('editTag', tagId) },
   },
 };
 </script>
