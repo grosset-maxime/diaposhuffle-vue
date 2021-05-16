@@ -72,6 +72,7 @@
       <CategoriesList
         :category-ids="categoryIds"
         :selected-ids="selectedCategoryIdsMap"
+        :nb-tags="nbTagsMap"
         :edit-mode="editMode"
         @select="onSelectCategory"
         @unselect="onUnselectCategory"
@@ -304,6 +305,19 @@ export default {
       }
 
       return tags.map((tag) => tag.id);
+    },
+
+    nbTagsMap () {
+      const nbTagsMap = {};
+      const tagIds = [].concat(this.selectedTagIds, this.unselectedTagIds);
+
+      Object.keys(this.categoriesMap).forEach((catId) => {
+        nbTagsMap[catId] = tagIds
+          .filter((tagId) => this.tagsMap[tagId].category === catId)
+          .length;
+      });
+
+      return nbTagsMap;
     },
 
     isFiltering () {

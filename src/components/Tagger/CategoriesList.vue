@@ -24,6 +24,7 @@
       :key="`cat-${catId}`"
       :category-id="catId"
       :selected="selectedIds[catId]"
+      :nb-tags="nbTags[catId]"
       :edit="editMode"
       @click="onCategoryClick"
       @click:edit="$emit('editCategory', catId);"
@@ -48,6 +49,11 @@ export default {
     },
 
     selectedIds: {
+      type: Object,
+      default: () => ({}),
+    },
+
+    nbTags: {
       type: Object,
       default: () => ({}),
     },

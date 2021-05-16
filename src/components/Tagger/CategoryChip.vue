@@ -15,6 +15,10 @@
     <span class="category-content">
       {{ category.name }}
 
+      <div class="nb-tags">
+        {{ nbTags }}
+      </div>
+
       <v-btn
         v-if="edit"
         icon
@@ -47,6 +51,11 @@ export default {
     selected: {
       type: Boolean,
       default: false,
+    },
+
+    nbTags: {
+      type: Number,
+      default: 0,
     },
 
     edit: {
@@ -109,7 +118,7 @@ export default {
   height: $category-height;
   border-radius: 4px;
   border: 1px solid #ffffff;
-  padding: 0 12px;
+  padding: 0 6px;
   margin: $category-margin;
   user-select: none;
 
@@ -118,8 +127,23 @@ export default {
     display: inline-flex;
     align-items: center;
 
+    .nb-tags {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: $grey-1;
+      color: $grey-8;
+      opacity: 0.5;
+      border-radius: 50px;
+      font-size: x-small;
+      font-weight: bold;
+      padding: 0 3px;
+      margin-left: 7px;
+      min-width: 15px;
+    }
+
     .edit-btn {
-      margin-left: 6px;
+      margin-left: 4px;
       margin-right: -4px;
     }
 
