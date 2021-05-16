@@ -20,8 +20,8 @@
     <div class="actions-bar">
       <div class="filter-form input-action">
         <v-text-field
-          :value="filters.text"
           ref="filterText"
+          :value="filters.text"
           label="Filter tags"
           prepend-icon="mdi-magnify"
           clearable
@@ -37,6 +37,7 @@
 
       <div class="sort-by-field input-action">
         <v-select
+          ref="sortByField"
           :value="sorts.field"
           :items="sorts.fieldItems"
           color="orange"
@@ -47,9 +48,9 @@
         />
       </div>
 
-      <div class="sort-by-field input-action">
+      <div class="sort-direction input-action">
         <v-select
-          class="sort-direction"
+          ref="sortDirection"
           :value="sorts.direction"
           :items="sorts.directionItems"
           label="Direction"
@@ -172,9 +173,10 @@ export default {
   },
 
   emits: {
-    cancel: null,
     select: null,
     unselect: null,
+    save: null,
+    cancel: null,
   },
 
   data: () => ({
@@ -355,8 +357,6 @@ export default {
       this.$emit('unselect', tagId);
     },
 
-    onCancel () { this.$emit('cancel') },
-
     onSelectCategory (catId) {
       this.$set(this.selectedCategoryIdsMap, catId, true);
       this.$set(this.filters.categories, catId, true);
@@ -490,22 +490,32 @@ export default {
     attachKeyboardShortcuts () {
       this.keyboardShortcuts.main = (e) => {
         const key = getKey(e);
-        // TODO: on any key, focus tag filter input and start filtering.
-        // TODO: imagine a combo key (CTRL + enter for example) to trigger save.
-        switch (key) {
-          case 'Enter':
-            // this.onSave();
-            break;
 
-          case 'Escape':
-            if (!this.isFilterTextHasFocus) {
-              this.onCancel();
-            }
-            if (this.isFilterTextHasFocus) {
-              this.clearFilterText();
-            }
-            break;
-          default:
+        if (e.altKey) {
+          switch (key) {
+            case 'Enter':
+              this.$emit('save');
+              break;
+            case 'Escape':
+              this.$emit('cancel');
+              break;
+            default:
+          }
+        } else {
+          switch (key) {
+            case 'Escape':
+              if (this.isFilterTextHasFocus) {
+                this.clearFilterText();
+              }
+              break;
+            default:
+              // Start filtering only if the pressed key is a letter.
+              // Do not focus if pressed key is a control one.
+              if (!this.isFilterTextHasFocus && key.length === 1) {
+                this.setFilterTextFocus();
+                this.filters.text += key;
+              }
+          }
         }
       };
 
@@ -547,7 +557,7 @@ export default {
     .sort-by-field,
     .sort-direction {
       width: 150px;
-      opacity: 0.6;
+      opacity: 0.5;
     }
   }
 

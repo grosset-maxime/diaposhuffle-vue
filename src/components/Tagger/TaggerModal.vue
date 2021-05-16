@@ -90,6 +90,7 @@
         @select="onSelect"
         @unselect="onUnselect"
         @cancel="onCancel"
+        @save="onSave"
       />
     </v-card>
   </v-dialog>
