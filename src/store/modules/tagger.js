@@ -55,10 +55,10 @@ const getters = {
 
   [TAGGER_G_CATEGORY]: (state) => (id) => state.categories[id],
 
-  [TAGGER_G_CATEGORY_COLOR]: (state) => (id) => {
-    if (!id) { return undefined }
+  [TAGGER_G_CATEGORY_COLOR]: (state) => (catId) => {
+    if (!catId) { return undefined }
 
-    const category = state.categories[id];
+    const category = state.categories[catId];
     return category ? category.color : undefined;
   },
 };
@@ -80,9 +80,15 @@ const mutations = {
     state.tags = Object.fromEntries(tags.map((tag) => [tag.id, tag]));
   },
 
-  _addTag (state, tag) { Vue.set(state.tags, tag.id, tag) },
+  _addTag (state, tag) {
+    if (!tag.category) { tag.category = '0' }
+    Vue.set(state.tags, tag.id, tag);
+  },
 
-  _updateTag (state, tag) { Vue.set(state.tags, tag.id, tag) },
+  _updateTag (state, tag) {
+    if (!tag.category) { tag.category = '0' }
+    Vue.set(state.tags, tag.id, tag);
+  },
 
   _deleteTag (state, id) { Vue.delete(state.tags, id) },
 

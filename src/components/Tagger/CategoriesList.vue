@@ -29,6 +29,14 @@
       @click="onCategoryClick"
       @click:edit="$emit('editCategory', catId);"
     />
+
+    <CategoryChip
+      key="cat-0"
+      category-id="0"
+      :selected="selectedIds['0']"
+      :nb-tags="nbTags['0']"
+      @click="onCategoryClick"
+    />
   </div>
 </template>
 

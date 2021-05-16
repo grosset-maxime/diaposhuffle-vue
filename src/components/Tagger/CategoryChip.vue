@@ -3,7 +3,8 @@
     class="category-chip"
     :class="['category', {
       selected,
-      clickable: true
+      clickable: true,
+      'is-none': isNoneCategory
     }]"
     :style="{
       'background-color': chipBgColor,
@@ -37,7 +38,13 @@
 </template>
 
 <script>
-import { TAGGER_G_CATEGORY, TAGGER_G_CATEGORY_COLOR } from '../../store/types';
+import { TAGGER_G_CATEGORY } from '../../store/types';
+
+const NONE_CATEGORY = {
+  id: '0',
+  name: 'None',
+  color: 'FFFFFF',
+};
 
 export default {
   name: 'CategoryChip',
@@ -75,27 +82,25 @@ export default {
     NS () { return 'tagger' },
 
     category () {
-      return this.$store.getters[
-        `${this.NS}/${TAGGER_G_CATEGORY}`
-      ](this.categoryId);
+      return this.isNoneCategory
+        ? { ...NONE_CATEGORY }
+        : this.$store.getters[
+          `${this.NS}/${TAGGER_G_CATEGORY}`
+        ](this.categoryId);
     },
 
-    categoryColor () {
-      return this.$store.getters[
-        `${this.NS}/${TAGGER_G_CATEGORY_COLOR}`
-      ](this.categoryId);
-    },
+    categoryColor () { return `#${this.category.color}` },
 
     chipColor () {
       return this.selected
-        ? `#${this.categoryColor}FF`
-        : `#${this.categoryColor}FF`;
+        ? `${this.categoryColor}FF`
+        : `${this.categoryColor}FF`;
     },
 
     chipBgColor () {
       return this.selected
-        ? `#${this.categoryColor}AA`
-        : `#${this.categoryColor}20`;
+        ? `${this.categoryColor}AA`
+        : `${this.categoryColor}20`;
     },
 
     chipBoxShadow () {
@@ -106,6 +111,10 @@ export default {
       }
 
       return boxShadow;
+    },
+
+    isNoneCategory () {
+      return this.categoryId === '0';
     },
   },
 };
@@ -162,6 +171,10 @@ export default {
 
   &.clickable {
     cursor: pointer;
+  }
+
+  &.is-none {
+    border-style: dashed;
   }
 
   &.selected {

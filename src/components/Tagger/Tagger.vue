@@ -41,7 +41,7 @@
           :value="sorts.field"
           :items="sorts.fieldItems"
           color="orange"
-          label="By"
+          label="Sort By"
           hide-details
           prepend-icon="mdi-sort"
           @input="sorts.field = $event || ''"
@@ -53,7 +53,7 @@
           ref="sortDirection"
           :value="sorts.direction"
           :items="sorts.directionItems"
-          label="Direction"
+          label="Sort Direction"
           hide-details
           color="orange"
           prepend-icon="mdi-sort-alphabetical-variant"
@@ -316,6 +316,10 @@ export default {
           .filter((tagId) => this.tagsMap[tagId].category === catId)
           .length;
       });
+
+      nbTagsMap['0'] = tagIds
+        .filter((tagId) => this.tagsMap[tagId].category === '0')
+        .length;
 
       return nbTagsMap;
     },
