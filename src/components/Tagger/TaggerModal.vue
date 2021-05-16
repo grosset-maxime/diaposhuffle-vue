@@ -1,6 +1,6 @@
 <template>
   <v-dialog
-    content-class="tagger-modal"
+    :content-class="modalClasses"
     :value="show"
     fullscreen
     hide-overlay
@@ -91,6 +91,7 @@
         @unselect="onUnselect"
         @cancel="onCancel"
         @save="onSave"
+        @toggleOpacity="onToggleOpacity"
       />
     </v-card>
   </v-dialog>
@@ -132,6 +133,8 @@ export default {
 
     editMode: false,
 
+    hasOpacity: false,
+
     keyboardShortcuts: {
       main: () => {},
     },
@@ -141,6 +144,10 @@ export default {
     NS () { return 'tagger' },
 
     tags () { return this.$store.getters[`${this.NS}/${TAGGER_G_TAGS}`] },
+
+    modalClasses () {
+      return `tagger-modal ${this.hasOpacity ? 'has-opacity' : ''}`;
+    },
   },
 
   watch: {
@@ -193,6 +200,8 @@ export default {
 
     onUnselectAll () { this.selectedTags = {} },
 
+    onToggleOpacity () { this.hasOpacity = !this.hasOpacity },
+
     fetchTags () {
       this.$store.dispatch(`${this.NS}/${TAGGER_A_FETCH_TAGS}`);
     },
@@ -206,6 +215,10 @@ export default {
 $v-toolbar-height: 48px;
 .tagger-modal {
   overflow-x: hidden;
+
+  &.has-opacity {
+    opacity: 0.05;
+  }
 
   .ctn {
     height: calc(100vh - $v-toolbar-height);

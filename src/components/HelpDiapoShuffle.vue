@@ -119,11 +119,20 @@ const panels = [{
   title: 'Tagger - shortucts',
   opened: true,
   content: [{
-    shortcut: 'CTRL / mouse down',
-    description: 'See through Tagger modal.',
+    shortcut: 'Alt',
+    description: 'Toggle Tagger modal opacity.',
   }, {
-    shortcut: 'ESC.',
-    description: 'Clear tag search filter.',
+    shortcut: 'Escape',
+    description: 'Clear tag search filter (if input has focus).',
+  }, {
+    shortcut: 'Alt + Escape',
+    description: 'Cancel the Tagger modal.',
+  }, {
+    shortcut: 'Alt + Enter',
+    description: 'Save the Tagger modal.',
+  }, {
+    shortcut: 'Any character',
+    description: 'Start tag search filtering (set input focus and start filtering).',
   }],
 }];
 

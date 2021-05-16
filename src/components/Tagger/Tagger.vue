@@ -177,6 +177,7 @@ export default {
     unselect: null,
     save: null,
     cancel: null,
+    toggleOpacity: null,
   },
 
   data: () => ({
@@ -496,9 +497,11 @@ export default {
             case 'Enter':
               this.$emit('save');
               break;
+
             case 'Escape':
               this.$emit('cancel');
               break;
+
             default:
           }
         } else {
@@ -508,6 +511,11 @@ export default {
                 this.clearFilterText();
               }
               break;
+
+            case 'Alt':
+              this.$emit('toggleOpacity');
+              break;
+
             default:
               // Start filtering only if the pressed key is a letter.
               // Do not focus if pressed key is a control one.
