@@ -25,6 +25,7 @@
       :category-id="catId"
       :selected="selectedIds[catId]"
       :nb-tags="nbTags[catId]"
+      :masked="!!masked[catId]"
       :edit="editMode"
       @click="onCategoryClick"
       @click:edit="$emit('editCategory', catId);"
@@ -35,6 +36,7 @@
       category-id="0"
       :selected="selectedIds['0']"
       :nb-tags="nbTags['0']"
+      :masked="!!masked['0']"
       @click="onCategoryClick"
     />
   </div>
@@ -62,6 +64,11 @@ export default {
     },
 
     nbTags: {
+      type: Object,
+      default: () => ({}),
+    },
+
+    masked: {
       type: Object,
       default: () => ({}),
     },

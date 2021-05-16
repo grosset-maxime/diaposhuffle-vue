@@ -65,14 +65,12 @@
     <!-- TODO: Show latest used tags -->
     <!-- TODO: on filtering latest used tags, do not hide it but set opacity. -->
 
-    <!-- TODO: Show nb tags per categories -->
-    <!-- TODO: on filtering show remaining tags per categories -->
-    <!-- TODO: on filtering, do not hide category but set opacity -->
     <div class="categories-list">
       <CategoriesList
         :category-ids="categoryIds"
         :selected-ids="selectedCategoryIdsMap"
         :nb-tags="nbTagsMap"
+        :masked="notFilteredCategoryIdsMap"
         :edit-mode="editMode"
         @select="onSelectCategory"
         @unselect="onUnselectCategory"
@@ -143,6 +141,7 @@ import {
   getKey,
   isEmptyObj,
   getRandomElement,
+  deepClone,
 } from '../../utils/utils';
 import CategoriesList from './CategoriesList.vue';
 import CircularLoading from '../CircularLoading.vue';
@@ -282,7 +281,7 @@ export default {
         }
 
         if (this.filters.text) {
-          tags = this.applyTextFilter(tags);
+          tags = this.applyTextFilter(tags).map((r) => r.item);
         }
       }
 
@@ -300,7 +299,7 @@ export default {
         }
 
         if (this.filters.text) {
-          tags = this.applyTextFilter(tags);
+          tags = this.applyTextFilter(tags).map((r) => r.item);
         }
       }
 
@@ -322,6 +321,34 @@ export default {
         .length;
 
       return nbTagsMap;
+    },
+
+    notFilteredCategoryIdsMap () {
+      if (!this.filters.text) { return {} }
+
+      const NONE_CATEGORY = {
+        id: '0',
+        name: 'None',
+        color: 'FFFFFF',
+      };
+
+      const categoriesMap = deepClone(this.categoriesMap);
+      categoriesMap[NONE_CATEGORY.id] = NONE_CATEGORY;
+
+      const categories = Object.values(categoriesMap);
+
+      const matchedCategoryIdsMap = Object.fromEntries(
+        this.applyTextFilter(categories)
+          .filter((r) => r.score < 0.5)
+          .map((r) => [r.item.id, true]),
+      );
+
+      const notFilteredCategory = Object.keys(categoriesMap)
+        .filter((catId) => !matchedCategoryIdsMap[catId]);
+
+      return Object.fromEntries(
+        notFilteredCategory.map((catId) => [catId, true]),
+      );
     },
 
     isFiltering () {
@@ -482,15 +509,15 @@ export default {
       return tags.filter((tag) => !!this.filters.categories[tag.category]);
     },
 
-    applyTextFilter (tags) {
+    applyTextFilter (array, keys = ['name']) {
       const options = {
         includeScore: true,
         includeMatches: true,
-        keys: ['name'],
+        keys,
       };
 
-      const fuse = new Fuse(tags, options);
-      return fuse.search(this.filters.text).map((r) => r.item);
+      const fuse = new Fuse(array, options);
+      return fuse.search(this.filters.text);
     },
 
     fetchTagsAndCategories () {

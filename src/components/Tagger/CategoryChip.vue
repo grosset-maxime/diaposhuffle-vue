@@ -4,7 +4,8 @@
     :class="['category', {
       selected,
       clickable: true,
-      'is-none': isNoneCategory
+      'is-none': isNoneCategory,
+      masked
     }]"
     :style="{
       'background-color': chipBgColor,
@@ -63,6 +64,11 @@ export default {
     nbTags: {
       type: Number,
       default: 0,
+    },
+
+    masked: {
+      type: Boolean,
+      default: false,
     },
 
     edit: {
@@ -179,6 +185,10 @@ export default {
 
   &.selected {
     text-shadow: 0 0 1px #ffffff;
+  }
+
+  &.masked {
+    opacity: 0.5;
   }
 }
 </style>
