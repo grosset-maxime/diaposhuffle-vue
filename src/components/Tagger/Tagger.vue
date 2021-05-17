@@ -3,13 +3,12 @@
     <div class="selected-tags">
       <TagsList
         :tag-ids="selectedTagIds"
-        :selected-ids="selectedTagIdsMap"
         :text-filter="filters.text"
         :edit-mode="editMode"
         :no-tags-text="noSelectedTagsText"
         closable-tags
-        @unselect="onUnselectSelected"
-        @closeTag="onUnselectSelected"
+        @clickTag="onTagClick"
+        @closeTag="onTagClick"
         @addTag="showAddTagModal"
         @editTag="showEditTagModal"
       />
@@ -88,11 +87,10 @@
       <TagsList
         ref="unselectedTagsList"
         :tag-ids="unselectedTagIds"
-        :selected-ids="selectedTagIdsMap"
+        :focused="focused"
         :edit-mode="editMode"
         :no-tags-text="noUnselectedTagsText"
-        @select="onSelectUnselected"
-        @unselect="onUnselectUnselected"
+        @clickTag="onTagClick"
         @addTag="showAddTagModal"
         @editTag="showEditTagModal"
       />
@@ -183,6 +181,11 @@ export default {
   data: () => ({
     selectedTagIdsMap: {},
     selectedCategoryIdsMap: {},
+
+    focused: {
+      id: '',
+      pos: 0,
+    },
 
     filters: {
       text: '',
@@ -302,7 +305,6 @@ export default {
           tags = this.applyTextFilter(tags).map((r) => r.item);
         }
       }
-
       return tags.map((tag) => tag.id);
     },
 
@@ -366,6 +368,18 @@ export default {
     noUnselectedTagsText () { return this.isFiltering ? 'No tags results' : '' },
   },
 
+  watch: {
+    unselectedTagIds () {
+      if (!this.focused.id) {
+        this.resetFocus();
+      }
+    },
+
+    isFiltering () {
+      this.resetFocus();
+    },
+  },
+
   mounted () {
     // TODO: TEMP: only for testing purpose
     setTimeout(() => { if (this.isLoading) { this.onShow() } }, 2000);
@@ -374,6 +388,7 @@ export default {
   methods: {
     async onShow () {
       this.attachKeyboardShortcuts();
+      this.resetFocus();
 
       try {
         await this.fetchTagsAndCategories();
@@ -388,21 +403,6 @@ export default {
 
     onHide () { this.removeKeyboardShortcuts() },
 
-    onSelectUnselected (tagId) {
-      this.$set(this.selectedTagIdsMap, tagId, true);
-      this.$emit('select', tagId);
-    },
-
-    onUnselectUnselected (tagId) {
-      this.$delete(this.selectedTagIdsMap, tagId);
-      this.$emit('unselect', tagId);
-    },
-
-    onUnselectSelected (tagId) {
-      this.$delete(this.selectedTagIdsMap, tagId);
-      this.$emit('unselect', tagId);
-    },
-
     onSelectCategory (catId) {
       this.$set(this.selectedCategoryIdsMap, catId, true);
       this.$set(this.filters.categories, catId, true);
@@ -411,6 +411,25 @@ export default {
     onUnselectCategory (catId) {
       this.$delete(this.selectedCategoryIdsMap, catId);
       this.$delete(this.filters.categories, catId);
+    },
+
+    onTagClick (tagId) {
+      if (this.selectedTagIdsMap[tagId]) {
+        this.$delete(this.selectedTagIdsMap, tagId);
+        this.$emit('unselect', tagId);
+      } else {
+        this.$set(this.selectedTagIdsMap, tagId, true);
+        this.$emit('select', tagId);
+      }
+
+      // TODO: if focused tag, move/update focused position.
+      if (this.focused.pos === this.unselectedTagIds.length) {
+        this.focused.pos -= 2;
+      } else {
+        this.focused.pos -= 1;
+      }
+
+      this.setFocusRight();
     },
 
     onFilterTextFocus () { this.isFilterTextHasFocus = true },
@@ -500,7 +519,7 @@ export default {
     selectRandom () {
       const randomdTagId = getRandomElement(this.unselectedTagIds);
 
-      if (randomdTagId) { this.onSelectUnselected(randomdTagId) }
+      if (randomdTagId) { this.onTagClick(randomdTagId) }
 
       this.setFilterTextFocus();
     },
@@ -533,6 +552,27 @@ export default {
       );
     },
 
+    resetFocus () {
+      [this.focused.id] = this.unselectedTagIds;
+      this.focused.pos = 0;
+    },
+
+    setFocusRight () {
+      this.focused.pos += 1;
+      if (this.focused.pos >= this.unselectedTagIds.length) {
+        this.focused.pos = 0;
+      }
+      this.focused.id = this.unselectedTagIds[this.focused.pos];
+    },
+
+    setFocusLeft () {
+      this.focused.pos -= 1;
+      if (this.focused.pos < 0) {
+        this.focused.pos = this.unselectedTagIds.length - 1;
+      }
+      this.focused.id = this.unselectedTagIds[this.focused.pos];
+    },
+
     attachKeyboardShortcuts () {
       this.keyboardShortcuts.main = (e) => {
         const key = getKey(e);
@@ -551,14 +591,26 @@ export default {
           }
         } else {
           switch (key) {
-            case 'Escape':
-              if (this.isFilterTextHasFocus) {
-                this.clearFilterText();
-              }
+            case 'ArrowRight':
+              this.setFocusRight();
+              break;
+
+            case 'ArrowLeft':
+              this.setFocusLeft();
               break;
 
             case 'Alt':
               this.$emit('toggleOpacity');
+              break;
+
+            case 'Enter':
+              this.onTagClick(this.focused.id);
+              break;
+
+            case 'Escape':
+              if (this.isFilterTextHasFocus) {
+                this.clearFilterText();
+              }
               break;
 
             default:

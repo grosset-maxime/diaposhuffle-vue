@@ -159,6 +159,7 @@ export default {
   methods: {
     onShow () {
       this.editMode = false;
+      this.hasOpacity = false;
 
       this.selectedTagsIdsMap = Object.fromEntries(this.selectedTagIds.map((tagId) => [tagId, true]));
 

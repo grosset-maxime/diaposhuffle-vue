@@ -2,9 +2,9 @@
   <div
     class="tag-chip"
     :class="['tag', {
-      selected,
       clickable,
-      'has-no-category': !hasCategory
+      focused,
+      'has-no-category': !hasCategory,
     }]"
     :style="{
       'background-color': tagBgColor,
@@ -14,7 +14,7 @@
     @click="$emit('click', tagId)"
   >
     <span class="tag-content">
-      {{ tag.name }}
+      <span class="name">{{ tag.name }}</span>
 
       <v-btn
         v-if="edit"
@@ -63,7 +63,7 @@ export default {
       default: '',
     },
 
-    selected: {
+    focused: {
       type: Boolean,
       default: false,
     },
@@ -115,7 +115,7 @@ export default {
       let color;
 
       if (this.hasCategory) {
-        color = this.selected
+        color = this.focused
           ? `#${this.categoryColor}FF`
           : `#${this.categoryColor}FF`;
       }
@@ -127,10 +127,10 @@ export default {
       let color;
 
       if (this.hasCategory) {
-        color = this.selected
+        color = this.focused
           ? `#${this.categoryColor}AA`
           : `#${this.categoryColor}20`;
-      } else if (this.tag.selected) {
+      } else if (this.focused) {
         color = '#FFFFFF80';
       }
 
@@ -140,7 +140,7 @@ export default {
     tagBoxShadow () {
       let boxShadow;
 
-      if (this.selected) {
+      if (this.focused) {
         if (this.hasCategory) {
           boxShadow = `0 0 7px 0 ${this.tagColor}`;
         } else {
@@ -164,6 +164,7 @@ export default {
   padding: 0 12px;
   margin: $tag-margin;
   user-select: none;
+  opacity: 0.9;
 
   .tag-content {
     height: 100%;
@@ -203,8 +204,10 @@ export default {
     border-style: dashed;
   }
 
-  &.selected {
+  &.focused {
+    border-radius: 4px;
     text-shadow: 0 0 1px #ffffff;
+    opacity: 1;
   }
 }
 </style>

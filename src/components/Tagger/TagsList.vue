@@ -22,11 +22,11 @@
       v-for="tagId in tagIds"
       :key="`tag-${tagId}`"
       :tag-id="tagId"
-      :selected="selectedIds[tagId]"
+      :focused="focused.id === tagId"
       :edit="editMode"
       :close="closableTags"
       clickable
-      @click="onTagClick"
+      @click="$emit('clickTag', tagId)"
       @click:close="$emit('closeTag', tagId)"
       @click:edit="$emit('editTag', tagId);"
     />
@@ -56,7 +56,7 @@ export default {
       default: () => ([]),
     },
 
-    selectedIds: {
+    focused: {
       type: Object,
       default: () => ({}),
     },
@@ -78,8 +78,7 @@ export default {
   },
 
   emits: {
-    select: null,
-    unselect: null,
+    clickTag: null,
     closeTag: null,
     editTag: null,
     addTag: null,
@@ -89,12 +88,6 @@ export default {
 
   computed: {
     hasTags () { return this.tagIds.length > 0 },
-  },
-
-  methods: {
-    onTagClick (tagId) {
-      this.$emit(this.selectedIds[tagId] ? 'unselect' : 'select', tagId);
-    },
   },
 };
 </script>
