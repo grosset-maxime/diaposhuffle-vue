@@ -108,7 +108,7 @@ const actions = {
   async [PLAYER_A_FETCH_NEXT] ({ commit, getters }) {
     let result;
 
-    const filters = getters[PLAYER_G_FILTERS].folders;
+    const filters = getters[PLAYER_G_FILTERS];
 
     try {
       // if (filters.tags.length) {

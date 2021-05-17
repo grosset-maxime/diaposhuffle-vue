@@ -98,6 +98,7 @@
 </template>
 
 <script>
+// TODO: Scroll issue when too many tags, need to have the scroll bar at tags list or at tagger modal content but not not at modal root.
 import {
   TAGGER_A_FETCH_TAGS,
   TAGGER_G_TAGS,

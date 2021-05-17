@@ -586,6 +586,7 @@ export default {
               preventDefault = true;
               break;
 
+              // TODO: On windows, alt+escape switch to another window, need to find another shortcut or a way to prevent it.
             case 'Escape':
               this.$emit('cancel');
               preventDefault = true;
