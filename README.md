@@ -31,7 +31,6 @@ yarn dev
     mv /var/services/web/diaposhuffle-vue/public/index.php /var/services/web/diaposhuffle-vue/public/temp
     7z x /volume1/homes/maxou/dist.7z
     ```
-1. Should need to restart nginx ??
 
 ### Lints and fixes files
 ```
