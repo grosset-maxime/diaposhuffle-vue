@@ -222,7 +222,7 @@ $v-toolbar-height: 48px;
   }
 
   .ctn {
-    height: calc(100vh - $v-toolbar-height);
+    height: calc(100vh - #{$v-toolbar-height});
     overflow: auto;
     padding: 10px;
     padding-bottom: 40px;
