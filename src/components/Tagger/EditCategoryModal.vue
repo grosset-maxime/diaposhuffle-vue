@@ -366,7 +366,7 @@ export default {
 
 .edit-category-modal {
   .modal-body {
-    height: calc(100vh - 200px);
+    height: calc(100vh - 300px);
     overflow: auto;
 
     .color-warning-alert {

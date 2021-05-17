@@ -575,16 +575,20 @@ export default {
 
     attachKeyboardShortcuts () {
       this.keyboardShortcuts.main = (e) => {
+        let preventDefault = false;
+        const stopPropagation = false;
         const key = getKey(e);
 
         if (e.altKey) {
           switch (key) {
             case 'Enter':
               this.$emit('save');
+              preventDefault = true;
               break;
 
             case 'Escape':
               this.$emit('cancel');
+              preventDefault = true;
               break;
 
             default:
@@ -601,6 +605,7 @@ export default {
 
             case 'Alt':
               this.$emit('toggleOpacity');
+              preventDefault = true;
               break;
 
             case 'Enter':
@@ -622,6 +627,9 @@ export default {
               }
           }
         }
+
+        if (preventDefault) { e.preventDefault() }
+        if (stopPropagation) { e.stopPropagation() }
       };
 
       window.addEventListener('keyup', this.keyboardShortcuts.main);

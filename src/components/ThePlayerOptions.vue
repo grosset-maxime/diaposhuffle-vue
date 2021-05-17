@@ -457,6 +457,10 @@ export default {
   margin-left: 60px;
 }
 
+.unselect-all-tags-btn {
+  text-transform: none;
+}
+
 .nb-selected-folders {
   margin-left: 20px;
 }
