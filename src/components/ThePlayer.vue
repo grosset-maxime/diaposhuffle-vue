@@ -1,9 +1,11 @@
 <template>
-  <!-- TODO: hide mouse cursor when not mouving it. -->
+  <!-- TODO: hide everything when mouse not is mouving, even the loop (may display the remaing time in very small and light in a corner). -->
   <div
     :class="['the-player', {
-      'opts-show-the-item-path-chip': options.showPath
+      'video-item': itemsPlayer.isItemVideo,
+      'show-ui': shouldShowUi,
     }]"
+    @mousemove="showUIDuring()"
   >
     <TheLoop
       ref="TheLoop"
@@ -30,7 +32,7 @@
     </v-alert>
 
     <HistoryChip
-      v-show="!!historyLength"
+      v-show="showTheHistoryChip"
       class="the-history-chip"
       @click="pausePlaying"
     />
@@ -43,6 +45,7 @@
     />
 
     <ItemsPlayer
+      ref="ItemsPlayer"
       class="the-items-player"
       v-bind.sync="itemsPlayer.triggers"
       :next-item-data="itemsPlayer.props.nextItemData"
@@ -53,7 +56,6 @@
       @playingItemDuration="setLoopDuration"
     />
 
-    <!-- TODO: make it smaller and lighter -->
     <!-- TODO: FEATURE: add a dense/contracted mode which will expand on mouse hover -->
     <ItemPathChip
       v-if="options.showPath"
@@ -127,6 +129,7 @@ export default {
       },
 
       playingItemData: undefined,
+      isItemVideo: false,
     },
 
     deleteModal: {
@@ -152,6 +155,9 @@ export default {
     },
 
     isNavigatingIntoHistory: false,
+
+    shouldShowUi: false,
+    showUITimeout: undefined,
   }),
 
   computed: {
@@ -173,7 +179,9 @@ export default {
 
     playingItemRandomPath () { return (this.playingItemData || {}).randomPublicPath || '' },
 
-    showTheItemPathChip () { return !!this.playingItemData },
+    showTheItemPathChip () { return !!this.playingItemData && this.shouldShowUi },
+
+    showTheHistoryChip () { return !!this.historyLength && this.shouldShowUi },
 
     history () { return this.$store.getters[`${this.NS}/${PLAYER_G_HISTORY}`] },
 
@@ -539,7 +547,8 @@ export default {
     },
 
     async onPlayingNextItem (playingItemData) {
-      this.itemsPlayer.playingItemData = playingItemData;
+      this.$set(this.itemsPlayer, 'isItemVideo', this.$refs.ItemsPlayer.isItemVideo());
+      this.$set(this.itemsPlayer, 'playingItemData', playingItemData);
 
       this.setLoopIndeterminate(false);
 
@@ -566,6 +575,19 @@ export default {
         this.historyIndex = this.historyLength - 1;
       }
     },
+
+    showUIDuring (time = 2000) {
+      this.shouldShowUi = true;
+
+      clearTimeout(this.showUITimeout);
+      this.showUITimeout = setTimeout(() => {
+        this.hideUI();
+      }, time);
+    },
+
+    showUI () { this.shouldShowUi = true },
+
+    hideUI () { this.shouldShowUi = false },
   },
 };
 </script>
@@ -579,6 +601,17 @@ export default {
   height: 100vh;
   z-index: 100;
   background-color: $grey-8;
+  cursor: none;
+
+  &.show-ui {
+    cursor: default;
+  }
+
+  &.video-item {
+    .the-item-path-chip {
+      bottom: 70px; // To not cover the video controls.
+    }
+  }
 
   .the-pause-btn {
     position: absolute;
@@ -613,20 +646,6 @@ export default {
 
   .the-items-player {
     position: relative;
-  }
-
-  &.opts-show-the-item-path-chip {
-    .item.vid {
-      &::-webkit-media-controls-panel {
-        transition: transform 0.2s ease;
-        transform: translateY(0);
-      }
-      &:hover {
-        &::-webkit-media-controls-panel {
-          transform: translateY(-60px);
-        }
-      }
-    }
   }
 }
 </style>

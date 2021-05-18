@@ -49,23 +49,23 @@ export default {
 <style lang="scss" scoped>
 .item-path-chip {
   word-break: break-all;
-  color: $grey-8;
+  color: $grey-5;
   background-color: $grey-7#{80};
-  padding: 0 5px;
+  padding: 0 3px;
   border-radius: 5px;
-  transition: transform 0.2s ease, color 0.3s ease;
+  cursor: text;
 
   &:hover {
-    color: $grey-5;
+    color: $grey-0;
   }
 
   .path-start {
-    font-size: 1em;
+    font-size: 0.5em;
     margin-right: 4px;
   }
 
   .path-end {
-    font-size: 1.5em;
+    font-size: 1em;
     font-weight: bold;
   }
 }

@@ -14,6 +14,7 @@
         v-if="item.src && (item.data || {}).isImage"
         :src="item.src"
         class="item img"
+        draggable="false"
         @load="onItemLoaded(getItemName(i))"
       >
       <video

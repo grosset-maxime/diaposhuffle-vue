@@ -15,7 +15,6 @@
       v-show="showText"
       class="text"
     >
-      <!-- TODO: bold/text-shadow it to be more visible -->
       {{ text }}
     </span>
   </v-progress-linear>
@@ -192,6 +191,8 @@ export default {
 
   .text {
     font-size: 0.6em;
+    font-weight: bold;
+    text-shadow: 0 0 2px black;
   }
 }
 </style>

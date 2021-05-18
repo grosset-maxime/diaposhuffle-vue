@@ -62,9 +62,12 @@ export default {
 <style lang="scss" scoped>
 .history {
   padding: 0 6px;
-  background-color: $grey-8#{80};
   color: $grey-5;
   transition: color 0.3 ease;
+
+  &.v-chip {
+    background-color: $grey-7#{80};
+  }
 
   &:hover {
     color: $grey-0;
