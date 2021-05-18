@@ -579,14 +579,13 @@ export default {
         const stopPropagation = false;
         const key = getKey(e);
 
-        if (e.altKey) {
+        if (e.metaKey) {
           switch (key) {
             case 'Enter':
               this.$emit('save');
               preventDefault = true;
               break;
 
-              // TODO: On windows, alt+escape switch to another window, need to find another shortcut or a way to prevent it.
             case 'Escape':
               this.$emit('cancel');
               preventDefault = true;
@@ -633,11 +632,11 @@ export default {
         if (stopPropagation) { e.stopPropagation() }
       };
 
-      window.addEventListener('keyup', this.keyboardShortcuts.main);
+      window.addEventListener('keydown', this.keyboardShortcuts.main);
     },
 
     removeKeyboardShortcuts () {
-      window.removeEventListener('keyup', this.keyboardShortcuts.main);
+      window.removeEventListener('keydown', this.keyboardShortcuts.main);
     },
   },
 

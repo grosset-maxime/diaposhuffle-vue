@@ -331,20 +331,26 @@ export default {
     attachKeyboardShortcuts () {
       this.keyboardShortcuts = (e) => {
         const key = getKey(e);
-        switch (key) {
-          case 'Escape':
-            // TODO: ENH: prevent cancel if some input has focus.
-            this.onCancel();
-            break;
-          default:
+
+        if (e.metaKey) {
+          switch (key) {
+            case 'Enter':
+              this.onConfirm();
+              break;
+
+            case 'Escape':
+              this.onCancel();
+              break;
+            default:
+          }
         }
       };
 
-      window.addEventListener('keyup', this.keyboardShortcuts);
+      window.addEventListener('keydown', this.keyboardShortcuts);
     },
 
     removeKeyboardShortcuts () {
-      window.removeEventListener('keyup', this.keyboardShortcuts);
+      window.removeEventListener('keydown', this.keyboardShortcuts);
     },
   },
 

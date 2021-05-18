@@ -1,4 +1,5 @@
 <template>
+  <!-- TODO: hide mouse cursor when not mouving it. -->
   <div
     :class="['the-player', {
       'opts-show-the-item-path-chip': options.showPath
@@ -52,6 +53,8 @@
       @playingItemDuration="setLoopDuration"
     />
 
+    <!-- TODO: make it smaller and lighter -->
+    <!-- TODO: FEATURE: add a dense/contracted mode which will expand on mouse hover -->
     <ItemPathChip
       v-if="options.showPath"
       v-show="showTheItemPathChip"

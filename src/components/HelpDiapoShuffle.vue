@@ -125,10 +125,10 @@ const panels = [{
     shortcut: 'Escape',
     description: 'Clear tag search filter (if input has focus).',
   }, {
-    shortcut: 'Alt + Escape',
+    shortcut: 'Meta + Escape',
     description: 'Cancel the Tagger modal.',
   }, {
-    shortcut: 'Alt + Enter',
+    shortcut: 'Meta + Enter',
     description: 'Save the Tagger modal.',
   }, {
     shortcut: 'Any character',
