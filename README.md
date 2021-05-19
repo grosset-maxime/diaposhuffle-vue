@@ -18,6 +18,7 @@ yarn dev
     ```
     yarn build
     mv ./dist/index.html ./dist/index.php
+    rm -dR ./dist/pic
     7za a ./dist.7z ./dist/*
     ```
 1. Copy manually 7z file `dist.7z` to maxou home.
