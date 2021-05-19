@@ -12,12 +12,15 @@ yarn dev
 ```
 
 ### Compiles and minifies for production
-1. Install p7zip utils: `brew install p7zip`
+1. Install p7zip utils: 
+    ```
+    brew install p7zip
+    ```
 1. Run in local:
     ```
     yarn build-nas
     ```
-1. Copy manually 7z file `dist.7z` to maxou home.
+1. Copy manually 7z file `dist.7z` to maxou home `/volume1/homes/maxou`.
 1. Run in nas:
     ```
     cd /var/services/web/diaposhuffle-vue/public
