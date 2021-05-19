@@ -207,6 +207,7 @@
 </template>
 
 <script>
+// TODO: Feature: save in user preferences (bdd or localstorage) the choosen options.
 import {
   INDEX_G_SHOW_THE_PLAYER,
   INDEX_G_SHOW_THE_HELP,
@@ -401,9 +402,8 @@ export default {
 
     attachKeyboardShortcuts () {
       this.keyboardShortcuts.main = (e) => {
-        // console.log('ThePlayerOptions e:', e);
-
         const key = getKey(e);
+
         switch (key) {
           case 'Space':
           case 'Enter':

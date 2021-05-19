@@ -1,6 +1,9 @@
 <template>
   <v-progress-linear
     class="the-loop"
+    :style="{
+      transform: dense ? `translateY(${2 - height}px)` : 'translateY(0)'
+    }"
     absolute
     top
     background-opacity="0.2"
@@ -12,8 +15,8 @@
     @click="goToLoopStart"
   >
     <span
-      v-show="showText"
-      class="text"
+      v-if="showText"
+      :class="['text', { dense }]"
     >
       {{ text }}
     </span>
@@ -21,14 +24,34 @@
 </template>
 
 <script>
+// TODO: Feature: Add a very small icon to pin the UI.
 import { wait } from '../utils/utils';
 
 const LOOP_STEP = 100; // In ms.
-const LOOP_DETERMINATE_COLOR = '#2196f380'; // primary color + 50% opacity.
-const LOOP_INDETERMINATE_COLOR = '#E87B0080'; // $orange-1 + 50% opacity.
+const LOOP_DETERMINATE_COLOR = '#2196f3AA'; // primary color + ligth opacity.
+const LOOP_INDETERMINATE_COLOR = '#E87B00AA'; // $orange-1 + light opacity.
 const LOOP_DETERMINATE_HEIGHT = 10;
 const LOOP_INDETERMINATE_HEIGHT = 4;
 const LOOP_ANIMATION_WAIT = 200; // In ms.
+
+function getTimeText (ms, { noMs = false } = {}) {
+  const date = new Date(2020, 0, 0);
+
+  date.setMilliseconds(Math.abs(ms));
+  const hours = date.getHours();
+  const mins = date.getMinutes();
+  const seconds = date.getSeconds();
+  const dms = date.getMilliseconds();
+
+  let text = '';
+
+  if (hours) { text += `${hours}h ` }
+  if (mins) { text += `${mins}m ` }
+  text += `${seconds}s `;
+  if (!noMs && !hours && !mins && seconds < 10) { text += `${dms / 100}ms` }
+
+  return text;
+}
 
 export default {
   name: 'TheLoop',
@@ -37,6 +60,21 @@ export default {
     duration: {
       type: Number,
       default: 3000,
+    },
+
+    dense: {
+      type: Boolean,
+      default: false,
+    },
+
+    showRemainingTime: {
+      type: Boolean,
+      default: false,
+    },
+
+    showDurationTime: {
+      type: Boolean,
+      default: false,
     },
   },
 
@@ -64,26 +102,32 @@ export default {
     percentage () { return (this.value * 100) / this.duration },
 
     text () {
-      const date = new Date(2020, 0, 0);
-
-      date.setMilliseconds(Math.abs(this.duration - this.value));
-      const hours = date.getHours();
-      const mins = date.getMinutes();
-      const seconds = date.getSeconds();
-      const ms = date.getMilliseconds();
-
       let text = '';
 
-      if (hours) { text += `${hours}h ` }
-      if (mins) { text += `${mins}m ` }
-      text += `${seconds}s `;
-      if (!hours && !mins) { text += `${ms / 100}ms` }
+      if (this.showRemainingTime) {
+        text = this.remainingTimeText;
+      }
 
-      return `${text}`;
+      if (this.showDurationTime) {
+        if (text) { text = `${text} / ` }
+        text = `${text}${this.durationTimeText}`;
+      }
+
+      return text;
+    },
+
+    remainingTimeText () {
+      return getTimeText(this.duration - this.value);
+    },
+
+    durationTimeText () {
+      return getTimeText(this.duration, { noMs: true });
     },
 
     showText () {
-      return this.text && !this.indeterminate;
+      return (this.showRemainingTime || this.showDurationTime)
+        && this.text
+        && !this.indeterminate;
     },
   },
 
@@ -193,6 +237,11 @@ export default {
     font-size: 0.6em;
     font-weight: bold;
     text-shadow: 0 0 2px black;
+    transition: opacity 0.3s ease;
+
+    &.dense {
+      opacity: 0;
+    }
   }
 }
 </style>

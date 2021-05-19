@@ -57,6 +57,11 @@
 </template>
 
 <script>
+// TODO: Enh: Prefetch the first level of folders.
+// TODO: Feature: Add navigation with arrow keys and select/unselect with enter key.
+// TODO: Feature: Add a input search to filter the view.
+// TODO: Feature: Add section with 5 or 10 latest selected pathes.
+// TODO: Feature: Allow to search a folder by its name which has not been fetch yet (Need a new backend API).
 import { getKey } from '../../utils/utils';
 import FolderList from './FolderList.vue';
 

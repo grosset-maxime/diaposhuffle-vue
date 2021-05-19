@@ -2,6 +2,8 @@
   <v-dialog
     content-class="delete-modal"
     :value="show"
+    persistent
+    no-click-animation
     @click:outside="$emit('click:outside')"
   >
     <div class="delete-modal-body">
@@ -26,6 +28,7 @@
 </template>
 
 <script>
+// TODO: Feature: Propound a slot to display a preview of the item to delete.
 import { getKey } from '../utils/utils';
 
 export default {
@@ -68,6 +71,7 @@ export default {
     attachKeyboardShortcuts () {
       this.keyboardShortcuts = (e) => {
         const key = getKey(e);
+
         switch (key) {
           case 'Enter':
             this.onConfirm();

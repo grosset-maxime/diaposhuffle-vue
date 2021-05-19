@@ -1,15 +1,17 @@
 <template>
-  <!-- TODO: hide everything when mouse not is mouving, even the loop (may display the remaing time in very small and light in a corner). -->
   <div
     :class="['the-player', {
       'video-item': itemsPlayer.isItemVideo,
-      'show-ui': shouldShowUi,
+      'show-ui': shouldShowUI,
     }]"
     @mousemove="showUIDuring()"
   >
     <TheLoop
       ref="TheLoop"
       :duration="loopDuration"
+      :dense="!shouldShowUI"
+      :show-duration-time="itemsPlayer.isItemVideo"
+      show-remaining-time
       @end="onLoopEnd"
     />
 
@@ -69,6 +71,7 @@
 </template>
 
 <script>
+// TODO: Enh: Rework player engine.
 import { getKey } from '../utils/utils';
 import {
   INDEX_G_SHOW_THE_HELP,
@@ -156,7 +159,7 @@ export default {
 
     isNavigatingIntoHistory: false,
 
-    shouldShowUi: false,
+    shouldShowUI: false,
     showUITimeout: undefined,
   }),
 
@@ -179,9 +182,9 @@ export default {
 
     playingItemRandomPath () { return (this.playingItemData || {}).randomPublicPath || '' },
 
-    showTheItemPathChip () { return !!this.playingItemData && this.shouldShowUi },
+    showTheItemPathChip () { return !!this.playingItemData && this.shouldShowUI },
 
-    showTheHistoryChip () { return !!this.historyLength && this.shouldShowUi },
+    showTheHistoryChip () { return !!this.historyLength && this.shouldShowUI },
 
     history () { return this.$store.getters[`${this.NS}/${PLAYER_G_HISTORY}`] },
 
@@ -577,7 +580,7 @@ export default {
     },
 
     showUIDuring (time = 2000) {
-      this.shouldShowUi = true;
+      this.shouldShowUI = true;
 
       clearTimeout(this.showUITimeout);
       this.showUITimeout = setTimeout(() => {
@@ -585,9 +588,9 @@ export default {
       }, time);
     },
 
-    showUI () { this.shouldShowUi = true },
+    showUI () { this.shouldShowUI = true },
 
-    hideUI () { this.shouldShowUi = false },
+    hideUI () { this.shouldShowUI = false },
   },
 };
 </script>

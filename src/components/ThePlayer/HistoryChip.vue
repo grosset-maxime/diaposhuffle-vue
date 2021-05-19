@@ -9,6 +9,7 @@
 </template>
 
 <script>
+// TODO: Feature: On click on the chip show the list of history and allow to navigate through it with arrow key. Also display an item preview.
 import {
   PLAYER_G_HISTORY,
   PLAYER_G_HISTORY_INDEX,
@@ -62,7 +63,7 @@ export default {
 <style lang="scss" scoped>
 .history {
   padding: 0 6px;
-  color: $grey-5;
+  color: $grey-3;
   transition: color 0.3 ease;
 
   &.v-chip {

@@ -17,6 +17,8 @@
 </template>
 
 <script>
+// TODO: Feature: On click add to clipboard the path of the item.
+// TODO: Feature: Add a very small icon in order to allow to pin the cmp to force show even if the ui is hidden.
 export default {
   name: 'ItemPathChip',
 
@@ -49,7 +51,7 @@ export default {
 <style lang="scss" scoped>
 .item-path-chip {
   word-break: break-all;
-  color: $grey-5;
+  color: $grey-3;
   background-color: $grey-7#{80};
   padding: 0 3px;
   border-radius: 5px;
