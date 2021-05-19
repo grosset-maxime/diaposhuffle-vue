@@ -422,11 +422,11 @@ export default {
         }
       };
 
-      window.addEventListener('keyup', this.keyboardShortcuts.main);
+      window.addEventListener('keydown', this.keyboardShortcuts.main);
     },
 
     removeKeyboardShortcuts () {
-      window.removeEventListener('keyup', this.keyboardShortcuts.main);
+      window.removeEventListener('keydown', this.keyboardShortcuts.main);
     },
   },
 

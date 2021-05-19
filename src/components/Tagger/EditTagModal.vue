@@ -331,19 +331,35 @@ export default {
     attachKeyboardShortcuts () {
       this.keyboardShortcuts = (e) => {
         const key = getKey(e);
+        let preventDefault = false;
+        const stopPropagation = false;
 
-        if (e.metaKey) {
+        if (e.altKey) {
           switch (key) {
+            // On windows, Meta + Enter does not trigger a keydown event,
+            // So, set Alt + Enter to validate.
             case 'Enter':
               this.onConfirm();
+              preventDefault = true;
               break;
 
+            default:
+          }
+        } else if (e.metaKey) {
+          // On windows, Alt + Escape does not trigger a keydown event,
+          // So, set Meta + Escape to cancel.
+          switch (key) {
             case 'Escape':
               this.onCancel();
+              preventDefault = true;
               break;
+
             default:
           }
         }
+
+        if (preventDefault) { e.preventDefault() }
+        if (stopPropagation) { e.stopPropagation() }
       };
 
       window.addEventListener('keydown', this.keyboardShortcuts);

@@ -5,6 +5,8 @@
     fullscreen
     hide-overlay
     transition="dialog-bottom-transition"
+    persistent
+    no-click-animation
   >
     <v-card>
       <v-toolbar>
@@ -33,7 +35,7 @@
           </v-btn>
           <v-btn
             text
-            @click="onSave"
+            @click="onConfirm"
           >
             Save
           </v-btn>
@@ -114,7 +116,7 @@ export default {
 
     onHide () { this.removeKeyboardShortcuts() },
 
-    onSave () {
+    onConfirm () {
       this.$emit(
         'save',
         [...this.selectedFolders],
@@ -145,26 +147,43 @@ export default {
 
     attachKeyboardShortcuts () {
       this.keyboardShortcuts.main = (e) => {
-        // console.log('FoldersBrowser e:', e);
-
         const key = getKey(e);
-        switch (key) {
-          case 'Enter':
-            this.onSave();
-            break;
+        let preventDefault = false;
+        const stopPropagation = false;
 
-          case 'Escape':
-            this.onCancel();
-            break;
-          default:
+        if (e.altKey) {
+          switch (key) {
+            // On windows, Meta + Enter does not trigger a keydown event,
+            // So, set Alt + Enter to validate.
+            case 'Enter':
+              this.onConfirm();
+              preventDefault = true;
+              break;
+
+            default:
+          }
+        } else if (e.metaKey) {
+          // On windows, Alt + Escape does not trigger a keydown event,
+          // So, set Meta + Escape to cancel.
+          switch (key) {
+            case 'Escape':
+              this.onCancel();
+              preventDefault = true;
+              break;
+
+            default:
+          }
         }
+
+        if (preventDefault) { e.preventDefault() }
+        if (stopPropagation) { e.stopPropagation() }
       };
 
-      window.addEventListener('keyup', this.keyboardShortcuts.main);
+      window.addEventListener('keydown', this.keyboardShortcuts.main);
     },
 
     removeKeyboardShortcuts () {
-      window.removeEventListener('keyup', this.keyboardShortcuts.main);
+      window.removeEventListener('keydown', this.keyboardShortcuts.main);
     },
   },
 

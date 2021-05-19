@@ -110,8 +110,11 @@ const panels = [{
   title: 'Folder browser - shortucts',
   opened: true,
   content: [{
-    shortcut: 'Enter / ESC',
-    description: 'Close Folder browser.',
+    shortcut: 'Meta + Escape',
+    description: 'Close and cancel Folder browser.',
+  }, {
+    shortcut: 'Alt + Enter',
+    description: 'Close and confirm Folder browser.',
   }],
 }, {
   // Tagger - shortucts
@@ -126,10 +129,10 @@ const panels = [{
     description: 'Clear tag search filter (if input has focus).',
   }, {
     shortcut: 'Meta + Escape',
-    description: 'Cancel the Tagger modal.',
+    description: 'Close and cancel the Tagger modal.',
   }, {
-    shortcut: 'Meta + Enter',
-    description: 'Save the Tagger modal.',
+    shortcut: 'Alt + Enter',
+    description: 'Close and confirm the Tagger modal.',
   }, {
     shortcut: 'Any character',
     description: 'Start tag search filtering (set input focus and start filtering).',

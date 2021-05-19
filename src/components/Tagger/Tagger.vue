@@ -579,13 +579,21 @@ export default {
         const stopPropagation = false;
         const key = getKey(e);
 
-        if (e.metaKey) {
+        if (e.altKey) {
           switch (key) {
+            // On windows, Meta + Enter does not trigger a keydown event,
+            // So, set Alt + Enter to validate.
             case 'Enter':
               this.$emit('save');
               preventDefault = true;
               break;
 
+            default:
+          }
+        } else if (e.metaKey) {
+          // On windows, Alt + Escape does not trigger a keydown event,
+          // So, set Meta + Escape to cancel.
+          switch (key) {
             case 'Escape':
               this.$emit('cancel');
               preventDefault = true;
