@@ -612,7 +612,7 @@ export default {
 
   &.video-item {
     .the-item-path-chip {
-      bottom: 70px; // To not cover the video controls.
+      bottom: 80px; // To not cover the video controls.
     }
   }
 
@@ -635,7 +635,7 @@ export default {
 
   .the-history-chip {
     position: absolute;
-    top: 15px;
+    top: 5px;
     left: 5px;
     z-index: 1000;
   }

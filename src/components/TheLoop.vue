@@ -2,11 +2,11 @@
   <v-progress-linear
     class="the-loop"
     :style="{
-      transform: dense ? `translateY(${2 - height}px)` : 'translateY(0)'
+      transform: dense ? `translateY(${height - 2}px)` : 'translateY(0)'
     }"
     absolute
-    top
-    background-opacity="0.2"
+    bottom
+    background-opacity="0.4"
     :value="percentage"
     :color="color"
     :indeterminate="indeterminate"
@@ -28,9 +28,9 @@
 import { wait } from '../utils/utils';
 
 const LOOP_STEP = 100; // In ms.
-const LOOP_DETERMINATE_COLOR = '#2196f3AA'; // primary color + ligth opacity.
-const LOOP_INDETERMINATE_COLOR = '#E87B00AA'; // $orange-1 + light opacity.
-const LOOP_DETERMINATE_HEIGHT = 10;
+const LOOP_DETERMINATE_COLOR = '#E87B00BB'; // $orange-1 + light opacity.
+const LOOP_INDETERMINATE_COLOR = '#2196f3BB'; // primary color + ligth opacity.
+const LOOP_DETERMINATE_HEIGHT = 20;
 const LOOP_INDETERMINATE_HEIGHT = 4;
 const LOOP_ANIMATION_WAIT = 200; // In ms.
 
@@ -234,7 +234,7 @@ export default {
   z-index: 1000;
 
   .text {
-    font-size: 0.6em;
+    font-size: 0.9em;
     font-weight: bold;
     text-shadow: 0 0 2px black;
     transition: opacity 0.3s ease;
