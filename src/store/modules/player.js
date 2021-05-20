@@ -105,6 +105,7 @@ const mutations = {
 
 const actions = {
 
+  // TODO: Feature: Add fetch items from bdd with tags and types.
   async [PLAYER_A_FETCH_NEXT] ({ commit, getters }) {
     let result;
 

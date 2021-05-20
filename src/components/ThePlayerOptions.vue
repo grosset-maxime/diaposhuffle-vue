@@ -208,6 +208,7 @@
 
 <script>
 // TODO: Feature: save in user preferences (bdd or localstorage) the choosen options.
+// TODO: Feature: Add an option to play in infinite loop for video item.
 import {
   INDEX_G_SHOW_THE_PLAYER,
   INDEX_G_SHOW_THE_HELP,

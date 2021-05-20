@@ -8,7 +8,7 @@
     persistent
     no-click-animation
   >
-    <v-card>
+    <v-card style="height:100%">
       <v-toolbar
         class="tagger-modal-toolbar"
         dense
@@ -84,6 +84,7 @@
       </v-toolbar>
 
       <Tagger
+        class="tagger-ctn"
         ref="Tagger"
         :selected="selectedTagIds"
         :edit-mode="editMode"
@@ -98,7 +99,6 @@
 </template>
 
 <script>
-// TODO: Scroll issue when too many tags, need to have the scroll bar at tags list or at tagger modal content but not not at modal root.
 import {
   TAGGER_A_FETCH_TAGS,
   TAGGER_G_TAGS,
@@ -215,18 +215,17 @@ export default {
 
 <style lang="scss">
 $v-toolbar-height: 48px;
+
 .tagger-modal {
   overflow-x: hidden;
+  overflow-y: hidden;
 
   &.has-opacity {
     opacity: 0.05;
   }
 
-  .ctn {
-    height: calc(100vh - #{$v-toolbar-height});
-    overflow: auto;
-    padding: 10px;
-    padding-bottom: 40px;
+  .tagger-ctn {
+    height: calc(100% - #{$v-toolbar-height});
   }
 
   .tagger-modal-toolbar {

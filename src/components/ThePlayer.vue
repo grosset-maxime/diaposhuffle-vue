@@ -72,6 +72,10 @@
 
 <script>
 // TODO: Enh: Rework player engine.
+// TODO: Enh: Display duration time for video at bottom corner?
+// TODO: Feature: For small video try to not fit the screen and apply a scale instead.
+// TODO: Feature: Display item's tags.
+// TODO: Feature: Allow editing item's tags.
 import { getKey } from '../utils/utils';
 import {
   INDEX_G_SHOW_THE_HELP,
@@ -182,9 +186,9 @@ export default {
 
     playingItemRandomPath () { return (this.playingItemData || {}).randomPublicPath || '' },
 
-    showTheItemPathChip () { return !!this.playingItemData && this.shouldShowUI },
+    showTheItemPathChip () { return !!this.playingItemData },
 
-    showTheHistoryChip () { return !!this.historyLength && this.shouldShowUI },
+    showTheHistoryChip () { return !!this.historyLength },
 
     history () { return this.$store.getters[`${this.NS}/${PLAYER_G_HISTORY}`] },
 
@@ -608,6 +612,14 @@ export default {
 
   &.show-ui {
     cursor: default;
+
+    .the-history-chip {
+      transform: translateX(0);
+    }
+
+    .the-item-path-chip {
+      transform: translateX(0);
+    }
   }
 
   &.video-item {
@@ -638,13 +650,17 @@ export default {
     top: 5px;
     left: 5px;
     z-index: 1000;
+    transform: translateX(-110%);
+    transition: transform 0.3s ease;
   }
 
   .the-item-path-chip {
     position: absolute;
-    bottom: 5px;
+    bottom: 25px;
     right: 5px;
     z-index: 1000;
+    transform: translateX(110%);
+    transition: transform 0.3s ease;
   }
 
   .the-items-player {

@@ -96,6 +96,7 @@ export default {
 .tags-list {
   display: flex;
   flex-wrap: wrap;
+  height: 100%;
 
   .add-tag-btn {
     width: $tag-height;
@@ -105,9 +106,10 @@ export default {
   }
 
   .no-tags {
-    position: absolute;
-    text-align: center;
-    padding: 8px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: $grey-6;
     width: 100%;
     z-index: 1;

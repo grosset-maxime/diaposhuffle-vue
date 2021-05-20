@@ -133,7 +133,7 @@ export default {
   height: $category-height;
   border-radius: 4px;
   border: 1px solid #ffffff;
-  padding: 0 6px;
+  padding: 0 4px;
   margin: $category-margin;
   user-select: none;
 
@@ -153,7 +153,7 @@ export default {
       font-size: x-small;
       font-weight: bold;
       padding: 0 3px;
-      margin-left: 7px;
+      margin-left: 4px;
       min-width: 15px;
     }
 

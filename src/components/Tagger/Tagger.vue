@@ -64,6 +64,7 @@
     <!-- TODO: Show latest used tags -->
     <!-- TODO: on filtering latest used tags, do not hide it but set opacity. -->
 
+    <!-- TODO: Mask none selected category when at least one category is selected -->
     <div class="categories-list">
       <CategoriesList
         :category-ids="categoryIds"
@@ -122,6 +123,9 @@
 </template>
 
 <script>
+// TODO: Enh: On tag focus change, scroll to the focused tag.
+// TODO: Enh: On filter by category update focused tag position.
+// TODO: Enh: On sort update focused tag position.
 import Fuse from 'fuse.js';
 import {
   TAGGER_G_TAGS,
@@ -657,9 +661,15 @@ export default {
 <style lang="scss" scoped>
 .tagger {
   padding: 4px 12px;
+  display: flex;
+  flex-direction: column;
 
   .selected-tags {
+    flex: auto 1 0;
+    overflow: auto;
     min-height: $tag-height;
+    max-height: 40%;
+    @include w-scrollbar;
   }
 
   .actions-bar {
@@ -684,6 +694,11 @@ export default {
 
   .categories-list {
     display: flex;
+  }
+
+  .unselected-tags {
+    overflow: auto;
+    @include w-scrollbar;
   }
 
   .separator {
