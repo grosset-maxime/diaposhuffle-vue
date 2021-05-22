@@ -1,13 +1,15 @@
 #!/bin/bash
+BASEDIR=$(dirname "$0")
+
 echo "Backup..."
-rm -dR ./temp
-mkdir ./temp
-mv ./public/js ./temp
-mv ./public/css ./temp
-mv ./public/index.php ./temp
+rm -dR $BASEDIR/temp
+mkdir $BASEDIR/temp
+mv $BASEDIR/public/js $BASEDIR/temp
+mv $BASEDIR/public/css $BASEDIR/temp
+mv $BASEDIR/public/index.php $BASEDIR/temp
 
 echo "Extract..."
-7z x -y -o./public /volume1/homes/maxou/dist.7z
+7z x -y -o$BASEDIR/public /volume1/homes/maxou/dist.7z
 
 echo "Clean up..."
 rm /volume1/homes/maxou/dist.7z
