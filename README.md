@@ -24,8 +24,7 @@ yarn dev
 1. Copy manually 7z file `dist.7z` to maxou home `/volume1/homes/maxou`.
 1. Run in nas:
     ```
-    cd /var/services/web/diaposhuffle-vue
-    bash ./prd-nas.sh
+    bash /var/services/web/diaposhuffle-vue/prd-nas.sh
     ```
 
 ### Lints and fixes files
