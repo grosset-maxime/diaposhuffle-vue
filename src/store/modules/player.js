@@ -106,6 +106,7 @@ const mutations = {
 const actions = {
 
   // TODO: Feature: Add fetch items from bdd with tags and types.
+  // TODO: Bug: Backend: getimagesize raize warning in call response body that trigger json.parse to fail. Should be added to the response object as error.
   async [PLAYER_A_FETCH_NEXT] ({ commit, getters }) {
     let result;
 

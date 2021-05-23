@@ -7,7 +7,9 @@
       v-for="(item, i) in getItems()"
       :key="getItemName(i)"
       :ref="getItemName(i)"
-      :class="['item-ctn transition', getItemName(i)]"
+      :class="['item-ctn', getItemName(i), {
+        transition: switchWithTransition
+      }]"
       :style="item.styles"
     >
       <img
@@ -36,6 +38,8 @@
 </template>
 
 <script>
+import { deepClone } from '../utils/utils';
+
 const defaultVideoOptions = {
   autoplay: false,
   loop: true,
@@ -48,31 +52,6 @@ export default {
   name: 'ItemsPlayer',
 
   props: {
-    triggerShowNextItem: {
-      type: Boolean,
-      default: () => false,
-    },
-
-    triggerPauseItem: {
-      type: Boolean,
-      default: false,
-    },
-
-    triggerPlayItem: {
-      type: Boolean,
-      default: false,
-    },
-
-    nextItemData: {
-      type: Object,
-      default: undefined,
-    },
-
-    animateSwitchItems: {
-      type: Boolean,
-      default: true,
-    },
-
     muteVideo: {
       type: Boolean,
       default: true,
@@ -80,14 +59,9 @@ export default {
   },
 
   emits: {
-    triggerShowNextItem: null,
-    triggerPauseItem: null,
-    triggerPlayItem: null,
-
     click: null,
-    pauseVideo: null,
-    playVideo: null,
-    playingNextItem: null,
+    'video:pause': null,
+    'video:play': null,
   },
 
   data: () => ({
@@ -95,7 +69,7 @@ export default {
       name: 'item1',
       src: '',
       data: undefined,
-      styles: { opacity: 1, 'z-index': 500 },
+      styles: { opacity: 1, 'z-index': 2 },
       videoOptions: { ...defaultVideoOptions },
       onLoadPromise: undefined,
       onLoadResolve: undefined,
@@ -115,6 +89,7 @@ export default {
 
     currentItemName: 'item1',
     isTheFirstOneItem: true,
+    switchWithTransition: false,
   }),
 
   computed: {
@@ -123,36 +98,9 @@ export default {
     nextItemName () { return this.currentItemName === 'item1' ? 'item2' : 'item1' },
   },
 
-  watch: {
-    triggerShowNextItem (showNextItem) { if (showNextItem) { this.showNextItem() } },
-
-    triggerPauseItem (shouldPause) {
-      if (shouldPause) {
-        this.pauseItem();
-        this.$emit('update:triggerPauseItem', false);
-      }
-    },
-
-    triggerPlayItem (shouldPlay) {
-      if (shouldPlay) {
-        this.playItem();
-        this.$emit('update:triggerPlayItem', false);
-      }
-    },
-
-    nextItemData (data) {
-      this.isTheFirstOneItem = !!(!this.currentItemData && !this.getItemData(this.nextItemName));
-
-      this.setItemData(
-        this.isTheFirstOneItem ? this.currentItemName : this.nextItemName,
-        data,
-      );
-    },
-  },
-
   mounted () {
-    this.item1.onLoad = this.onLoadItem1;
-    this.item2.onLoad = this.onLoadItem2;
+    this.$set(this.item1, 'onLoad', this.onLoadItem1);
+    this.$set(this.item2, 'onLoad', this.onLoadItem2);
   },
 
   methods: {
@@ -176,11 +124,10 @@ export default {
       return this.getItemRef(itemName).querySelector('.item.vid');
     },
 
-    setItemDataDuration (itemName = this.currentItemName) {
-      const item = this.getItem(itemName);
-
-      if (item.data.duration) { return }
-
+    /**
+     * @public
+     */
+    getItemDuration (itemName = this.currentItemName) {
       let duration = 0;
 
       if (this.isItemVideo(itemName)) {
@@ -188,7 +135,7 @@ export default {
         duration = (videoEl.duration || 0) * 1000;
       }
 
-      item.data.duration = duration;
+      return duration;
     },
 
     getCurrentItemSrc () { return this.currentItemData.src },
@@ -196,50 +143,70 @@ export default {
     isItemImage (itemName = this.currentItemName) { return !this.isItemVideo(itemName) },
 
     isItemVideo (itemName = this.currentItemName) {
-      return (this.getItemData(itemName) || {}).isVideo;
+      return this.getItemData(itemName)?.isVideo || false;
     },
 
     createLoadItemPromise (itemName = this.currentItemName) {
       return new Promise(
-        (resolve) => { this.getItem(itemName).onLoadResolve = resolve },
+        (resolve) => { this.$set(this.getItem(itemName), 'onLoadResolve', resolve) },
       );
     },
 
-    clearItemOnLoad (itemName = this.currentItemName) {
-      this.getItem(itemName).onLoadResolve = null;
+    resetItem (itemName) {
+      const item = this.getItem(itemName);
+      this.$set(item, 'src', '');
+      this.$set(item, 'data', undefined);
     },
 
     setItemData (itemName, data) {
       const item = this.getItem(itemName);
 
-      item.onLoadPromise = this.createLoadItemPromise(itemName);
+      this.$set(item, 'onLoadPromise', this.createLoadItemPromise(itemName));
 
       // To force item.data.src to be always different from previous item
       // even if it is the same item src.
-      item.src = `${data.src}?b=${Date.now()}`;
-      item.data = data;
+      this.$set(item, 'src', `${data.src}?b=${Date.now()}`);
+
+      this.$set(item, 'data', deepClone(data));
     },
 
-    async showNextItem () {
-      this.$emit('update:triggerShowNextItem', false);
+    setNextItemData (data) {
+      this.isTheFirstOneItem = !this.currentItemData && !this.getItemData(this.nextItemName);
+
+      this.setItemData(
+        this.isTheFirstOneItem ? this.currentItemName : this.nextItemName,
+        data,
+      );
+    },
+
+    /**
+     * @public
+     */
+    async showNextItem (itemData, { animate = false } = {}) {
+      // Next item will start to load.
+      this.setNextItemData(itemData);
+
+      // Next tick need to have time to set itemData before applying switching items.
+      await this.$nextTick();
+
+      await this.getItem(this.nextItemName).onLoadPromise;
 
       if (!this.isTheFirstOneItem) {
-        await this.switchItems();
+        await this.switchItems({ animate });
+        this.resetItem(this.nextItemName);
       }
-
-      if (!this.currentItemData) {
-        throw new Error(`Missing data for item: ${this.currentItemName}.`);
-      }
-
-      await this.getItem(this.currentItemName).onLoadPromise;
-
-      this.$emit('playingNextItem', this.currentItemData);
     },
 
+    /**
+     * @public
+     */
     pauseItem (itemName = this.currentItemName) {
       if (this.isItemVideo(itemName)) { this.pauseVideo(itemName) }
     },
 
+    /**
+     * @public
+     */
     playItem (itemName = this.currentItemName) {
       if (this.isItemVideo(itemName)) { this.playVideo(itemName) }
     },
@@ -248,10 +215,11 @@ export default {
 
     playVideo (itemName = this.currentItemName) { this.getVideoEl(itemName).play() },
 
-    async switchItems () {
+    async switchItems ({ animate = false } = {}) {
+      this.switchWithTransition = animate;
       let animateItemsPromise = Promise.resolve();
 
-      if (this.animateSwitchItems) {
+      if (animate) {
         let currentItemPromiseResolve;
 
         animateItemsPromise = new Promise(
@@ -267,26 +235,26 @@ export default {
         currentItemRef.addEventListener('transitionend', onTransitionEndCurrentItem, false);
       }
 
-      this.pauseItem();
+      this.pauseItem(this.currentItemName);
 
-      this.getItem(this.nextItemName).styles = {
-        'z-index': 500,
-        opacity: 1,
-      };
-      this.getItem(this.currentItemName).styles = {
-        'z-index': 1,
-        opacity: 0,
-      };
+      this.$set(
+        this.getItem(this.nextItemName),
+        'styles',
+        { opacity: 1, 'z-index': 2 },
+      );
+
+      this.$set(
+        this.getItem(this.currentItemName),
+        'styles',
+        { opacity: 0, 'z-index': 1 },
+      );
 
       await animateItemsPromise;
 
       this.currentItemName = this.nextItemName;
     },
 
-    onItemLoaded (itemName) {
-      this.setItemDataDuration(itemName);
-      this.getItem(itemName).onLoad();
-    },
+    onItemLoaded (itemName) { this.getItem(itemName).onLoad() },
 
     onLoadItem1 () { this.item1.onLoadResolve() },
 
@@ -294,9 +262,9 @@ export default {
 
     onClick () { this.$emit('click') },
 
-    onPauseVideo () { this.$emit('pauseVideo') },
+    onPauseVideo () { this.$emit('video:pause') },
 
-    onPlayVideo () { this.$emit('playVideo') },
+    onPlayVideo () { this.$emit('video:play') },
   },
 };
 </script>
