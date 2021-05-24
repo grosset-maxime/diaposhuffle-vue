@@ -88,7 +88,6 @@ export default {
     },
 
     currentItemName: 'item1',
-    isTheFirstOneItem: true,
     switchWithTransition: false,
   }),
 
@@ -147,9 +146,9 @@ export default {
     },
 
     createLoadItemPromise (itemName = this.currentItemName) {
-      return new Promise(
-        (resolve) => { this.$set(this.getItem(itemName), 'onLoadResolve', resolve) },
-      );
+      return new Promise((resolve) => {
+        this.$set(this.getItem(itemName), 'onLoadResolve', resolve);
+      });
     },
 
     resetItem (itemName) {
@@ -170,13 +169,8 @@ export default {
       this.$set(item, 'data', deepClone(data));
     },
 
-    setNextItemData (data) {
-      this.isTheFirstOneItem = !this.currentItemData && !this.getItemData(this.nextItemName);
-
-      this.setItemData(
-        this.isTheFirstOneItem ? this.currentItemName : this.nextItemName,
-        data,
-      );
+    setNextItemData (nextItemData) {
+      this.setItemData(this.nextItemName, nextItemData);
     },
 
     /**
@@ -191,10 +185,9 @@ export default {
 
       await this.getItem(this.nextItemName).onLoadPromise;
 
-      if (!this.isTheFirstOneItem) {
-        await this.switchItems({ animate });
-        this.resetItem(this.nextItemName);
-      }
+      await this.switchItems({ animate });
+
+      this.resetItem(this.nextItemName);
     },
 
     /**
@@ -216,15 +209,19 @@ export default {
     playVideo (itemName = this.currentItemName) { this.getVideoEl(itemName).play() },
 
     async switchItems ({ animate = false } = {}) {
-      this.switchWithTransition = animate;
       let animateItemsPromise = Promise.resolve();
+
+      const currentItem = this.getItem(this.currentItemName);
+      const nextItem = this.getItem(this.nextItemName);
+
+      this.switchWithTransition = animate;
 
       if (animate) {
         let currentItemPromiseResolve;
 
-        animateItemsPromise = new Promise(
-          (resolveCurrent) => { currentItemPromiseResolve = resolveCurrent },
-        );
+        animateItemsPromise = new Promise((resolveCurrent) => {
+          currentItemPromiseResolve = resolveCurrent;
+        });
         const currentItemRef = this.getItemRef(this.currentItemName);
 
         const onTransitionEndCurrentItem = () => {
@@ -238,13 +235,13 @@ export default {
       this.pauseItem(this.currentItemName);
 
       this.$set(
-        this.getItem(this.nextItemName),
+        nextItem,
         'styles',
         { opacity: 1, 'z-index': 2 },
       );
 
       this.$set(
-        this.getItem(this.currentItemName),
+        currentItem,
         'styles',
         { opacity: 0, 'z-index': 1 },
       );

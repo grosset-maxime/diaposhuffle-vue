@@ -121,6 +121,10 @@ export default {
       isVideo: false,
     },
 
+    nextItem: {
+      data: undefined,
+    },
+
     deleteModal: {
       show: false,
     },
@@ -252,7 +256,11 @@ export default {
 
       let itemData;
       try {
-        itemData = await (this.fetchNextItemPromise || this.fetchNextItem());
+        if (this.nextItem.data) {
+          itemData = deepClone(this.nextItem.data);
+        } else {
+          itemData = await (this.fetchNextItemPromise || this.fetchNextItem());
+        }
       } catch (e) {
         this.pausePlaying();
         // TODO: ENH: show error alert.
@@ -262,7 +270,12 @@ export default {
       if (this.stop) { return Promise.resolve() }
 
       // Start fetching the next item of the current next item.
+      this.$set(this.nextItem, 'data', undefined);
       this.fetchNextItemPromise = this.fetchNextItem()
+        .then((nextItemData) => {
+          this.$set(this.nextItem, 'data', nextItemData);
+          return nextItemData;
+        })
         .catch((error) => {
           console.error('On fetch next Item:', error);
           // TODO: Enh: manage the error, do not try to load next item, and display error message when trying to display next item.
