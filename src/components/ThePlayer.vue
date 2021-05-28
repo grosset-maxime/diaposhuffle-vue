@@ -28,9 +28,9 @@
       dismissible
       prominent
       transition="slide-x-transition"
-      @input="alert.show = false"
+      @input="hideAlert()"
     >
-      {{ alert.content }}
+      {{ alert.publicMessage }}
     </v-alert>
 
     <HistoryChip
@@ -70,6 +70,10 @@
 // TODO: Feature: For small video try to not fit the screen and apply a scale instead.
 // TODO: Feature: Display item's tags.
 // TODO: Feature: Allow editing item's tags.
+import {
+  ERROR_SEVERITY_INFO,
+  buildError,
+} from '../api/api';
 import { deepClone, getKey } from '../utils/utils';
 import {
   INDEX_G_SHOW_THE_HELP,
@@ -77,6 +81,7 @@ import {
   INDEX_A_PLAYER_STOP,
 
   PLAYER_G_OPTIONS,
+  PLAYER_G_FILTERS,
   PLAYER_G_HISTORY,
   PLAYER_G_HISTORY_INDEX,
   PLAYER_G_HISTORY_LENGTH,
@@ -88,6 +93,8 @@ import {
 
   PLAYER_A_FETCH_NEXT,
   PLAYER_A_DELETE_ITEM,
+  PLAYER_A_FETCH_ITEMS_FROM_BDD,
+  PLAYER_A_FETCH_ITEMS_FROM_RANDOM,
 } from '../store/types';
 import TheLoop from './TheLoop.vue';
 import PauseBtn from './PauseBtn.vue';
@@ -135,8 +142,9 @@ export default {
 
     alert: {
       show: false,
-      content: '',
+      publicMessage: '',
       severity: 'error',
+      onClose: () => {},
     },
 
     fetchNextItemPromise: undefined,
@@ -153,6 +161,8 @@ export default {
     ItemsPlayer () { return this.$refs.ItemsPlayer },
 
     options () { return this.$store.getters[`${this.NS}/${PLAYER_G_OPTIONS}`] },
+
+    filters () { return this.$store.getters[`${this.NS}/${PLAYER_G_FILTERS}`] },
 
     muteVideoOption () { return this.options.muteVideo },
 
@@ -201,7 +211,31 @@ export default {
     this.stop = false;
     this.pause = false;
 
+    if (this.filters.tags.length || this.filters.fileTypes.length) {
+      let items;
+      this.setLoopIndeterminate(true);
+      try {
+        items = await this.$store.dispatch(`${this.NS}/${PLAYER_A_FETCH_ITEMS_FROM_BDD}`);
+      } catch (e) {
+        const error = buildError(e);
+
+        this.setLoopIndeterminate(false);
+        this.showAlert({ ...error, onClose: this.stopPlaying });
+
+        if (error.severity === ERROR_SEVERITY_INFO) {
+          return Promise.resolve();
+        }
+
+        throw error;
+      }
+      console.log('items: ', items);
+    } else {
+      await this.$store.dispatch(`${this.NS}/${PLAYER_A_FETCH_ITEMS_FROM_RANDOM}`);
+    }
+
     this.goToNextItem();
+
+    return Promise.resolve();
   },
 
   beforeDestroy () {
@@ -324,29 +358,21 @@ export default {
     },
 
     async fetchNextItem () {
-      let response;
-      let nextItemData;
+      let item;
+      let error;
 
       try {
-        response = await this.$store.dispatch(
+        item = await this.$store.dispatch(
           `${this.NS}/${PLAYER_A_FETCH_NEXT}`,
         );
       } catch (e) {
-        response = { error: true, publicMessage: e };
+        error = buildError(e);
+        this.showAlert(error);
+        throw error;
       }
 
-      if (response.success) {
-        nextItemData = response.item;
-      } else {
-        this.showAlert({
-          content: response.error.publicMessage,
-          severity: response.error.severity,
-        });
-
-        throw new Error('fetchNextItem');
-      }
-
-      return nextItemData;
+      // Return next item data.
+      return item;
     },
 
     async goToNextItem ({ pausePlayingIfStillInHistory = false } = {}) {
@@ -452,24 +478,20 @@ export default {
       this.goToNextItem({ pausePlayingIfStillInHistory: true });
 
       let response;
+      let error;
+
       try {
         response = await this.$store.dispatch(
           `${this.NS}/${PLAYER_A_DELETE_ITEM}`,
           itemSrc,
         );
       } catch (e) {
-        response = e;
-      }
+        error = buildError(e);
 
-      if (response.error) {
         this.pausePlaying();
+        this.showAlert(error);
 
-        this.showAlert({
-          content: response.publicMessage,
-          severity: response.severity,
-        });
-
-        throw new Error('deleteItem');
+        throw error;
       }
 
       return response;
@@ -477,10 +499,21 @@ export default {
 
     showTheHelp () { this.$store.commit(INDEX_M_SHOW_THE_HELP, true) },
 
-    showAlert ({ content = 'Unknow error.', severity = 'error' } = {}) {
-      this.$set(this.alert, 'content', content);
-      this.$set(this.alert, 'severity', severity);
-      this.$set(this.alert, 'show', true);
+    showAlert ({
+      publicMessage = 'Unknow error.',
+      severity = 'error',
+      onClose = () => {},
+    } = {}) {
+      this.$set(this, 'alert', {
+        publicMessage, severity, onClose, show: true,
+      });
+    },
+
+    hideAlert () {
+      this.$set(this.alert, 'show', false);
+
+      // eslint-disable-next-line no-unused-expressions
+      this.alert.onClose?.();
     },
 
     attachKeyboardPlayerShortcuts () {
@@ -532,11 +565,11 @@ export default {
         }
       };
 
-      window.addEventListener('keyup', this.keyboardShortcuts.player);
+      window.addEventListener('keydown', this.keyboardShortcuts.player);
     },
 
     removeKeyboardPlayerShortcuts () {
-      window.removeEventListener('keyup', this.keyboardShortcuts.player);
+      window.removeEventListener('keydown', this.keyboardShortcuts.player);
     },
 
     async playNextItem () {

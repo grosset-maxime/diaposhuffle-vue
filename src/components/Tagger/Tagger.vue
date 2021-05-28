@@ -392,13 +392,14 @@ export default {
   methods: {
     async onShow () {
       this.attachKeyboardShortcuts();
-      this.resetFocus();
 
       try {
         await this.fetchTagsAndCategories();
         this.onFetchTags();
-      // eslint-disable-next-line no-empty
-      } catch (e) {}
+        this.resetFocus();
+      } catch (e) {
+        console.error(e);
+      }
 
       this.isLoading = false;
     },

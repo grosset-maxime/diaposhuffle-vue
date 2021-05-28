@@ -1,7 +1,13 @@
 /* eslint-disable no-shadow */
 /* eslint-disable no-param-reassign */
 import Vue from 'vue';
-import { fetchRandomItem, deleteItem } from '../../api/items';
+import { buildError } from '../../api/api';
+import { getRandomElement } from '../../utils/utils';
+import {
+  fetchRandomItem,
+  fetchItemsFromBdd,
+  deleteItem,
+} from '../../api/items';
 import {
   PLAYER_G_FILTER_FILE_TYPES,
   PLAYER_G_FILTERS,
@@ -20,17 +26,24 @@ import {
   PLAYER_M_ADD_ERROR,
 
   PLAYER_A_FETCH_NEXT,
+  PLAYER_A_FETCH_ITEMS_FROM_RANDOM,
+  PLAYER_A_FETCH_ITEMS_FROM_BDD,
   PLAYER_A_DELETE_ITEM,
 } from '../types';
 
 const INTERVAL_DEFAULT = 3; // seconds
+const FETCH_FROM_RANDOM = 'random';
+const FETCH_FROM_ITEMS = 'items';
+const TAGS_OPERATOR_OR = 'OR';
+// const TAGS_OPERATOR_AND = 'AND';
 
 const state = () => ({
-  filterFileTypes: ['JPEG', 'GIF', 'PNG', 'WEBM', 'MP4', 'MKV'],
+  filterFileTypes: ['JPG', 'GIF', 'PNG', 'WEBM', 'MP4', 'MKV'],
 
   filters: {
     folders: [],
     tags: [], // List of tags ids.
+    tagsOperator: TAGS_OPERATOR_OR,
     fileTypes: [],
   },
 
@@ -50,6 +63,11 @@ const state = () => ({
   },
 
   errors: [],
+
+  items: [],
+
+  // Possible values: FETCH_FROM_RANDOM, FETCH_FROM_ITEMS.
+  fetchNextFrom: FETCH_FROM_RANDOM,
 });
 
 const getters = {
@@ -101,33 +119,68 @@ const mutations = {
     // eslint-disable-next-line no-console
     console.error(`Error from "${actionName}":`, error);
   },
+
+  setItems (state, items) { state.items = items },
+
+  clearItems (state) { state.items = [] },
+
+  setFetchNextFrom (state, value) { state.fetchNextFrom = value },
 };
 
 const actions = {
 
   // TODO: Feature: Add fetch items from bdd with tags and types.
   // TODO: Bug: Backend: getimagesize raize warning in call response body that trigger json.parse to fail. Should be added to the response object as error.
-  async [PLAYER_A_FETCH_NEXT] ({ commit, getters }) {
+  async [PLAYER_A_FETCH_NEXT] ({ state, commit, getters }) {
     let result;
 
     const filters = getters[PLAYER_G_FILTERS];
 
     try {
-      // if (filters.tags.length) {
-      //   result = await fetchRandomItemFromBdd({
-      //     tags: filters.tags,
-      //   });
-      // } else {
-      result = await fetchRandomItem({
-        folders: filters.folders,
-      });
-      // }
-    } catch (error) {
+      if (state.fetchNextFrom === FETCH_FROM_ITEMS) {
+        result = getRandomElement(state.items);
+      } else if (state.fetchNextFrom === FETCH_FROM_RANDOM) {
+        result = await fetchRandomItem({
+          folders: filters.folders,
+        });
+      } else {
+        throw new Error(`Invalid state.fetchNextFrom:"${state.fetchNextFrom}"`);
+      }
+    } catch (e) {
+      const error = buildError(e);
       commit(PLAYER_M_ADD_ERROR, { actionName: PLAYER_A_FETCH_NEXT, error });
       throw error;
     }
 
-    return result;
+    return result.item;
+  },
+
+  [PLAYER_A_FETCH_ITEMS_FROM_RANDOM] ({ commit }) {
+    commit('clearItems');
+    commit('setFetchNextFrom', FETCH_FROM_RANDOM);
+    return Promise.resolve();
+  },
+
+  async [PLAYER_A_FETCH_ITEMS_FROM_BDD] ({ commit, getters }) {
+    let items;
+
+    const { tags, tagsOperator, fileTypes } = getters[PLAYER_G_FILTERS];
+
+    try {
+      items = await fetchItemsFromBdd({
+        tags,
+        tagsOperator,
+        types: fileTypes,
+      });
+      commit('setItems', items);
+      commit('setFetchNextFrom', FETCH_FROM_ITEMS);
+    } catch (e) {
+      const error = buildError(e);
+      commit(PLAYER_M_ADD_ERROR, { actionName: PLAYER_A_FETCH_ITEMS_FROM_BDD, error });
+      throw error;
+    }
+
+    return items;
   },
 
   async [PLAYER_A_DELETE_ITEM] ({ commit }, itemSrc) {
@@ -135,7 +188,8 @@ const actions = {
 
     try {
       result = await deleteItem({ itemSrc });
-    } catch (error) {
+    } catch (e) {
+      const error = buildError(e);
       commit(PLAYER_M_ADD_ERROR, { actionName: PLAYER_A_DELETE_ITEM, error });
       throw error;
     }

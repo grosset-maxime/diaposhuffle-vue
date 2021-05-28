@@ -14,20 +14,30 @@ export class Item {
     tags = [],
     warning = '',
     useCache = false,
+    isImage = undefined,
+    isVideo = undefined,
   } = {}) {
+    if (!src) {
+      throw new Error(`Invalid item, item has no src. Item src: ${src}`);
+    }
+
     this.width = width;
     this.height = height;
     this.src = src;
     this.name = name;
-    this.extension = extension.toLowerCase();
+    this.extension = extension?.toLowerCase() || '';
     this.customFolderPath = customFolderPath;
     this.randomPublicPath = randomPublicPath;
     this.tags = tags;
     this.warning = warning;
     this.useCache = useCache;
 
-    this.isVideo = this.VIDEO_EXTENSIONS.includes(this.extension);
-    this.isImage = this.IMG_EXTENSIONS.includes(this.extension);
+    this.isImage = isImage ?? this.IMG_EXTENSIONS.includes(this.extension);
+    this.isVideo = isVideo ?? this.VIDEO_EXTENSIONS.includes(this.extension);
+
+    if (!this.isImage && !this.isVideo) {
+      throw new Error(`Invalid item, not an image and not a video. Item extension: ${extension}`);
+    }
   }
 }
 
