@@ -70,6 +70,8 @@
 // TODO: Feature: For small video try to not fit the screen and apply a scale instead.
 // TODO: Feature: Display item's tags.
 // TODO: Feature: Allow editing item's tags.
+// TODO: Feature: Show nb items and index of current item on playing from bdd items.
+// TODO: Bug: Enh: On item fail to load, if it is a 404 not found, remove it from the bdd and fetch a next item.
 import {
   ERROR_SEVERITY_INFO,
   buildError,
@@ -212,10 +214,9 @@ export default {
     this.pause = false;
 
     if (this.filters.tags.length || this.filters.fileTypes.length) {
-      let items;
       this.setLoopIndeterminate(true);
       try {
-        items = await this.$store.dispatch(`${this.NS}/${PLAYER_A_FETCH_ITEMS_FROM_BDD}`);
+        await this.$store.dispatch(`${this.NS}/${PLAYER_A_FETCH_ITEMS_FROM_BDD}`);
       } catch (e) {
         const error = buildError(e);
 
@@ -228,7 +229,6 @@ export default {
 
         throw error;
       }
-      console.log('items: ', items);
     } else {
       await this.$store.dispatch(`${this.NS}/${PLAYER_A_FETCH_ITEMS_FROM_RANDOM}`);
     }

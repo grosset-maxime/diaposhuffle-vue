@@ -38,6 +38,7 @@
 </template>
 
 <script>
+// TODO: Bug: Enh: Manage on item load fail, dispatch an event to parent cmp.
 import { deepClone } from '../utils/utils';
 
 const defaultVideoOptions = {
