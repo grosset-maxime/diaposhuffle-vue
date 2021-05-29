@@ -68,8 +68,9 @@
           outlined
           color="orange"
           filter
+          @click="toggleTagsOperator"
         >
-          And
+          {{ tagsOperatorText }}
         </v-chip>
 
         <v-btn
@@ -221,6 +222,7 @@ import {
   PLAYER_M_FILTERS,
   PLAYER_M_OPTIONS,
   PLAYER_M_RESET_INTERVAL,
+  PLAYER_M_TOGGLE_TAGS_OPERATOR,
 } from '../store/types';
 import { getKey } from '../utils/utils';
 import FolderBrowser from './FolderBrowser/FolderBrowser.vue';
@@ -267,6 +269,12 @@ export default {
       get () { return this.$store.getters[`${this.NS}/${PLAYER_G_FILTERS}`].tags },
       set (tags) { this.$store.commit(`${this.NS}/${PLAYER_M_FILTERS}`, { tags }) },
     },
+
+    tagsOperator () {
+      return this.$store.getters[`${this.NS}/${PLAYER_G_FILTERS}`].tagsOperator;
+    },
+
+    tagsOperatorText () { return this.tagsOperator },
 
     filterFileTypes: {
       get () {
@@ -397,6 +405,10 @@ export default {
 
     setTags (selectedTagIds) {
       this.$store.commit(`${this.NS}/${PLAYER_M_FILTERS}`, { tags: [...selectedTagIds] });
+    },
+
+    toggleTagsOperator () {
+      this.$store.commit(`${this.NS}/${PLAYER_M_TOGGLE_TAGS_OPERATOR}`);
     },
 
     resetInterval () { this.$store.commit(`${this.NS}/${PLAYER_M_RESET_INTERVAL}`) },

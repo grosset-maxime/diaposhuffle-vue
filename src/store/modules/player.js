@@ -24,6 +24,7 @@ import {
   PLAYER_M_ADD_HISTORY_ITEM,
   PLAYER_M_DELETE_HISTORY_ITEM,
   PLAYER_M_ADD_ERROR,
+  PLAYER_M_TOGGLE_TAGS_OPERATOR,
 
   PLAYER_A_FETCH_NEXT,
   PLAYER_A_FETCH_ITEMS_FROM_RANDOM,
@@ -35,7 +36,7 @@ const INTERVAL_DEFAULT = 3; // seconds
 const FETCH_FROM_RANDOM = 'random';
 const FETCH_FROM_ITEMS = 'items';
 const TAGS_OPERATOR_OR = 'OR';
-// const TAGS_OPERATOR_AND = 'AND';
+const TAGS_OPERATOR_AND = 'AND';
 
 const state = () => ({
   filterFileTypes: ['JPG', 'GIF', 'PNG', 'WEBM', 'MP4', 'MKV'],
@@ -43,7 +44,7 @@ const state = () => ({
   filters: {
     folders: [],
     tags: [], // List of tags ids.
-    tagsOperator: TAGS_OPERATOR_OR,
+    tagsOperator: TAGS_OPERATOR_AND,
     fileTypes: [],
   },
 
@@ -118,6 +119,14 @@ const mutations = {
     state.errors.push(e);
     // eslint-disable-next-line no-console
     console.error(`Error from "${actionName}":`, error);
+  },
+
+  [PLAYER_M_TOGGLE_TAGS_OPERATOR] (state) {
+    const operator = state.filters.tagsOperator === TAGS_OPERATOR_OR
+      ? TAGS_OPERATOR_AND
+      : TAGS_OPERATOR_OR;
+
+    Vue.set(state.filters, 'tagsOperator', operator);
   },
 
   setItems (state, items) { state.items = items },
