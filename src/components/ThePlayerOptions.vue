@@ -133,7 +133,7 @@
           v-model="interval"
           min="1"
           max="60"
-          label="Interval (s)"
+          label="Interval"
           @click:append="resetInterval"
           append-icon="mdi-close"
           thumb-label="always"
@@ -157,11 +157,14 @@
       </v-col>
     </v-row>
 
-    <v-row align="center">
+    <v-row
+      align="center"
+      v-if="false"
+    >
       <v-col>
         <v-switch
           v-model="showFromPined"
-          label="Show picture from pined"
+          label="Show pined items"
           class="ma-0 pa-0"
           disabled
           hide-details
@@ -210,6 +213,11 @@
 <script>
 // TODO: Feature: save in user preferences (bdd or localstorage) the choosen options.
 // TODO: Feature: Add an option to play in infinite loop for video item.
+// TODO: Feature: Add a component to create custom tags operator (aaa AND bbb OR ccc)
+// TODO: Feature: Add pined items feature
+// TODO: Feature: Seperate filters from options at UI side and at component side too, to be able to show options in player view.
+// TODO: Feature: Add an option to force pin the player UI.
+// TODO: Feature: Add a filter by: image or video types.
 import {
   INDEX_G_SHOW_THE_PLAYER,
   INDEX_G_SHOW_THE_HELP,
