@@ -84,11 +84,11 @@ export default {
         }
       };
 
-      window.addEventListener('keyup', this.keyboardShortcuts);
+      window.addEventListener('keydown', this.keyboardShortcuts);
     },
 
     removeKeyboardShortcuts () {
-      window.removeEventListener('keyup', this.keyboardShortcuts);
+      window.removeEventListener('keydown', this.keyboardShortcuts);
     },
   },
 
