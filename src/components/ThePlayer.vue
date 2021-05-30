@@ -30,7 +30,19 @@
       transition="slide-x-transition"
       @input="hideAlert()"
     >
-      {{ alert.publicMessage }}
+      <v-row align="center">
+        <v-col class="grow">
+          {{ alert.publicMessage }}
+        </v-col>
+        <v-col
+          class="shrink"
+          v-if="alert.showDeleteBtn"
+        >
+          <v-btn @click="showDeleteModal({ itemData: loadErrorItem.data, showOptions: true })">
+            Delete
+          </v-btn>
+        </v-col>
+      </v-row>
     </v-alert>
 
     <HistoryChip
@@ -41,7 +53,8 @@
 
     <DeleteModal
       :show="deleteModal.show"
-      @confirm="hideDeleteModal({ deleteItem: true })"
+      :show-options="deleteModal.showOptions"
+      @confirm="hideDeleteModal({ ...$event, deleteItem: true })"
       @cancel="hideDeleteModal"
       @click:outside="hideDeleteModal"
     />
@@ -51,6 +64,8 @@
       class="the-items-player"
       :mute-video="muteVideoOption"
       @click="onItemsPlayerClick"
+      @currentItem:loaded="onPlayingItemLoaded"
+      @currentItem:error="onPlayingItemError"
     />
 
     <!-- TODO: FEATURE: add a dense/contracted mode which will expand on mouse hover -->
@@ -67,11 +82,11 @@
 
 <script>
 // TODO: Enh: Display duration time for video at bottom corner?
+// TODO: Enh: Show path of the item to delete in delete modal.
 // TODO: Feature: For small video try to not fit the screen and apply a scale instead.
 // TODO: Feature: Display item's tags.
 // TODO: Feature: Allow editing item's tags.
 // TODO: Feature: Show nb items and index of current item on playing from bdd items.
-// TODO: Bug: Enh: On item fail to load, if it is a 404 not found, remove it from the bdd and fetch a next item.
 import {
   ERROR_SEVERITY_INFO,
   buildError,
@@ -105,6 +120,9 @@ import ItemPathChip from './ItemPathChip.vue';
 import ItemsPlayer from './ItemsPlayer.vue';
 import HistoryChip from './ThePlayer/HistoryChip.vue';
 
+const HISTORY_GO_NEXT = 'next';
+const HISTORY_GO_PREVIOUS = 'previous';
+
 export default {
   name: 'ThePlayer',
 
@@ -132,10 +150,17 @@ export default {
 
     nextItem: {
       data: undefined,
+      isSet: false,
+    },
+
+    loadErrorItem: {
+      data: undefined,
     },
 
     deleteModal: {
       show: false,
+      showOptions: false,
+      itemData: undefined,
     },
 
     keyboardShortcuts: {
@@ -146,6 +171,7 @@ export default {
       show: false,
       publicMessage: '',
       severity: 'error',
+      showDeleteBtn: false,
       onClose: () => {},
     },
 
@@ -289,35 +315,48 @@ export default {
       this.setLoopIndeterminate(true);
 
       let itemData;
+      const isNextItemSet = this.nextItem.isSet;
       try {
         if (this.nextItem.data) {
           itemData = deepClone(this.nextItem.data);
         } else {
-          itemData = await (this.fetchNextItemPromise || this.fetchNextItem());
+          itemData = await (this.fetchNextItemPromise || this.fetchItem());
         }
       } catch (e) {
+        const error = buildError(e);
         this.pausePlaying();
-        // TODO: ENH: show error alert.
-        return Promise.reject();
+        this.showAlert(error);
+        throw error;
       }
 
       if (this.stop) { return Promise.resolve() }
 
-      // Start fetching the next item of the current next item.
-      this.$set(this.nextItem, 'data', undefined);
-      this.fetchNextItemPromise = this.fetchNextItem()
-        .then((nextItemData) => {
-          this.$set(this.nextItem, 'data', nextItemData);
-          return nextItemData;
-        })
-        .catch((error) => {
-          console.error('On fetch next Item:', error);
-          // TODO: Enh: manage the error, do not try to load next item, and display error message when trying to display next item.
-        });
+      this.fetchNextItem();
 
       this.setLoopIndeterminate(false);
 
-      return this.onFetchNextItem(itemData, { animate: true });
+      return this.showAndPlayNextItem(itemData, { isNextItemSet, animate: true });
+    },
+
+    async onPlayingItemLoaded () {
+      if (!this.nextItem.data) {
+        await this.fetchNextItemPromise;
+      }
+      this.setNextItemData(this.nextItem.data);
+    },
+
+    onPlayingItemError ({ item }) {
+      this.$set(this.loadErrorItem, 'data', item.data);
+
+      this.pausePlaying();
+
+      this.showAlert({
+        publicMessage: `Fail to load item: ${item.data.src}`,
+        showDeleteBtn: true,
+        onClose: this.goToNextItem,
+      });
+
+      this.onPlayingItemLoaded();
     },
 
     onItemsPlayerClick () {
@@ -328,11 +367,23 @@ export default {
       }
     },
 
-    async onFetchNextItem (itemData, { animate = false } = {}) {
+    setNextItemData (itemData) {
+      this.ItemsPlayer.setNextItemData(itemData);
+      this.$set(this.nextItem, 'isSet', true);
+    },
+
+    async showAndPlayNextItem (itemData, { isNextItemSet = false, animate = false } = {}) {
+      if (this.stop) { return Promise.resolve() }
+
+      if (!isNextItemSet) { this.setNextItemData(itemData) }
+
+      // Await for next tick to let the next item to load.
+      await this.$nextTick();
+
       if (this.stop) { return Promise.resolve() }
 
       // Switch to the next item.
-      await this.ItemsPlayer.showNextItem(itemData, { animate });
+      await this.ItemsPlayer.showNextItem({ animate });
 
       if (this.stop) { return Promise.resolve() }
 
@@ -357,7 +408,7 @@ export default {
       this.$set(this.loop, 'duration', duration);
     },
 
-    async fetchNextItem () {
+    async fetchItem () {
       let item;
       let error;
 
@@ -375,12 +426,35 @@ export default {
       return item;
     },
 
+    fetchNextItem () {
+      // Start fetching the next item of the current next item.
+      this.$set(this.nextItem, 'data', undefined);
+      this.$set(this.nextItem, 'isSet', false);
+
+      this.fetchNextItemPromise = this.fetchItem()
+        .then((nextItemData) => {
+          this.$set(this.nextItem, 'data', nextItemData);
+          return nextItemData;
+        })
+        .catch((e) => {
+          console.error('On fetch next Item:', e);
+
+          // TODO: Enh: manage the error, do not try to load next item, and display error message when trying to display next item.
+          const error = buildError(e);
+          this.pausePlaying();
+          this.showAlert(error);
+          throw error;
+        });
+
+      return this.fetchNextItemPromise;
+    },
+
     async goToNextItem ({ pausePlayingIfStillInHistory = false } = {}) {
       if (this.isLoadingItem) { return Promise.resolve() }
 
       this.isLoadingItem = true;
 
-      return this.goToHistoryItem('next', { pausePlayingIfStillInHistory })
+      return this.goToHistoryItem(HISTORY_GO_NEXT, { pausePlayingIfStillInHistory })
         .finally(() => { this.isLoadingItem = false });
     },
 
@@ -391,7 +465,7 @@ export default {
 
       this.pausePlaying();
 
-      return this.goToHistoryItem('previous')
+      return this.goToHistoryItem(HISTORY_GO_PREVIOUS)
         .finally(() => { this.isLoadingItem = false });
     },
 
@@ -400,7 +474,7 @@ export default {
 
       this.pausePlayingItem();
 
-      const historyIndex = this.historyIndex + (direction === 'next' ? 1 : -1);
+      const historyIndex = this.historyIndex + (direction === HISTORY_GO_NEXT ? 1 : -1);
 
       if (historyIndex < 0) {
         this.historyIndex = 0;
@@ -410,6 +484,7 @@ export default {
       // If requested history's index is greater than history length,
       // call onLoopEnd to fetch next item and then add it to the history list.
       if (historyIndex >= this.historyLength) {
+        // Set stop and pause to false.
         this.resumePlaying({ resumeItem: false, resumeLooping: false });
 
         this.historyIndex = this.historyLength - 1;
@@ -421,8 +496,13 @@ export default {
             this.addHistoryItem(this.playingItemData);
             this.historyIndex = this.historyLength - 1;
           })
-          .catch(() => {
-            // TODO: ENH: Show error alert.
+          .catch((e) => {
+            const error = buildError(e);
+
+            this.pausePlaying();
+            this.showAlert(error);
+
+            throw error;
           });
       }
 
@@ -439,7 +519,15 @@ export default {
       // Get item data.
       const itemData = this.getHistoryItem(this.historyIndex);
 
-      return this.onFetchNextItem(itemData);
+      const nextItemData = this.getHistoryItem(this.historyIndex + 1);
+      if (nextItemData) {
+        this.$set(this.nextItem, 'isSet', false);
+        this.$set(this.nextItem, 'data', nextItemData);
+      } else {
+        this.fetchNextItem();
+      }
+
+      return this.showAndPlayNextItem(itemData);
     },
 
     getHistoryItem (index) {
@@ -450,27 +538,38 @@ export default {
       return this.$store.commit(`${this.NS}/${PLAYER_M_ADD_HISTORY_ITEM}`, deepClone(item));
     },
 
-    showDeleteModal () {
+    showDeleteModal ({ itemData, showOptions = false } = {}) {
       this.pausePlaying();
       this.removeKeyboardPlayerShortcuts();
 
+      this.$set(this.deleteModal, 'itemData', itemData);
+      this.$set(this.deleteModal, 'showOptions', showOptions);
       this.$set(this.deleteModal, 'show', true);
     },
 
-    hideDeleteModal ({ deleteItem = false } = {}) {
+    hideDeleteModal ({ deleteItem = false, fromBddOnly, ignoreIfNotExist } = {}) {
       this.$set(this.deleteModal, 'show', false);
+      this.$set(this.deleteModal, 'itemData', undefined);
 
       this.attachKeyboardPlayerShortcuts();
 
       if (deleteItem) {
-        this.deleteItem(this.playingItemData.src)
-          .catch(() => {
-            // TODO: ENH: show error alert.
-          });
+        this.deleteItem({
+          itemSrc: this.deleteModal.itemData.src,
+          fromBddOnly,
+          ignoreIfNotExist,
+        }).catch((e) => {
+          const error = buildError(e);
+
+          this.pausePlaying();
+          this.showAlert(error);
+
+          throw error;
+        });
       }
     },
 
-    async deleteItem (itemSrc) {
+    async deleteItem ({ itemSrc, fromBddOnly, ignoreIfNotExist }) {
       if (!itemSrc) { return Promise.resolve() }
 
       this.$store.commit(`${this.NS}/${PLAYER_M_DELETE_HISTORY_ITEM}`, itemSrc);
@@ -483,7 +582,7 @@ export default {
       try {
         response = await this.$store.dispatch(
           `${this.NS}/${PLAYER_A_DELETE_ITEM}`,
-          itemSrc,
+          { itemSrc, fromBddOnly, ignoreIfNotExist },
         );
       } catch (e) {
         error = buildError(e);
@@ -502,10 +601,11 @@ export default {
     showAlert ({
       publicMessage = 'Unknow error.',
       severity = 'error',
+      showDeleteBtn = false,
       onClose = () => {},
     } = {}) {
       this.$set(this, 'alert', {
-        publicMessage, severity, onClose, show: true,
+        publicMessage, severity, showDeleteBtn, onClose, show: true,
       });
     },
 
@@ -554,7 +654,7 @@ export default {
 
           case 'Delete':
             if (this.TheLoop.value < this.loopDuration || this.pause) {
-              this.showDeleteModal();
+              this.showDeleteModal({ itemData: this.playingItemData });
             }
             break;
           case 'h':

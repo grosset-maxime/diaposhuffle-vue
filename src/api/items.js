@@ -79,21 +79,19 @@ export const fetchItemsFromBdd = async ({ tags, tagsOperator, types } = {}) => {
  * Delete an item.
  * @param {object} options - Options.
  * @param {string} itemSrc - Item scr.
- * @param {boolean} [continueIfNotExist=false] - Continue delete script if item
- *                                               doesn't exist in file system.
- * @param {boolean} [deleteOnlyFromBdd=false] - Delete item only from the bdd,
- *                                            do not remove it from file system.
+ * @param {boolean} [ignoreIfNotExist=false] - Continue delete script if item
+ *                                             doesn't exist in file system.
+ * @param {boolean} [fromBddOnly=false] - Delete item only from the bdd,
+ *                                        do not remove it from file system.
  * @returns {Promise<object>}
  * {boolean} obj.success -
  */
 export const deleteItem = async ({
   itemSrc,
-  continueIfNotExist = false,
-  deleteOnlyFromBdd = false,
+  ignoreIfNotExist = false,
+  fromBddOnly = false,
 }) => {
-  if (!itemSrc) {
-    throw buildError('Missing mandatory options.');
-  }
+  if (!itemSrc) { throw buildError('Missing mandatory options.') }
 
   let response;
 
@@ -103,8 +101,8 @@ export const deleteItem = async ({
       method: 'POST',
       body: JSON.stringify({
         picPath: itemSrc,
-        continueIfNotExist,
-        deleteOnlyFromBdd,
+        continueIfNotExist: ignoreIfNotExist,
+        deleteOnlyFromBdd: fromBddOnly,
       }),
     };
 

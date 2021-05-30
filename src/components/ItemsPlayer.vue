@@ -18,6 +18,7 @@
         class="item img"
         draggable="false"
         @load="onItemLoaded(getItemName(i))"
+        @error="onItemError(getItemName(i), $event)"
       >
       <video
         v-if="item.src && (item.data || {}).isVideo"
@@ -32,14 +33,17 @@
         @canplay="onItemLoaded(getItemName(i))"
         @pause="onPauseVideo()"
         @play="onPlayVideo()"
+        @error="onItemError(getItemName(i), $event)"
       />
     </div>
   </div>
 </template>
 
 <script>
-// TODO: Bug: Enh: Manage on item load fail, dispatch an event to parent cmp.
 import { deepClone } from '../utils/utils';
+
+const ITEM_1_NAME = 'item1';
+const ITEM_2_NAME = 'item2';
 
 const defaultVideoOptions = {
   autoplay: false,
@@ -63,44 +67,53 @@ export default {
     click: null,
     'video:pause': null,
     'video:play': null,
+    'currentItem:loaded': null,
+    'currentItem:error': null,
   },
 
-  data: () => ({
-    item1: {
-      name: 'item1',
+  data: () => {
+    const itemObj = {
+      name: '',
       src: '',
       data: undefined,
       styles: { opacity: 1, 'z-index': 2 },
       videoOptions: { ...defaultVideoOptions },
+      isLoaded: false,
+      isError: false,
       onLoadPromise: undefined,
       onLoadResolve: undefined,
-      onLoad: () => {},
-    },
+      onLoadReject: undefined,
+      onLoad: undefined,
+      onError: undefined,
+    };
 
-    item2: {
-      name: 'item2',
-      src: '',
-      data: undefined,
-      styles: { opacity: 0, 'z-index': 1 },
-      videoOptions: { ...defaultVideoOptions },
-      onLoadPromise: undefined,
-      onLoadResolve: undefined,
-      onLoad: () => {},
-    },
+    return {
+      item1: {
+        ...deepClone(itemObj),
+        name: ITEM_1_NAME,
+      },
 
-    currentItemName: 'item1',
-    switchWithTransition: false,
-  }),
+      item2: {
+        ...deepClone(itemObj),
+        name: ITEM_2_NAME,
+      },
+
+      currentItemName: ITEM_1_NAME,
+      switchWithTransition: false,
+    };
+  },
 
   computed: {
     currentItemData () { return this[this.currentItemName].data },
 
-    nextItemName () { return this.currentItemName === 'item1' ? 'item2' : 'item1' },
+    nextItemName () { return this.currentItemName === ITEM_1_NAME ? ITEM_2_NAME : ITEM_1_NAME },
   },
 
   mounted () {
     this.$set(this.item1, 'onLoad', this.onLoadItem1);
     this.$set(this.item2, 'onLoad', this.onLoadItem2);
+    this.$set(this.item1, 'onError', this.onErrorItem1);
+    this.$set(this.item2, 'onError', this.onErrorItem2);
   },
 
   methods: {
@@ -147,8 +160,17 @@ export default {
     },
 
     createLoadItemPromise (itemName = this.currentItemName) {
-      return new Promise((resolve) => {
-        this.$set(this.getItem(itemName), 'onLoadResolve', resolve);
+      const item = this.getItem(itemName);
+
+      return new Promise((resolve, reject) => {
+        this.$set(item, 'onLoadResolve', resolve);
+        this.$set(item, 'onLoadReject', reject);
+      }).then(() => {
+        this.$set(item, 'isError', false);
+        this.$set(item, 'isLoaded', true);
+      }).catch(() => {
+        this.$set(item, 'isError', true);
+        this.$set(item, 'isLoaded', false);
       });
     },
 
@@ -156,6 +178,8 @@ export default {
       const item = this.getItem(itemName);
       this.$set(item, 'src', '');
       this.$set(item, 'data', undefined);
+      this.$set(item, 'isLoaded', false);
+      this.$set(item, 'isError', false);
     },
 
     setItemData (itemName, data) {
@@ -170,6 +194,9 @@ export default {
       this.$set(item, 'data', deepClone(data));
     },
 
+    /**
+     * @public
+     */
     setNextItemData (nextItemData) {
       this.setItemData(this.nextItemName, nextItemData);
     },
@@ -177,18 +204,20 @@ export default {
     /**
      * @public
      */
-    async showNextItem (itemData, { animate = false } = {}) {
-      // Next item will start to load.
-      this.setNextItemData(itemData);
+    async showNextItem ({ animate = false } = {}) {
+      const item = this.getItem(this.nextItemName);
 
-      // Next tick need to have time to set itemData before applying switching items.
-      await this.$nextTick();
-
-      await this.getItem(this.nextItemName).onLoadPromise;
+      await item.onLoadPromise;
 
       await this.switchItems({ animate });
 
       this.resetItem(this.nextItemName);
+
+      if (item.isLoaded) {
+        this.$emit('currentItem:loaded', this.currentItemName);
+      } else if (item.isError) {
+        this.$emit('currentItem:error', { item });
+      }
     },
 
     /**
@@ -254,9 +283,15 @@ export default {
 
     onItemLoaded (itemName) { this.getItem(itemName).onLoad() },
 
+    onItemError (itemName, error) { this.getItem(itemName).onError(error) },
+
     onLoadItem1 () { this.item1.onLoadResolve() },
 
     onLoadItem2 () { this.item2.onLoadResolve() },
+
+    onErrorItem1 (error) { this.item1.onLoadReject(error) },
+
+    onErrorItem2 (error) { this.item2.onLoadReject(error) },
 
     onClick () { this.$emit('click') },
 
@@ -284,7 +319,7 @@ export default {
     left: 0;
 
     &.transition {
-      transition: opacity 300ms linear;
+      transition: opacity 200ms linear;
     }
 
     .item {

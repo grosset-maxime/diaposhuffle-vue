@@ -192,11 +192,11 @@ const actions = {
     return items;
   },
 
-  async [PLAYER_A_DELETE_ITEM] ({ commit }, itemSrc) {
+  async [PLAYER_A_DELETE_ITEM] ({ commit }, { itemSrc, fromBddOnly, ignoreIfNotExist }) {
     let result = false;
 
     try {
-      result = await deleteItem({ itemSrc });
+      result = await deleteItem({ itemSrc, fromBddOnly, ignoreIfNotExist });
     } catch (e) {
       const error = buildError(e);
       commit(PLAYER_M_ADD_ERROR, { actionName: PLAYER_A_DELETE_ITEM, error });
