@@ -151,6 +151,11 @@ import TagsList from './TagsList.vue';
 import EditTagModal from './EditTagModal.vue';
 import EditCategoryModal from './EditCategoryModal.vue';
 
+const DEFAULT_FILTERS = {
+  text: '',
+  categories: {},
+};
+
 export default {
   name: 'Tagger',
 
@@ -191,10 +196,7 @@ export default {
       pos: 0,
     },
 
-    filters: {
-      text: '',
-      categories: {},
-    },
+    filters: deepClone(DEFAULT_FILTERS),
 
     sorts: {
       field: 'name',
@@ -561,6 +563,10 @@ export default {
     resetFocus () {
       [this.focused.id] = this.unselectedTagIds;
       this.focused.pos = 0;
+    },
+
+    resetFilters () {
+      this.$set(this, 'filters', deepClone(DEFAULT_FILTERS));
     },
 
     setFocusRight () {

@@ -4,7 +4,7 @@
       'video-item': playingItem.isVideo,
       'show-ui': shouldShowUI,
     }]"
-    @mousemove="showUIDuring()"
+    @mousemove="showUIDuring"
   >
     <TheLoop
       ref="TheLoop"
@@ -49,6 +49,14 @@
       v-show="showTheHistoryChip"
       class="the-history-chip"
       @click="pausePlaying"
+    />
+
+    <TagsList
+      v-if="options.showTags"
+      v-show="showTheTagsList"
+      :tags-ids="playingItemTags"
+      class="the-tags-list"
+      @click="showTaggerModal"
     />
 
     <DeleteModal
@@ -104,7 +112,7 @@
 
     <TaggerModal
       :show="taggerModal.show"
-      :selected-tag-ids="taggerModal.selectedTagIds"
+      :selected-tag-ids="playingItemTags"
       @close="hideTaggerModal"
       @save="onSaveTaggerModal"
     />
@@ -144,6 +152,9 @@ import {
   PLAYER_A_FETCH_ITEMS_FROM_BDD,
   PLAYER_A_FETCH_ITEMS_FROM_RANDOM,
   PLAYER_A_SET_ITEM_TAGS,
+
+  TAGGER_A_FETCH_TAGS,
+  TAGGER_A_FETCH_CATEGORIES,
 } from '../store/types';
 import TheLoop from './TheLoop.vue';
 import PauseBtn from './PauseBtn.vue';
@@ -151,6 +162,7 @@ import DeleteModal from './DeleteModal.vue';
 import TaggerModal from './Tagger/TaggerModal.vue';
 import ItemPathChip from './ItemPathChip.vue';
 import ItemsPlayer from './ItemsPlayer.vue';
+import TagsList from './ThePlayer/TagsList.vue';
 import HistoryChip from './ThePlayer/HistoryChip.vue';
 
 const HISTORY_GO_NEXT = 'next';
@@ -166,6 +178,7 @@ export default {
     TaggerModal,
     ItemPathChip,
     ItemsPlayer,
+    TagsList,
     HistoryChip,
   },
 
@@ -199,7 +212,6 @@ export default {
 
     taggerModal: {
       show: false,
-      selectedTagIds: [],
     },
 
     keyboardShortcuts: {
@@ -223,6 +235,8 @@ export default {
   computed: {
     NS () { return 'player' },
 
+    TAGGER_NS () { return 'tagger' },
+
     TheLoop () { return this.$refs.TheLoop },
 
     ItemsPlayer () { return this.$refs.ItemsPlayer },
@@ -243,7 +257,11 @@ export default {
 
     playingItemRandomPath () { return this.playingItemData?.randomPublicPath || '' },
 
+    playingItemTags () { return this.playingItemData?.tags || [] },
+
     showTheItemPathChip () { return !!this.playingItemData },
+
+    showTheTagsList () { return !!this.playingItemData },
 
     showTheHistoryChip () { return !!this.historyLength },
 
@@ -282,6 +300,8 @@ export default {
     this.stop = false;
     this.pause = false;
 
+    const fetchTagsAndCategoriesPromise = this.fetchTagsAndCategories();
+
     if (this.filters.tags.length || this.filters.fileTypes.length) {
       this.setLoopIndeterminate(true);
       try {
@@ -301,6 +321,8 @@ export default {
     } else {
       await this.$store.dispatch(`${this.NS}/${PLAYER_A_FETCH_ITEMS_FROM_RANDOM}`);
     }
+
+    await fetchTagsAndCategoriesPromise;
 
     this.goToNextItem();
 
@@ -430,7 +452,6 @@ export default {
 
       this.$set(this.playingItem, 'data', itemData);
       this.$set(this.playingItem, 'isVideo', this.ItemsPlayer.isItemVideo());
-      this.$set(this.taggerModal, 'selectedTagIds', deepClone(itemData.tags));
 
       if (this.stop) { return Promise.resolve() }
 
@@ -637,7 +658,6 @@ export default {
       const tags = deepClone(selectedTagIds);
       const item = this.playingItem.data;
 
-      this.$set(this.taggerModal, 'selectedTagIds', tags);
       this.$set(item, 'tags', tags);
 
       this.editHistoryItem(this.historyIndex, item);
@@ -790,6 +810,13 @@ export default {
     showUI () { this.shouldShowUI = true },
 
     hideUI () { this.shouldShowUI = false },
+
+    fetchTagsAndCategories () {
+      return Promise.all([
+        this.$store.dispatch(`${this.TAGGER_NS}/${TAGGER_A_FETCH_TAGS}`),
+        this.$store.dispatch(`${this.TAGGER_NS}/${TAGGER_A_FETCH_CATEGORIES}`),
+      ]);
+    },
   },
 };
 </script>
@@ -808,10 +835,8 @@ export default {
   &.show-ui {
     cursor: default;
 
-    .the-history-chip {
-      transform: translateX(0);
-    }
-
+    .the-history-chip,
+    .the-tags-list,
     .the-item-path-chip {
       transform: translateX(0);
     }
@@ -845,8 +870,18 @@ export default {
     top: 5px;
     left: 5px;
     z-index: 1000;
-    transform: translateX(-110%);
+    transform: translateX(-150%);
     transition: transform 0.3s ease;
+  }
+
+  .the-tags-list {
+    position: absolute;
+    top: 80px;
+    left: 5px;
+    z-index: 1000;
+    transform: translateX(-150%);
+    transition: transform 0.3s ease;
+    cursor: pointer;
   }
 
   .the-item-path-chip {
