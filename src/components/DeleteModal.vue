@@ -8,8 +8,28 @@
   >
     <div class="delete-modal-body">
       <div class="message">
-        <!-- @slot Default slot to display delete confirm message -->
-        <slot>Delete this item?</slot>
+        <div
+          v-if="showPreview"
+          class="preview-slot-ctn"
+        >
+          <!-- @slot preview of the item. -->
+          <slot name="preview" />
+        </div>
+
+        <div class="message-slot-ctn">
+          <!-- @slot slot to display delete confirm message. -->
+          <slot name="message">
+            Delete this item?
+          </slot>
+        </div>
+      </div>
+
+      <div
+        v-if="showSrc"
+        class="src-slot-ctn"
+      >
+        <!-- @slot Src of the item. -->
+        <slot name="src" />
       </div>
 
       <div
@@ -52,7 +72,6 @@
 </template>
 
 <script>
-// TODO: Feature: Propound a slot to display a preview of the item to delete.
 import { getKey } from '../utils/utils';
 
 const DEFAULT_OPTIONS = {
@@ -70,6 +89,16 @@ export default {
     },
 
     showOptions: {
+      type: Boolean,
+      default: false,
+    },
+
+    showPreview: {
+      type: Boolean,
+      default: false,
+    },
+
+    showSrc: {
       type: Boolean,
       default: false,
     },
@@ -159,6 +188,29 @@ export default {
     display: flex;
     flex-direction: column;
     justify-content: center;
+
+    .message {
+      display: flex;
+      align-items: center;
+
+      .preview-slot-ctn {
+        margin-right: 20px;
+        height: 100px;
+        width: 100px;
+        overflow: hidden;
+
+        .preview {
+          object-fit: contain;
+          width: 100%;
+          height: 100%;
+        }
+      }
+    }
+
+    .src-slot-ctn {
+      margin-top: 5px;
+      margin-bottom: 5px;
+    }
 
     .options {
       display: flex;

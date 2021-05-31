@@ -54,10 +54,34 @@
     <DeleteModal
       :show="deleteModal.show"
       :show-options="deleteModal.showOptions"
+      :show-preview="!!deleteModal.itemData"
+      :show-src="!!deleteModal.itemData"
       @confirm="hideDeleteModal({ ...$event, deleteItem: true })"
       @cancel="hideDeleteModal"
       @click:outside="hideDeleteModal"
-    />
+    >
+      <template
+        v-if="!!deleteModal.itemData"
+        v-slot:preview
+      >
+        <img
+          v-if="!!deleteModal.itemData.isImage"
+          class="preview"
+          :src="deleteModal.itemData.src"
+        >
+        <video
+          v-if="!!deleteModal.itemData.isVideo"
+          class="preview"
+          :src="deleteModal.itemData.src"
+        />
+      </template>
+      <template v-slot:message>
+        Delete this item?
+      </template>
+      <template v-slot:src>
+        {{ deleteSrcText }}
+      </template>
+    </DeleteModal>
 
     <ItemsPlayer
       ref="ItemsPlayer"
@@ -82,11 +106,11 @@
 
 <script>
 // TODO: Enh: Display duration time for video at bottom corner?
-// TODO: Enh: Show path of the item to delete in delete modal.
 // TODO: Feature: For small video try to not fit the screen and apply a scale instead.
 // TODO: Feature: Display item's tags.
 // TODO: Feature: Allow editing item's tags.
 // TODO: Feature: Show nb items and index of current item on playing from bdd items.
+// TODO: Feature: Add options to play items not randomly but in row.
 import {
   ERROR_SEVERITY_INFO,
   buildError,
@@ -215,6 +239,10 @@ export default {
     historyIndex: {
       get () { return this.$store.getters[`${this.NS}/${PLAYER_G_HISTORY_INDEX}`] },
       set (index) { this.$store.commit(`${this.NS}/${PLAYER_M_SET_HISTORY_INDEX}`, index) },
+    },
+
+    deleteSrcText () {
+      return `Src: ${this.deleteModal.itemData?.src}`;
     },
 
     theHelp () { return this.$store.getters[INDEX_G_SHOW_THE_HELP] },

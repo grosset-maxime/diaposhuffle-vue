@@ -122,7 +122,9 @@
       @cancel="closeConfirmDelete"
       @click:outside="closeConfirmDelete"
     >
-      Delete this category?
+      <template v-slot:message>
+        Delete this category?
+      </template>
     </DeleteModal>
   </v-dialog>
 </template>
