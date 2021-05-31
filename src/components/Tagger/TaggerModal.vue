@@ -221,7 +221,7 @@ $v-toolbar-height: 48px;
   overflow-y: hidden;
 
   &.has-opacity {
-    opacity: 0.05;
+    opacity: 0.1;
   }
 
   .tagger-ctn {

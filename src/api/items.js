@@ -39,7 +39,7 @@ export const fetchRandomItem = async ({ folders } = {}) => {
  * @param {string[]} [options.tags] - Tags id.
  * @param {string[]} [options.types] - Types (JPG, GIF, PNG).
  * @param {string}   [options.tagsOperator] - Operator for tags filtering ('AND' or 'OR').
- * @returns {Promise<object[]>}
+ * @returns {Promise<Item[]>}
  */
 export const fetchItemsFromBdd = async ({ tags, tagsOperator, types } = {}) => {
   let items = [];
@@ -62,8 +62,6 @@ export const fetchItemsFromBdd = async ({ tags, tagsOperator, types } = {}) => {
       ...item,
       item: createItem({
         src: item.path,
-        randomPublicPath: item.path,
-        name: item.path.split('/')[item.path.split('/').length - 1],
         tags: item.tags.split(';').filter((tag) => tag),
         extension: item.extension,
         // TODO: set type (file type) ?
@@ -84,7 +82,7 @@ export const fetchItemsFromBdd = async ({ tags, tagsOperator, types } = {}) => {
  * @param {boolean} [fromBddOnly=false] - Delete item only from the bdd,
  *                                        do not remove it from file system.
  * @returns {Promise<object>}
- * {boolean} obj.success -
+ *          {boolean} obj.success
  */
 export const deleteItem = async ({
   itemSrc,
@@ -104,6 +102,35 @@ export const deleteItem = async ({
         continueIfNotExist: ignoreIfNotExist,
         deleteOnlyFromBdd: fromBddOnly,
       }),
+    };
+
+    response = await fetchJson(url, opts);
+  } catch (error) {
+    throw buildError(error);
+  }
+
+  return response;
+};
+
+/**
+ * Set tags to provided item.
+ * @param {object} options - Options.
+ * @param {Item}   item    - Item.
+ * @returns {Promise<object>}
+ *          {boolean} obj.success
+ */
+export const setItemTags = async ({ item }) => {
+  const { name, path, tags } = item;
+
+  if (!name || !path) { throw buildError('Missing mandatory options.') }
+
+  let response;
+
+  try {
+    const url = `${BASE_URL}/api/setTags`;
+    const opts = {
+      method: 'POST',
+      body: JSON.stringify({ name, path, tags }),
     };
 
     response = await fetchJson(url, opts);

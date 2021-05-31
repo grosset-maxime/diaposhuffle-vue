@@ -26,6 +26,7 @@ export const PLAYER_M_OPTIONS = 'Options';
 export const PLAYER_M_RESET_INTERVAL = 'Reset Options - Interval';
 export const PLAYER_M_SET_HISTORY_INDEX = 'Set History - Index';
 export const PLAYER_M_ADD_HISTORY_ITEM = 'Add History - Item';
+export const PLAYER_M_EDIT_HISTORY_ITEM = 'Edit History - Item';
 export const PLAYER_M_DELETE_HISTORY_ITEM = 'Delete History - Item';
 export const PLAYER_M_ADD_ERROR = 'Add Error';
 export const PLAYER_M_TOGGLE_TAGS_OPERATOR = 'Toggle Tags Operator';
@@ -34,6 +35,7 @@ export const PLAYER_A_FETCH_NEXT = 'Fetch Next Item';
 export const PLAYER_A_FETCH_ITEMS_FROM_RANDOM = 'Fetch Items From Random';
 export const PLAYER_A_FETCH_ITEMS_FROM_BDD = 'Fetch Items From BDD';
 export const PLAYER_A_DELETE_ITEM = 'Delete Item';
+export const PLAYER_A_SET_ITEM_TAGS = 'Set Item Tags';
 
 /* === Folders Browser === */
 /* ======================= */

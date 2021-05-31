@@ -398,6 +398,7 @@ export default {
         this.onFetchTags();
         this.resetFocus();
       } catch (e) {
+        // TODO: ENH: show error alert.
         console.error(e);
       }
 
@@ -427,7 +428,7 @@ export default {
         this.$emit('select', tagId);
       }
 
-      // TODO: if focused tag, move/update focused position.
+      // TODO: ENH: if focused tag, move/update focused position.
       if (this.focused.pos === this.unselectedTagIds.length) {
         this.focused.pos -= 2;
       } else {
@@ -584,7 +585,7 @@ export default {
         const stopPropagation = false;
         const key = getKey(e);
 
-        if (e.altKey) {
+        if (e.altKey && key !== 'Alt') {
           switch (key) {
             // On windows, Meta + Enter does not trigger a keydown event,
             // So, set Alt + Enter to validate.
@@ -595,7 +596,7 @@ export default {
 
             default:
           }
-        } else if (e.metaKey) {
+        } else if (e.metaKey && key !== 'Meta') {
           // On windows, Alt + Escape does not trigger a keydown event,
           // So, set Meta + Escape to cancel.
           switch (key) {

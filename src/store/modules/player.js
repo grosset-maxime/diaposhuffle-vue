@@ -7,6 +7,7 @@ import {
   fetchRandomItem,
   fetchItemsFromBdd,
   deleteItem,
+  setItemTags,
 } from '../../api/items';
 import {
   PLAYER_G_FILTER_FILE_TYPES,
@@ -22,6 +23,7 @@ import {
   PLAYER_M_RESET_INTERVAL,
   PLAYER_M_SET_HISTORY_INDEX,
   PLAYER_M_ADD_HISTORY_ITEM,
+  PLAYER_M_EDIT_HISTORY_ITEM,
   PLAYER_M_DELETE_HISTORY_ITEM,
   PLAYER_M_ADD_ERROR,
   PLAYER_M_TOGGLE_TAGS_OPERATOR,
@@ -30,6 +32,7 @@ import {
   PLAYER_A_FETCH_ITEMS_FROM_RANDOM,
   PLAYER_A_FETCH_ITEMS_FROM_BDD,
   PLAYER_A_DELETE_ITEM,
+  PLAYER_A_SET_ITEM_TAGS,
 } from '../types';
 
 const INTERVAL_DEFAULT = 3; // seconds
@@ -103,6 +106,10 @@ const mutations = {
   },
 
   [PLAYER_M_ADD_HISTORY_ITEM] (state, item) { state.history.items.push(item) },
+
+  [PLAYER_M_EDIT_HISTORY_ITEM] (state, { index, item }) {
+    Vue.set(state.history.items, index, item);
+  },
 
   [PLAYER_M_DELETE_HISTORY_ITEM] (state, itemSrc) {
     Vue.set(state.history, 'index', state.history.index - 1);
@@ -200,6 +207,20 @@ const actions = {
     } catch (e) {
       const error = buildError(e);
       commit(PLAYER_M_ADD_ERROR, { actionName: PLAYER_A_DELETE_ITEM, error });
+      throw error;
+    }
+
+    return result;
+  },
+
+  async [PLAYER_A_SET_ITEM_TAGS] ({ commit }, { item }) {
+    let result = false;
+
+    try {
+      result = await setItemTags({ item });
+    } catch (e) {
+      const error = buildError(e);
+      commit(PLAYER_M_ADD_ERROR, { actionName: PLAYER_A_SET_ITEM_TAGS, error });
       throw error;
     }
 

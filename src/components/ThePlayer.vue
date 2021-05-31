@@ -101,6 +101,13 @@
       :path-end="playingItemRandomPath"
       @click="pausePlaying"
     />
+
+    <TaggerModal
+      :show="taggerModal.show"
+      :selected-tag-ids="taggerModal.selectedTagIds"
+      @close="hideTaggerModal"
+      @save="onSaveTaggerModal"
+    />
   </div>
 </template>
 
@@ -108,7 +115,6 @@
 // TODO: Enh: Display duration time for video at bottom corner?
 // TODO: Feature: For small video try to not fit the screen and apply a scale instead.
 // TODO: Feature: Display item's tags.
-// TODO: Feature: Allow editing item's tags.
 // TODO: Feature: Show nb items and index of current item on playing from bdd items.
 // TODO: Feature: Add options to play items not randomly but in row.
 import {
@@ -130,16 +136,19 @@ import {
 
   PLAYER_M_SET_HISTORY_INDEX,
   PLAYER_M_ADD_HISTORY_ITEM,
+  PLAYER_M_EDIT_HISTORY_ITEM,
   PLAYER_M_DELETE_HISTORY_ITEM,
 
   PLAYER_A_FETCH_NEXT,
   PLAYER_A_DELETE_ITEM,
   PLAYER_A_FETCH_ITEMS_FROM_BDD,
   PLAYER_A_FETCH_ITEMS_FROM_RANDOM,
+  PLAYER_A_SET_ITEM_TAGS,
 } from '../store/types';
 import TheLoop from './TheLoop.vue';
 import PauseBtn from './PauseBtn.vue';
 import DeleteModal from './DeleteModal.vue';
+import TaggerModal from './Tagger/TaggerModal.vue';
 import ItemPathChip from './ItemPathChip.vue';
 import ItemsPlayer from './ItemsPlayer.vue';
 import HistoryChip from './ThePlayer/HistoryChip.vue';
@@ -154,6 +163,7 @@ export default {
     TheLoop,
     PauseBtn,
     DeleteModal,
+    TaggerModal,
     ItemPathChip,
     ItemsPlayer,
     HistoryChip,
@@ -185,6 +195,11 @@ export default {
       show: false,
       showOptions: false,
       itemData: undefined,
+    },
+
+    taggerModal: {
+      show: false,
+      selectedTagIds: [],
     },
 
     keyboardShortcuts: {
@@ -413,10 +428,11 @@ export default {
       // Switch to the next item.
       await this.ItemsPlayer.showNextItem({ animate });
 
-      if (this.stop) { return Promise.resolve() }
-
       this.$set(this.playingItem, 'data', itemData);
       this.$set(this.playingItem, 'isVideo', this.ItemsPlayer.isItemVideo());
+      this.$set(this.taggerModal, 'selectedTagIds', deepClone(itemData.tags));
+
+      if (this.stop) { return Promise.resolve() }
 
       return this.playNextItem();
     },
@@ -566,6 +582,13 @@ export default {
       return this.$store.commit(`${this.NS}/${PLAYER_M_ADD_HISTORY_ITEM}`, deepClone(item));
     },
 
+    editHistoryItem (index, item) {
+      return this.$store.commit(
+        `${this.NS}/${PLAYER_M_EDIT_HISTORY_ITEM}`,
+        { index, item: deepClone(item) },
+      );
+    },
+
     showDeleteModal ({ itemData, showOptions = false } = {}) {
       this.pausePlaying();
       this.removeKeyboardPlayerShortcuts();
@@ -576,7 +599,8 @@ export default {
     },
 
     hideDeleteModal ({ deleteItem = false, fromBddOnly, ignoreIfNotExist } = {}) {
-      const { itemData } = this.deleteModal;
+      const itemSrc = this.deleteModal.itemData.src;
+
       this.$set(this.deleteModal, 'show', false);
       this.$set(this.deleteModal, 'itemData', undefined);
 
@@ -584,7 +608,7 @@ export default {
 
       if (deleteItem) {
         this.deleteItem({
-          itemSrc: itemData.src,
+          itemSrc,
           fromBddOnly,
           ignoreIfNotExist,
         }).catch((e) => {
@@ -596,6 +620,38 @@ export default {
           throw error;
         });
       }
+    },
+
+    showTaggerModal () {
+      this.pausePlaying();
+      this.removeKeyboardPlayerShortcuts();
+      this.$set(this.taggerModal, 'show', true);
+    },
+
+    hideTaggerModal () {
+      this.$set(this.taggerModal, 'show', false);
+      this.attachKeyboardPlayerShortcuts();
+    },
+
+    onSaveTaggerModal (selectedTagIds) {
+      const tags = deepClone(selectedTagIds);
+      const item = this.playingItem.data;
+
+      this.$set(this.taggerModal, 'selectedTagIds', tags);
+      this.$set(item, 'tags', tags);
+
+      this.editHistoryItem(this.historyIndex, item);
+
+      this.$store.dispatch(
+        `${this.NS}/${PLAYER_A_SET_ITEM_TAGS}`, { item: deepClone(item) },
+      ).catch((e) => {
+        const error = buildError(e);
+
+        this.pausePlaying();
+        this.showAlert(error);
+
+        throw error;
+      });
     },
 
     async deleteItem ({ itemSrc, fromBddOnly, ignoreIfNotExist }) {
@@ -686,9 +742,16 @@ export default {
               this.showDeleteModal({ itemData: this.playingItemData });
             }
             break;
+
           case 'h':
             this.pausePlaying();
             this.showTheHelp();
+            break;
+
+          case 't':
+            if (this.TheLoop.value < this.loopDuration || this.pause) {
+              this.showTaggerModal();
+            }
             break;
           default:
         }
