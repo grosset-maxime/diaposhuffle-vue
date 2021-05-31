@@ -125,11 +125,8 @@
 // TODO: Enh: On tag focus change, scroll to the focused tag.
 // TODO: Enh: On filter by category update focused tag position.
 // TODO: Enh: On sort update focused tag position.
-// TODO: ENH: On Enter clear the filter text.
 // TODO: Feature: On Enter + Control, select the focused tag without to clear the filter text.
 // TODO: ENH: on filter, set opacity on selected tags instead of hidding them.
-// TODO: ENH: on Escape clear filter text even if it has not the focus.
-// TODO: ENH: Find a way to not have selected tags container taking more spaces than necessary.
 import Fuse from 'fuse.js';
 import {
   TAGGER_G_TAGS,
@@ -634,12 +631,11 @@ export default {
 
             case 'Enter':
               this.onTagClick(this.focused.id);
+              this.clearFilterText();
               break;
 
             case 'Escape':
-              if (this.isFilterTextHasFocus) {
-                this.clearFilterText();
-              }
+              this.clearFilterText();
               break;
 
             default:
@@ -677,7 +673,7 @@ export default {
   flex-direction: column;
 
   .selected-tags {
-    flex: auto 1 0;
+    flex-shrink: 0;
     overflow: auto;
     min-height: $tag-height;
     max-height: 40%;
