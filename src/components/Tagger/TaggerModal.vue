@@ -162,7 +162,9 @@ export default {
       this.editMode = false;
       this.hasOpacity = false;
 
-      this.selectedTagsIdsMap = Object.fromEntries(this.selectedTagIds.map((tagId) => [tagId, true]));
+      this.selectedTagsIdsMap = Object.fromEntries(
+        this.selectedTagIds.map((tagId) => [tagId, true]),
+      );
 
       // Wait for v-dialog transition end before continuing.
       setTimeout(() => {
@@ -221,7 +223,7 @@ $v-toolbar-height: 48px;
   overflow-y: hidden;
 
   &.has-opacity {
-    opacity: 0.1;
+    opacity: 0.3;
   }
 
   .tagger-ctn {

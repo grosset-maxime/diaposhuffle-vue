@@ -81,7 +81,6 @@
 
     <v-divider class="separator" />
 
-    <!-- TODO: Allow focus tags and select/unselect by using keyboard -->
     <!-- TODO: Allow to navigate through tags section using keyboard -->
     <!-- TODO: Highlight matching text with filtering text -->
     <div class="unselected-tags">
@@ -126,6 +125,11 @@
 // TODO: Enh: On tag focus change, scroll to the focused tag.
 // TODO: Enh: On filter by category update focused tag position.
 // TODO: Enh: On sort update focused tag position.
+// TODO: ENH: On Enter clear the filter text.
+// TODO: Feature: On Enter + Control, select the focused tag without to clear the filter text.
+// TODO: ENH: on filter, set opacity on selected tags instead of hidding them.
+// TODO: ENH: on Escape clear filter text even if it has not the focus.
+// TODO: ENH: Find a way to not have selected tags container taking more spaces than necessary.
 import Fuse from 'fuse.js';
 import {
   TAGGER_G_TAGS,
