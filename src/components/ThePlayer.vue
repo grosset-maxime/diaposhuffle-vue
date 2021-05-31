@@ -576,6 +576,7 @@ export default {
     },
 
     hideDeleteModal ({ deleteItem = false, fromBddOnly, ignoreIfNotExist } = {}) {
+      const { itemData } = this.deleteModal;
       this.$set(this.deleteModal, 'show', false);
       this.$set(this.deleteModal, 'itemData', undefined);
 
@@ -583,7 +584,7 @@ export default {
 
       if (deleteItem) {
         this.deleteItem({
-          itemSrc: this.deleteModal.itemData.src,
+          itemSrc: itemData.src,
           fromBddOnly,
           ignoreIfNotExist,
         }).catch((e) => {
