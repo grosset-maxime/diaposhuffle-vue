@@ -4,7 +4,7 @@
       'video-item': playingItem.isVideo,
       'show-ui': shouldShowUI,
     }]"
-    @mousemove="showUIDuring"
+    @mousemove="showUIDuring()"
   >
     <TheLoop
       ref="TheLoop"
