@@ -4,6 +4,8 @@
       'no-tags': !hasTags
     }]"
     @click="$emit('click')"
+    @mouseover="$emit('mouseover', $event)"
+    @mouseout="$emit('mouseout', $event)"
   >
     <template v-if="hasTags">
       <div

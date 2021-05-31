@@ -1,8 +1,10 @@
 <template>
   <v-btn
     class="pause-btn"
-    @click="onClick"
     icon
+    @click="onClick"
+    @mouseover="$emit('mouseover', $event)"
+    @mouseout="$emit('mouseout', $event)"
   >
     <div class="pause-icon">
       <div class="stick" />

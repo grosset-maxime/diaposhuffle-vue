@@ -3,6 +3,8 @@
     class="history"
     small
     @click="onClick"
+    @mouseover="$emit('mouseover', $event)"
+    @mouseout="$emit('mouseout', $event)"
   >
     {{ historyIndex + 1 }} / {{ historyLength }} | {{ currentItemCount }}
   </v-chip>

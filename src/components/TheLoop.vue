@@ -13,6 +13,8 @@
     :striped="striped"
     :height="height"
     @click="goToLoopStart"
+    @mouseover="$emit('mouseover', $event)"
+    @mouseout="$emit('mouseout', $event)"
   >
     <span
       v-if="showText"

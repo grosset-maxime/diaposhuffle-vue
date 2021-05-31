@@ -13,12 +13,16 @@
       :show-duration-time="playingItem.isVideo"
       show-remaining-time
       @end="goToNextItem"
+      @mouseover="onMouseOverUI"
+      @mouseout="onMouseOutUI"
     />
 
     <PauseBtn
       v-show="pause"
       class="the-pause-btn"
       @click="resumePlaying"
+      @mouseover="onMouseOverUI"
+      @mouseout="onMouseOutUI"
     />
 
     <v-alert
@@ -49,6 +53,8 @@
       v-show="showTheHistoryChip"
       class="the-history-chip"
       @click="pausePlaying"
+      @mouseover="onMouseOverUI"
+      @mouseout="onMouseOutUI"
     />
 
     <TagsList
@@ -57,6 +63,8 @@
       :tags-ids="playingItemTags"
       class="the-tags-list"
       @click="showTaggerModal"
+      @mouseover="onMouseOverUI"
+      @mouseout="onMouseOutUI"
     />
 
     <DeleteModal
@@ -108,6 +116,8 @@
       :path-start="playingItemSelectedPath"
       :path-end="playingItemRandomPath"
       @click="pausePlaying"
+      @mouseover="onMouseOverUI"
+      @mouseout="onMouseOutUI"
     />
 
     <TaggerModal
@@ -230,6 +240,7 @@ export default {
 
     shouldShowUI: false,
     showUITimeout: undefined,
+    preventHideUI: false,
   }),
 
   computed: {
@@ -432,6 +443,19 @@ export default {
       }
     },
 
+    onMouseOverUI () {
+      this.preventHideUI = true;
+      this.showUI();
+
+      clearTimeout(this.showUITimeout);
+      this.showUITimeout = undefined;
+    },
+
+    onMouseOutUI () {
+      this.preventHideUI = false;
+      this.showUIDuring();
+    },
+
     setNextItemData (itemData) {
       this.ItemsPlayer.setNextItemData(itemData);
       this.$set(this.nextItem, 'isSet', true);
@@ -611,6 +635,7 @@ export default {
     },
 
     showDeleteModal ({ itemData, showOptions = false } = {}) {
+      this.showUI();
       this.pausePlaying();
       this.removeKeyboardPlayerShortcuts();
 
@@ -621,6 +646,8 @@ export default {
 
     hideDeleteModal ({ deleteItem = false, fromBddOnly, ignoreIfNotExist } = {}) {
       const itemSrc = this.deleteModal.itemData.src;
+
+      this.hideUI();
 
       this.$set(this.deleteModal, 'show', false);
       this.$set(this.deleteModal, 'itemData', undefined);
@@ -652,6 +679,7 @@ export default {
     hideTaggerModal () {
       this.$set(this.taggerModal, 'show', false);
       this.attachKeyboardPlayerShortcuts();
+      this.showUIDuring(3000);
     },
 
     onSaveTaggerModal (selectedTagIds) {
@@ -801,8 +829,11 @@ export default {
     showUIDuring (time = 2000) {
       this.shouldShowUI = true;
 
+      if (this.preventHideUI) { return }
+
       clearTimeout(this.showUITimeout);
       this.showUITimeout = setTimeout(() => {
+        if (this.preventHideUI) { return }
         this.hideUI();
       }, time);
     },

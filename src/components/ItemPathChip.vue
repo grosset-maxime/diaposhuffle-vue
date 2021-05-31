@@ -2,6 +2,8 @@
   <div
     class="item-path-chip"
     @click="onClick"
+    @mouseover="$emit('mouseover', $event)"
+    @mouseout="$emit('mouseout', $event)"
   >
     <span class="path-start">
       {{ pathStart }}
