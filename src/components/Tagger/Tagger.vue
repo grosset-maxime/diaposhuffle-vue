@@ -617,7 +617,7 @@ export default {
               this.setFocusLeft();
               break;
 
-            case 'Alt':
+            case 'Control':
               this.$emit('toggleOpacity');
               preventDefault = true;
               break;

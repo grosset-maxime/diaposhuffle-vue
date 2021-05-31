@@ -122,7 +122,7 @@ const panels = [{
   title: 'Tagger - shortucts',
   opened: true,
   content: [{
-    shortcut: 'Alt',
+    shortcut: 'Ctrl',
     description: 'Toggle Tagger modal opacity.',
   }, {
     shortcut: 'Escape',
