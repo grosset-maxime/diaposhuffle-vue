@@ -93,6 +93,7 @@
         @cancel="onCancel"
         @save="onSave"
         @toggleOpacity="onToggleOpacity"
+        @mounted="onTaggerMounted"
       />
     </v-card>
   </v-dialog>
@@ -136,6 +137,8 @@ export default {
 
     hasOpacity: false,
 
+    isTaggerMounted: false,
+
     keyboardShortcuts: {
       main: () => {},
     },
@@ -166,10 +169,9 @@ export default {
         this.selectedTagIds.map((tagId) => [tagId, true]),
       );
 
-      // Wait for v-dialog transition end before continuing.
-      setTimeout(() => {
+      if (this.isTaggerMounted) {
         this.$refs.Tagger.onShow();
-      }, 300);
+      }
     },
 
     onHide () {
@@ -205,6 +207,11 @@ export default {
     onUnselectAll () { this.selectedTags = {} },
 
     onToggleOpacity () { this.hasOpacity = !this.hasOpacity },
+
+    onTaggerMounted () {
+      this.$refs.Tagger.onShow();
+      this.isTaggerMounted = true;
+    },
 
     fetchTags () {
       this.$store.dispatch(`${this.NS}/${TAGGER_A_FETCH_TAGS}`);

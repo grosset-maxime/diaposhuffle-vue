@@ -23,6 +23,7 @@
       :key="`tag-${tagId}`"
       :tag-id="tagId"
       :focused="focused.id === tagId"
+      :masked="!!masked[tagId]"
       :edit="editMode"
       :close="closableTags"
       clickable
@@ -57,6 +58,11 @@ export default {
     },
 
     focused: {
+      type: Object,
+      default: () => ({}),
+    },
+
+    masked: {
       type: Object,
       default: () => ({}),
     },

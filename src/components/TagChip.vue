@@ -5,6 +5,7 @@
       clickable,
       focused,
       'has-no-category': !hasCategory,
+      masked
     }]"
     :style="{
       'background-color': tagBgColor,
@@ -64,6 +65,11 @@ export default {
     },
 
     focused: {
+      type: Boolean,
+      default: false,
+    },
+
+    masked: {
       type: Boolean,
       default: false,
     },
@@ -208,6 +214,10 @@ export default {
     border-radius: 4px;
     text-shadow: 0 0 1px #ffffff;
     opacity: 1;
+  }
+
+  &.masked {
+    opacity: 0.3;
   }
 }
 </style>

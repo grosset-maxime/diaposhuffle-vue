@@ -3,9 +3,9 @@
     <div class="selected-tags">
       <TagsList
         :tag-ids="selectedTagIds"
-        :text-filter="filters.text"
         :edit-mode="editMode"
         :no-tags-text="noSelectedTagsText"
+        :masked="notFilteredSelectedTagIdsMap"
         closable-tags
         @clickTag="onTagClick"
         @closeTag="onTagClick"
@@ -88,6 +88,7 @@
         ref="unselectedTagsList"
         :tag-ids="unselectedTagIds"
         :focused="focused"
+        :masked="notFilteredUnselectedTagIdsMap"
         :edit-mode="editMode"
         :no-tags-text="noUnselectedTagsText"
         @clickTag="onTagClick"
@@ -240,8 +241,10 @@ export default {
 
     tagsMap () { return this.$store.getters[`${this.NS}/${TAGGER_G_TAGS}`] },
 
-    tags () {
-      return Object.values(this.tagsMap).sort(
+    tags () { return Object.values(this.tagsMap) },
+
+    sortedTags () {
+      return [...this.tags].sort(
         (tagA, tagB) => {
           let sort = 0;
           const direction = this.sorts.direction === 'asc' ? 1 : -1;
@@ -281,38 +284,102 @@ export default {
     },
 
     selectedTagIds () {
-      let { tags } = this;
+      let { sortedTags } = this;
 
-      tags = tags.filter((tag) => !!this.selectedTagIdsMap[tag.id]);
+      sortedTags = sortedTags.filter((tag) => !!this.selectedTagIdsMap[tag.id]);
+
+      let tagsIds = sortedTags.map((tag) => tag.id);
 
       if (this.isFiltering) {
-        if (this.hasCategoriesFilter) {
-          tags = this.applyCategoriesFilter(tags);
-        }
+        const filteredTagsIds = this.filteredTags
+          .filter((tag) => !!this.selectedTagIdsMap[tag.id])
+          .map((tag) => tag.id);
 
-        if (this.filters.text) {
-          tags = this.applyTextFilter(tags).map((r) => r.item);
-        }
+        const filteredTagsIdsMap = Object.fromEntries(filteredTagsIds.map((id) => [id, true]));
+
+        tagsIds = tagsIds.filter((id) => !filteredTagsIdsMap[id]);
+
+        tagsIds = filteredTagsIds.concat(tagsIds);
       }
 
-      return tags.map((tag) => tag.id);
+      return tagsIds;
     },
 
     unselectedTagIds () {
-      let { tags } = this;
+      let { sortedTags } = this;
 
-      tags = tags.filter((tag) => !this.selectedTagIdsMap[tag.id]);
+      sortedTags = sortedTags.filter((tag) => !this.selectedTagIdsMap[tag.id]);
+
+      let tagsIds = sortedTags.map((tag) => tag.id);
 
       if (this.isFiltering) {
-        if (this.hasCategoriesFilter) {
-          tags = this.applyCategoriesFilter(tags);
-        }
+        const filteredTagsIds = this.filteredTags
+          .filter((tag) => !this.selectedTagIdsMap[tag.id])
+          .map((tag) => tag.id);
 
-        if (this.filters.text) {
-          tags = this.applyTextFilter(tags).map((r) => r.item);
-        }
+        const filteredTagsIdsMap = Object.fromEntries(filteredTagsIds.map((id) => [id, true]));
+
+        tagsIds = tagsIds.filter((id) => !filteredTagsIdsMap[id]);
+
+        tagsIds = filteredTagsIds.concat(tagsIds);
       }
-      return tags.map((tag) => tag.id);
+
+      return tagsIds;
+    },
+
+    filteredTags () {
+      if (!this.isFiltering) { return [] }
+
+      let { tags } = this;
+
+      if (this.hasCategoriesFilter) {
+        tags = this.applyCategoriesFilter(tags);
+      }
+
+      if (this.filters.text) {
+        const results = this.applyTextFilter(tags);
+
+        // this.filters.textResults = results;
+
+        tags = results.map((r) => {
+          // console.log(r);
+          const tag = r.item;
+          tag.filterInfo = {
+            ...r,
+          };
+          delete tag.filterInfo.item;
+
+          return tag;
+        });
+      }
+
+      return tags;
+    },
+
+    filteredTagsMap () {
+      return Object.fromEntries(
+        this.filteredTags.map((tag) => [tag.id, tag]),
+      );
+    },
+
+    notFilteredSelectedTagIdsMap () {
+      if (!this.isFiltering) { return {} }
+
+      const notFilteredTagIds = this.selectedTagIds.filter(
+        (tagId) => !(tagId in this.filteredTagsMap),
+      );
+
+      return Object.fromEntries(notFilteredTagIds.map((tagId) => [tagId, true]));
+    },
+
+    notFilteredUnselectedTagIdsMap () {
+      if (!this.isFiltering) { return {} }
+
+      const notFilteredTag = this.unselectedTagIds.filter(
+        (tagId) => !(tagId in this.filteredTagsMap),
+      );
+
+      return Object.fromEntries(notFilteredTag.map((tagId) => [tagId, true]));
     },
 
     nbTagsMap () {
@@ -390,11 +457,13 @@ export default {
   mounted () {
     // TODO: TEMP: only for testing purpose
     setTimeout(() => { if (this.isLoading) { this.onShow() } }, 2000);
+    this.$emit('mounted');
   },
 
   methods: {
     async onShow () {
       this.attachKeyboardShortcuts();
+      this.resetFilters();
 
       try {
         await this.fetchTagsAndCategories();
