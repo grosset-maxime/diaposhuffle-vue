@@ -23,3 +23,6 @@ pnpm-debug.log*
 # Production directories and files
 /dist
 dist.7z
+
+# Offline vendors no save
+/public/nosave

@@ -1,5 +1,8 @@
 // const VuetifyLoaderPlugin = require('vuetify-loader/lib/plugin');
 
+process.env.VUE_APP_OFFLINE_MATERIAL_DESIGN_CSS = process.env.VUE_APP_OFFLINE_MATERIAL_DESIGN_CSS
+  || '';
+
 module.exports = {
   css: {
     loaderOptions: {
