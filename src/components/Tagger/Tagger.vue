@@ -127,7 +127,6 @@
 // TODO: Enh: On filter by category update focused tag position.
 // TODO: Enh: On sort update focused tag position.
 // TODO: Feature: On Enter + Control, select the focused tag without to clear the filter text.
-// TODO: ENH: on filter, set opacity on selected tags instead of hidding them.
 import Fuse from 'fuse.js';
 import {
   TAGGER_G_TAGS,

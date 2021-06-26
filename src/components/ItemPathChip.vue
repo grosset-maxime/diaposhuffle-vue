@@ -1,9 +1,7 @@
 <template>
   <div
     class="item-path-chip"
-    @click="onClick"
-    @mouseover="$emit('mouseover', $event)"
-    @mouseout="$emit('mouseout', $event)"
+    @click="$emit('click')"
   >
     <span class="path-start">
       {{ pathStart }}
@@ -43,10 +41,6 @@ export default {
   data: () => ({}),
 
   computed: {},
-
-  methods: {
-    onClick () { this.$emit('click') },
-  },
 };
 </script>
 

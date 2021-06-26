@@ -49,23 +49,41 @@
       </v-row>
     </v-alert>
 
-    <HistoryChip
-      v-show="showTheHistoryChip"
-      class="the-history-chip"
-      @click="pausePlaying"
+    <PinWrapper
+      :class="['the-history-chip-pin-wrapper', {
+        pined: historyChip.pined
+      }]"
+      :is-pined="historyChip.pined"
+      icon-position="bottom right"
+      @click="togglePinUI('historyChip')"
       @mouseover="onMouseOverUI"
       @mouseout="onMouseOutUI"
-    />
+    >
+      <HistoryChip
+        v-show="showTheHistoryChip"
+        class="the-history-chip"
+        @click="pausePlaying"
+      />
+    </PinWrapper>
 
-    <TagsList
-      v-if="options.showTags"
-      v-show="showTheTagsList"
-      :tags-ids="playingItemTags"
-      class="the-tags-list"
-      @click="showTaggerModal"
+    <PinWrapper
+      :class="['the-tags-list-pin-wrapper', {
+        pined: tagsList.pined
+      }]"
+      :is-pined="tagsList.pined"
+      icon-position="top right"
+      @click="togglePinUI('tagsList')"
       @mouseover="onMouseOverUI"
       @mouseout="onMouseOutUI"
-    />
+    >
+      <TagsList
+        v-if="options.showTags"
+        v-show="showTheTagsList"
+        :tags-ids="playingItemTags"
+        class="the-tags-list"
+        @click="showTaggerModal"
+      />
+    </PinWrapper>
 
     <DeleteModal
       :show="deleteModal.show"
@@ -108,17 +126,28 @@
       @currentItem:error="onPlayingItemError"
     />
 
-    <!-- TODO: FEATURE: add a dense/contracted mode which will expand on mouse hover -->
-    <ItemPathChip
-      v-if="options.showPath"
-      v-show="showTheItemPathChip"
-      class="the-item-path-chip"
-      :path-start="playingItemSelectedPath"
-      :path-end="playingItemRandomPath"
-      @click="pausePlaying"
+    <PinWrapper
+      :class="['the-item-path-chip-pin-wrapper', {
+        pined: itemPathChip.pined
+      }]"
+      :is-pined="itemPathChip.pined"
+      icon-position="top left"
+      @click="togglePinUI('itemPathChip')"
       @mouseover="onMouseOverUI"
       @mouseout="onMouseOutUI"
-    />
+    >
+      <!-- TODO: FEATURE: add a dense/contracted mode which will expand on mouse hover -->
+      <ItemPathChip
+        v-if="options.showPath"
+        v-show="showTheItemPathChip"
+        class="the-item-path-chip"
+        :path-start="playingItemSelectedPath"
+        :path-end="playingItemRandomPath"
+        @click="pausePlaying"
+        @mouseover="onMouseOverUI"
+        @mouseout="onMouseOutUI"
+      />
+    </PinWrapper>
 
     <TaggerModal
       :show="taggerModal.show"
@@ -174,6 +203,7 @@ import ItemPathChip from './ItemPathChip.vue';
 import ItemsPlayer from './ItemsPlayer.vue';
 import TagsList from './ThePlayer/TagsList.vue';
 import HistoryChip from './ThePlayer/HistoryChip.vue';
+import PinWrapper from './ThePlayer/PinWrapper.vue';
 
 const HISTORY_GO_NEXT = 'next';
 const HISTORY_GO_PREVIOUS = 'previous';
@@ -190,6 +220,7 @@ export default {
     ItemsPlayer,
     TagsList,
     HistoryChip,
+    PinWrapper,
   },
 
   data: () => ({
@@ -222,6 +253,18 @@ export default {
 
     taggerModal: {
       show: false,
+    },
+
+    tagsList: {
+      pined: false,
+    },
+
+    historyChip: {
+      pined: false,
+    },
+
+    itemPathChip: {
+      pined: false,
     },
 
     keyboardShortcuts: {
@@ -842,6 +885,10 @@ export default {
 
     hideUI () { this.shouldShowUI = false },
 
+    togglePinUI (uiName) {
+      this.$set(this[uiName], 'pined', !this[uiName].pined);
+    },
+
     fetchTagsAndCategories () {
       return Promise.all([
         this.$store.dispatch(`${this.TAGGER_NS}/${TAGGER_A_FETCH_TAGS}`),
@@ -866,15 +913,15 @@ export default {
   &.show-ui {
     cursor: default;
 
-    .the-history-chip,
-    .the-tags-list,
-    .the-item-path-chip {
+    .the-history-chip-pin-wrapper,
+    .the-tags-list-pin-wrapper,
+    .the-item-path-chip-pin-wrapper {
       transform: translateX(0);
     }
   }
 
   &.video-item {
-    .the-item-path-chip {
+    .the-item-path-chip-pin-wrapper {
       bottom: 80px; // To not cover the video controls.
     }
   }
@@ -896,32 +943,47 @@ export default {
     margin: $margin;
   }
 
-  .the-history-chip {
+  .the-history-chip-pin-wrapper {
     position: absolute;
     top: 5px;
     left: 5px;
     z-index: 1000;
     transform: translateX(-150%);
     transition: transform 0.3s ease;
+
+    &.pined {
+      transform: none;
+    }
   }
 
-  .the-tags-list {
+  .the-tags-list-pin-wrapper {
     position: absolute;
     top: 80px;
     left: 5px;
     z-index: 1000;
     transform: translateX(-150%);
     transition: transform 0.3s ease;
-    cursor: pointer;
+
+    &.pined {
+      transform: none;
+    }
+
+    .the-tags-list {
+      cursor: pointer;
+    }
   }
 
-  .the-item-path-chip {
+  .the-item-path-chip-pin-wrapper {
     position: absolute;
     bottom: 25px;
     right: 5px;
     z-index: 1000;
     transform: translateX(110%);
     transition: transform 0.3s ease;
+
+    &.pined {
+      transform: none;
+    }
   }
 
   .the-items-player {

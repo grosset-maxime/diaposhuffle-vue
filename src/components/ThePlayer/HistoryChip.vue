@@ -2,9 +2,7 @@
   <v-chip
     class="history"
     small
-    @click="onClick"
-    @mouseover="$emit('mouseover', $event)"
-    @mouseout="$emit('mouseout', $event)"
+    @click="$emit('click')"
   >
     {{ historyIndex + 1 }} / {{ historyLength }} | {{ currentItemCount }}
   </v-chip>
@@ -54,10 +52,6 @@ export default {
 
       return count;
     },
-  },
-
-  methods: {
-    onClick () { this.$emit('click') },
   },
 };
 </script>

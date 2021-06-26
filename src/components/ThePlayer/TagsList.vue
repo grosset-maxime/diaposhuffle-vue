@@ -4,8 +4,6 @@
       'no-tags': !hasTags
     }]"
     @click="$emit('click')"
-    @mouseover="$emit('mouseover', $event)"
-    @mouseout="$emit('mouseout', $event)"
   >
     <template v-if="hasTags">
       <div
@@ -41,7 +39,9 @@ export default {
     },
   },
 
-  emits: {},
+  emits: {
+    click: null,
+  },
 
   data: () => ({
     sorts: {
