@@ -8,6 +8,10 @@
   >
     <v-btn
       :class="['pin-icon', positionClasses.join(' ')]"
+      :style="{
+        top: iconPositionTop,
+        left: iconPositionLeft
+      }"
       icon
       small
       @click="$emit('click')"
@@ -24,7 +28,6 @@
 </template>
 
 <script>
-// TODO: ENH: Add possiblity to set the location offset (left: -30px, top: 50px)
 export default {
   name: 'PinWrapper',
 
@@ -34,9 +37,29 @@ export default {
       default: false,
     },
 
+    /**
+     * @param {string} iconPosition - Possible values: 'top', 'bottom', 'right', 'left'.
+     *                                'top right', 'bottom left', etc...
+     */
     iconPosition: {
       type: String,
-      default: 'bottom right',
+      default: 'top right',
+    },
+
+    /**
+     * @param {string} iconPositionTop - Top pin icon position. (ex: -37px)
+     */
+    iconPositionTop: {
+      type: String,
+      default: '',
+    },
+
+    /**
+     * @param {string} iconPositionLeft - Left pin icon position. (ex: -37px)
+     */
+    iconPositionLeft: {
+      type: String,
+      default: '',
     },
   },
 
@@ -51,6 +74,7 @@ export default {
   computed: {
     positionClasses () {
       const classes = [];
+      if (this.iconPosition.includes('center')) { classes.push('pos-center') }
       if (this.iconPosition.includes('top')) { classes.push('pos-top') }
       if (this.iconPosition.includes('bottom')) { classes.push('pos-bottom') }
       if (this.iconPosition.includes('right')) { classes.push('pos-right') }
@@ -95,6 +119,10 @@ export default {
 
     &:hover {
       opacity: 1;
+    }
+
+    &.pos-center {
+      left: 50%;
     }
 
     &.pos-top {

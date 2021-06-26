@@ -13,8 +13,6 @@
     :striped="striped"
     :height="height"
     @click="goToLoopStart"
-    @mouseover="$emit('mouseover', $event)"
-    @mouseout="$emit('mouseout', $event)"
   >
     <span
       v-if="showText"
@@ -26,7 +24,6 @@
 </template>
 
 <script>
-// TODO: Feature: Add a very small icon to pin the UI.
 import { wait } from '../utils/utils';
 
 const LOOP_STEP = 100; // In ms.

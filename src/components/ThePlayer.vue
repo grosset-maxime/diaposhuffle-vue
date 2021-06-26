@@ -6,16 +6,26 @@
     }]"
     @mousemove="showUIDuring()"
   >
-    <TheLoop
-      ref="TheLoop"
-      :duration="loopDuration"
-      :dense="!shouldShowUI"
-      :show-duration-time="playingItem.isVideo"
-      show-remaining-time
-      @end="goToNextItem"
+    <PinWrapper
+      :class="['the-loop-pin-wrapper', {
+        pined: loop.pined
+      }]"
+      :is-pined="loop.pined"
+      icon-position="center"
+      icon-position-top="-37px"
+      @click="togglePinUI('loop')"
       @mouseover="onMouseOverUI"
       @mouseout="onMouseOutUI"
-    />
+    >
+      <TheLoop
+        ref="TheLoop"
+        :duration="loopDuration"
+        :dense="!loop.pined && !shouldShowUI"
+        :show-duration-time="playingItem.isVideo"
+        show-remaining-time
+        @end="goToNextItem"
+      />
+    </PinWrapper>
 
     <PauseBtn
       v-show="pause"
@@ -163,7 +173,6 @@
 // TODO: Feature: For small video try to not fit the screen and apply a scale instead.
 // TODO: Feature: Show nb items and index of current item on playing from bdd items.
 // TODO: Feature: Add options to play items not randomly but in row.
-// TODO: Feature: Add pin UI icon to each UI and allow to pin/unpin them.
 import {
   ERROR_SEVERITY_INFO,
   buildError,
@@ -226,6 +235,7 @@ export default {
   data: () => ({
     loop: {
       duration: 0,
+      pined: false,
     },
 
     pause: false,
@@ -941,6 +951,14 @@ export default {
     left: 0;
     width: calc(100% - #{$margin * 2});
     margin: $margin;
+  }
+
+  .the-loop-pin-wrapper {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    z-index: 1000;
+    width: 100%;
   }
 
   .the-history-chip-pin-wrapper {
