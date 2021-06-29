@@ -64,7 +64,7 @@
         pined: historyChip.pined
       }]"
       :is-pined="historyChip.pined"
-      icon-position="bottom right"
+      icon-position="top right"
       @click="togglePinUI('historyChip')"
       @mouseover="onMouseOverUI"
       @mouseout="onMouseOutUI"
@@ -72,6 +72,23 @@
       <HistoryChip
         v-show="showTheHistoryChip"
         class="the-history-chip"
+        @click="pausePlaying"
+      />
+    </PinWrapper>
+
+    <PinWrapper
+      v-if="hasItems"
+      :class="['the-items-info-chip-pin-wrapper', {
+        pined: itemsInfoChip.pined
+      }]"
+      :is-pined="itemsInfoChip.pined"
+      icon-position="top right"
+      @click="togglePinUI('itemsInfoChip')"
+      @mouseover="onMouseOverUI"
+      @mouseout="onMouseOutUI"
+    >
+      <ItemsInfoChip
+        class="the-items-info-chip"
         @click="pausePlaying"
       />
     </PinWrapper>
@@ -185,10 +202,13 @@ import {
 
   PLAYER_G_OPTIONS,
   PLAYER_G_FILTERS,
+
   PLAYER_G_HISTORY,
   PLAYER_G_HISTORY_INDEX,
   PLAYER_G_HISTORY_LENGTH,
   PLAYER_G_HISTORY_ITEM,
+
+  PLAYER_G_ITEMS_LENGTH,
 
   PLAYER_M_SET_HISTORY_INDEX,
   PLAYER_M_ADD_HISTORY_ITEM,
@@ -212,6 +232,7 @@ import ItemPathChip from './ItemPathChip.vue';
 import ItemsPlayer from './ItemsPlayer.vue';
 import TagsList from './ThePlayer/TagsList.vue';
 import HistoryChip from './ThePlayer/HistoryChip.vue';
+import ItemsInfoChip from './ThePlayer/ItemsInfoChipChip.vue';
 import PinWrapper from './ThePlayer/PinWrapper.vue';
 
 const HISTORY_GO_NEXT = 'next';
@@ -229,6 +250,7 @@ export default {
     ItemsPlayer,
     TagsList,
     HistoryChip,
+    ItemsInfoChip,
     PinWrapper,
   },
 
@@ -270,6 +292,10 @@ export default {
     },
 
     historyChip: {
+      pined: false,
+    },
+
+    itemsInfoChip: {
       pined: false,
     },
 
@@ -337,6 +363,8 @@ export default {
       get () { return this.$store.getters[`${this.NS}/${PLAYER_G_HISTORY_INDEX}`] },
       set (index) { this.$store.commit(`${this.NS}/${PLAYER_M_SET_HISTORY_INDEX}`, index) },
     },
+
+    hasItems () { return !!this.$store.getters[`${this.NS}/${PLAYER_G_ITEMS_LENGTH}`] },
 
     deleteSrcText () {
       return `Src: ${this.deleteModal.itemData?.src}`;
@@ -924,6 +952,7 @@ export default {
     cursor: default;
 
     .the-history-chip-pin-wrapper,
+    .the-items-info-chip-pin-wrapper,
     .the-tags-list-pin-wrapper,
     .the-item-path-chip-pin-wrapper {
       transform: translateX(0);
@@ -964,6 +993,19 @@ export default {
   .the-history-chip-pin-wrapper {
     position: absolute;
     top: 5px;
+    left: 5px;
+    z-index: 1000;
+    transform: translateX(-150%);
+    transition: transform 0.3s ease;
+
+    &.pined {
+      transform: none;
+    }
+  }
+
+  .the-items-info-chip-pin-wrapper {
+    position: absolute;
+    top: 35px;
     left: 5px;
     z-index: 1000;
     transform: translateX(-150%);

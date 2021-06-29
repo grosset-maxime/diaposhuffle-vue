@@ -39,12 +39,23 @@ export const getRandomNum = (a, b) => {
 };
 
 /**
+ * Get a random element of an array and the random index of this element.
+ * @param {Array} array - Array to get a random element.
+ * @returns {object} - Result.
+ *          {number} obj.index
+ */
+export const getRandomElementWithIndex = (array = []) => {
+  if (!array.length) { return undefined }
+
+  const index = getRandomNum(array.length - 1);
+  const el = array[index];
+
+  return { index, el };
+};
+
+/**
  * Get a random element of an array.
  * @param {Array} array - Array to get a random element.
  * @returns {Any} - Random element.
  */
-export const getRandomElement = (array = []) => (
-  array.length
-    ? array[getRandomNum(array.length - 1)]
-    : null
-);
+export const getRandomElement = (array = []) => getRandomElementWithIndex(array)?.el;

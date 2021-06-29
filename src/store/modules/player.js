@@ -2,7 +2,7 @@
 /* eslint-disable no-param-reassign */
 import Vue from 'vue';
 import { buildError } from '../../api/api';
-import { getRandomElement } from '../../utils/utils';
+import { getRandomElementWithIndex } from '../../utils/utils';
 import {
   fetchRandomItem,
   fetchItemsFromBdd,
@@ -13,10 +13,16 @@ import {
   PLAYER_G_FILTER_FILE_TYPES,
   PLAYER_G_FILTERS,
   PLAYER_G_OPTIONS,
+
   PLAYER_G_HISTORY,
   PLAYER_G_HISTORY_LENGTH,
   PLAYER_G_HISTORY_INDEX,
   PLAYER_G_HISTORY_ITEM,
+
+  PLAYER_G_ITEMS,
+  PLAYER_G_ITEMS_LENGTH,
+  PLAYER_G_CURRENT_ITEM_INDEX,
+  PLAYER_G_CURRENT_ITEM,
 
   PLAYER_M_FILTERS,
   PLAYER_M_OPTIONS,
@@ -69,6 +75,7 @@ const state = () => ({
   errors: [],
 
   items: [],
+  itemIndex: 0,
 
   // Possible values: FETCH_FROM_RANDOM, FETCH_FROM_ITEMS.
   fetchNextFrom: FETCH_FROM_RANDOM,
@@ -76,12 +83,20 @@ const state = () => ({
 
 const getters = {
   [PLAYER_G_FILTER_FILE_TYPES]: (state) => state.filterFileTypes,
+
   [PLAYER_G_FILTERS]: (state) => state.filters,
+
   [PLAYER_G_OPTIONS]: (state) => state.options,
+
   [PLAYER_G_HISTORY]: (state) => state.history,
   [PLAYER_G_HISTORY_LENGTH]: (state) => state.history.items.length,
   [PLAYER_G_HISTORY_INDEX]: (state) => state.history.index,
   [PLAYER_G_HISTORY_ITEM]: (state) => (index) => state.history.items[index],
+
+  [PLAYER_G_ITEMS]: (state) => state.items,
+  [PLAYER_G_ITEMS_LENGTH]: (state) => state.items.length,
+  [PLAYER_G_CURRENT_ITEM_INDEX]: (state) => state.itemIndex,
+  [PLAYER_G_CURRENT_ITEM]: (state) => (index) => state.items[index],
 };
 
 const mutations = {
@@ -140,6 +155,8 @@ const mutations = {
 
   clearItems (state) { state.items = [] },
 
+  setItemIndex (state, index) { state.itemIndex = index },
+
   setFetchNextFrom (state, value) { state.fetchNextFrom = value },
 };
 
@@ -154,7 +171,9 @@ const actions = {
 
     try {
       if (state.fetchNextFrom === FETCH_FROM_ITEMS) {
-        result = getRandomElement(state.items);
+        const { index, el } = getRandomElementWithIndex(state.items);
+        result = el;
+        commit('setItemIndex', index);
       } else if (state.fetchNextFrom === FETCH_FROM_RANDOM) {
         result = await fetchRandomItem({
           folders: filters.folders,

@@ -16,10 +16,16 @@ export const INDEX_A_PLAYER_STOP = 'Player Stop';
 export const PLAYER_G_FILTER_FILE_TYPES = 'Get Available Filter file types';
 export const PLAYER_G_FILTERS = 'Get Filters';
 export const PLAYER_G_OPTIONS = 'Get Options';
+
 export const PLAYER_G_HISTORY = 'Get History';
 export const PLAYER_G_HISTORY_LENGTH = 'Get History - Items length';
 export const PLAYER_G_HISTORY_INDEX = 'Get History - Index';
 export const PLAYER_G_HISTORY_ITEM = 'Get History - Get Item';
+
+export const PLAYER_G_ITEMS = 'Get Items';
+export const PLAYER_G_ITEMS_LENGTH = 'Get Items - Items length';
+export const PLAYER_G_CURRENT_ITEM_INDEX = 'Get Items - Get Current Item Index';
+export const PLAYER_G_CURRENT_ITEM = 'Get Items - Get Current Item';
 
 export const PLAYER_M_FILTERS = 'Filters';
 export const PLAYER_M_OPTIONS = 'Options';
