@@ -65,6 +65,7 @@ const state = () => ({
     showFromPined: false,
     showTags: true,
     muteVideo: true,
+    fetchItemRandomly: true,
   },
 
   history: {
@@ -75,7 +76,7 @@ const state = () => ({
   errors: [],
 
   items: [],
-  itemIndex: 0,
+  itemIndex: -1,
 
   // Possible values: FETCH_FROM_RANDOM, FETCH_FROM_ITEMS.
   fetchNextFrom: FETCH_FROM_RANDOM,
@@ -168,10 +169,25 @@ const actions = {
     let result;
 
     const filters = getters[PLAYER_G_FILTERS];
+    const options = getters[PLAYER_G_OPTIONS];
 
     try {
       if (state.fetchNextFrom === FETCH_FROM_ITEMS) {
-        const { index, el } = getRandomElementWithIndex(state.items);
+        let index;
+        let el;
+
+        if (options.fetchItemRandomly) {
+          const obj = getRandomElementWithIndex(state.items);
+          el = obj.el;
+          index = obj.index;
+        } else {
+          index = state.itemIndex + 1;
+          if (index >= state.items.length) {
+            index = 0;
+          }
+          el = state.items[index];
+        }
+
         result = el;
         commit('setItemIndex', index);
       } else if (state.fetchNextFrom === FETCH_FROM_RANDOM) {

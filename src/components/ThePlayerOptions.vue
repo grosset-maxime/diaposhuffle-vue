@@ -194,6 +194,17 @@
       </v-col>
     </v-row>
 
+    <v-row align="center">
+      <v-col>
+        <v-switch
+          v-model="fetchItemRandomly"
+          label="Fetch Item Randomly"
+          class="ma-0 pa-0"
+          hide-details
+        />
+      </v-col>
+    </v-row>
+
     <FolderBrowser
       :show="folderBrowser.show"
       :selected="folderBrowser.selected"
@@ -320,6 +331,11 @@ export default {
     muteVideo: {
       get () { return this.$store.getters[`${this.NS}/${PLAYER_G_OPTIONS}`].muteVideo },
       set (muteVideo) { this.$store.commit(`${this.NS}/${PLAYER_M_OPTIONS}`, { muteVideo }) },
+    },
+
+    fetchItemRandomly: {
+      get () { return this.$store.getters[`${this.NS}/${PLAYER_G_OPTIONS}`].fetchItemRandomly },
+      set (fetchItemRandomly) { this.$store.commit(`${this.NS}/${PLAYER_M_OPTIONS}`, { fetchItemRandomly }) },
     },
 
     thePlayer () { return this.$store.getters[INDEX_G_SHOW_THE_PLAYER] },
