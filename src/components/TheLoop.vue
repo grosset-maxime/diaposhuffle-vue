@@ -6,7 +6,7 @@
     }"
     absolute
     bottom
-    background-opacity="0.4"
+    background-opacity="0.3"
     :value="percentage"
     :color="color"
     :indeterminate="indeterminate"
@@ -27,7 +27,7 @@
 import { wait } from '../utils/utils';
 
 const LOOP_STEP = 100; // In ms.
-const LOOP_DETERMINATE_COLOR = '#E87B00BB'; // $orange-1 + light opacity.
+const LOOP_DETERMINATE_COLOR = '#E87B00CC'; // $orange-1 + light opacity.
 const LOOP_INDETERMINATE_COLOR = '#2196f3BB'; // primary color + ligth opacity.
 const LOOP_DETERMINATE_HEIGHT = 20;
 const LOOP_INDETERMINATE_HEIGHT = 4;
