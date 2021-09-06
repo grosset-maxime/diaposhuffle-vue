@@ -126,7 +126,9 @@
 // TODO: Enh: On tag focus change, scroll to the focused tag.
 // TODO: Enh: On filter by category update focused tag position.
 // TODO: Enh: On sort update focused tag position.
-// TODO: Feature: On Enter + Control, select the focused tag without to clear the filter text.
+// TODO: Feature: On up/down keydown, focus above/below tags section.
+// TODO: Feature: On up/down left/right keydown set tag focus to right tag.
+// TODO: Feature: Add last used tag section, display it last 10 used tags and focus first tag on tagger opening.
 import Fuse from 'fuse.js';
 import {
   TAGGER_G_TAGS,
