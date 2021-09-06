@@ -134,8 +134,20 @@ const panels = [{
     shortcut: 'Alt + Enter',
     description: 'Close and confirm the Tagger modal.',
   }, {
+    shortcut: 'Shift + Enter',
+    description: 'Select/unselect focused tag but do not clear the search filter.',
+  }, {
+    shortcut: 'Enter',
+    description: 'Select/unselect focused tag and clear the search filter.',
+  }, {
     shortcut: 'Any character',
     description: 'Start tag search filtering (set input focus and start filtering).',
+  }, {
+    shortcut: 'left/right arrow',
+    description: 'Navigate into current tags section. Set focus on previous/next tag.',
+  }, {
+    shortcut: 'up/downs arrow',
+    description: 'TODO: Navigate through tags section. Set focus on above/below tags section.',
   }],
 }];
 

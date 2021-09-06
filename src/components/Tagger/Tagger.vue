@@ -660,7 +660,15 @@ export default {
         const stopPropagation = false;
         const key = getKey(e);
 
-        if (e.altKey && key !== 'Alt') {
+        if (e.shiftKey && key !== 'Shift') {
+          switch (key) {
+            case 'Enter':
+              this.onTagClick(this.focused.id);
+              break;
+
+            default:
+          }
+        } else if (e.altKey && key !== 'Alt') {
           switch (key) {
             // On windows, Meta + Enter does not trigger a keydown event,
             // So, set Alt + Enter to validate.
