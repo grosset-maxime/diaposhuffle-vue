@@ -189,7 +189,7 @@
 // TODO: Enh: Display duration time for video at bottom corner?
 // TODO: Feature: For small video try to not fit the screen and apply a scale instead.
 // TODO: Feature: Show nb items and index of current item on playing from bdd items.
-// TODO: Feature: Add options to play items not randomly but in row.
+// TODO: Feature: Add options to play items not randomly but in row into a folder.
 import {
   ERROR_SEVERITY_INFO,
   buildError,
@@ -391,6 +391,10 @@ export default {
 
     this.stop = false;
     this.pause = false;
+
+    // Init pined states from options.
+    this.itemPathChip.pined = this.options.pinPath;
+    this.tagsList.pined = this.options.pinTags;
 
     const fetchTagsAndCategoriesPromise = this.fetchTagsAndCategories();
 

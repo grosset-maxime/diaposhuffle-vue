@@ -155,6 +155,14 @@
           hide-details
         />
       </v-col>
+      <v-col>
+        <v-switch
+          v-model="pinPath"
+          label="Pin path"
+          class="ma-0 pa-0"
+          hide-details
+        />
+      </v-col>
     </v-row>
 
     <v-row
@@ -177,6 +185,14 @@
         <v-switch
           v-model="showTags"
           label="Show tags"
+          class="ma-0 pa-0"
+          hide-details
+        />
+      </v-col>
+      <v-col>
+        <v-switch
+          v-model="pinTags"
+          label="Pin tags"
           class="ma-0 pa-0"
           hide-details
         />
@@ -225,10 +241,10 @@
 // TODO: Feature: save in user preferences (bdd or localstorage) the choosen options.
 // TODO: Feature: Add an option to play in infinite loop for video item.
 // TODO: Feature: Add a component to create custom tags operator (aaa AND bbb OR ccc)
-// TODO: Feature: Add pined items feature
-// TODO: Feature: Seperate filters from options at UI side and at component side too, to be able to show options in player view.
-// TODO: Feature: Add an option to force pin the player UI.
-// TODO: Feature: Add a filter by: image or video types.
+// TODO: Feature: Add play pined items feature
+// TODO: Feature: Seperate filters from options at UI side and at component side too, to be able to show options in player view. Create sections.
+// TODO: Feature: Add an option to force pin the player UI. Should propound an option to allow to pin all pinable elements ?
+// TODO: Feature: Add a filter by: image or video types. DONE ?
 import {
   INDEX_G_SHOW_THE_PLAYER,
   INDEX_G_SHOW_THE_HELP,
@@ -316,6 +332,11 @@ export default {
       set (showPath) { this.$store.commit(`${this.NS}/${PLAYER_M_OPTIONS}`, { showPath }) },
     },
 
+    pinPath: {
+      get () { return this.$store.getters[`${this.NS}/${PLAYER_G_OPTIONS}`].pinPath },
+      set (pinPath) { this.$store.commit(`${this.NS}/${PLAYER_M_OPTIONS}`, { pinPath }) },
+    },
+
     showFromPined: {
       get () { return this.$store.getters[`${this.NS}/${PLAYER_G_OPTIONS}`].showFromPined },
       set (showFromPined) {
@@ -326,6 +347,11 @@ export default {
     showTags: {
       get () { return this.$store.getters[`${this.NS}/${PLAYER_G_OPTIONS}`].showTags },
       set (showTags) { this.$store.commit(`${this.NS}/${PLAYER_M_OPTIONS}`, { showTags }) },
+    },
+
+    pinTags: {
+      get () { return this.$store.getters[`${this.NS}/${PLAYER_G_OPTIONS}`].pinTags },
+      set (pinTags) { this.$store.commit(`${this.NS}/${PLAYER_M_OPTIONS}`, { pinTags }) },
     },
 
     muteVideo: {

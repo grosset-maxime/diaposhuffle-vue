@@ -57,13 +57,16 @@ const state = () => ({
     fileTypes: [],
   },
 
+  // TODO: Enh: create sections to separate easily options.
   options: {
     interval: INTERVAL_DEFAULT,
     zoom: 1,
     scale: true,
     showPath: true,
+    pinPath: false,
     showFromPined: false,
     showTags: true,
+    pinTags: true,
     muteVideo: true,
     fetchItemRandomly: true,
   },
