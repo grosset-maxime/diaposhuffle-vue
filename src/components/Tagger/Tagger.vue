@@ -1,8 +1,13 @@
 <template>
   <div class="tagger">
-    <div class="selected-tags">
+    <div
+      :class="['selected-tags', {
+        shake: shake.selectedTags
+      }]"
+    >
       <TagsList
         :tag-ids="selectedTagIds"
+        :focused="focused"
         :edit-mode="editMode"
         :no-tags-text="noSelectedTagsText"
         :masked="notFilteredSelectedTagIdsMap"
@@ -61,10 +66,10 @@
       </div>
     </div>
 
-    <!-- TODO: Show latest used tags -->
-    <!-- TODO: on filtering latest used tags, do not hide it but set opacity. -->
+    <!-- TODO: Feature: Show latest used tags -->
+    <!-- TODO: Feature: on filtering latest used tags, do not hide it but set opacity. -->
 
-    <!-- TODO: Mask none selected category when at least one category is selected -->
+    <!-- TODO: Feature: Mask none selected category when at least one category is selected -->
     <div class="categories-list">
       <CategoriesList
         :category-ids="categoryIds"
@@ -81,9 +86,12 @@
 
     <v-divider class="separator" />
 
-    <!-- TODO: Allow to navigate through tags section using keyboard -->
-    <!-- TODO: Highlight matching text with filtering text -->
-    <div class="unselected-tags">
+    <!-- TODO: Feature: Highlight matching text with filtering text -->
+    <div
+      :class="['unselected-tags', {
+        shake: shake.unselectedTags
+      }]"
+    >
       <TagsList
         ref="unselectedTagsList"
         :tag-ids="unselectedTagIds"
@@ -127,7 +135,7 @@
 // TODO: Enh: On filter by category update focused tag position.
 // TODO: Enh: On sort update focused tag position.
 // TODO: Feature: On up/down keydown, focus above/below tags section.
-// TODO: Feature: On up/down left/right keydown set tag focus to right tag.
+// TODO: Enh: On up/down left/right keydown set tag focus to right tag.
 // TODO: Feature: Add last used tag section, display it last 10 used tags and focus first tag on tagger opening.
 import Fuse from 'fuse.js';
 import {
@@ -143,6 +151,7 @@ import {
   TAGGER_A_DELETE_CATEGORY,
 } from '../../store/types';
 import {
+  SHAKE_ANIMATION_TIME,
   getKey,
   isEmptyObj,
   getRandomElement,
@@ -158,6 +167,9 @@ const DEFAULT_FILTERS = {
   text: '',
   categories: {},
 };
+
+const SELECTED_FOCUSED_SECTION_NAME = 'selectedTags';
+const UNSELECTED_FOCUSED_SECTION_NAME = 'unselectedTags';
 
 export default {
   name: 'Tagger',
@@ -197,6 +209,7 @@ export default {
     focused: {
       id: '',
       pos: 0,
+      section: UNSELECTED_FOCUSED_SECTION_NAME,
     },
 
     filters: deepClone(DEFAULT_FILTERS),
@@ -224,6 +237,8 @@ export default {
 
     isLoading: true,
 
+    shake: {},
+
     editTagModal: {
       show: false,
       add: false,
@@ -239,6 +254,13 @@ export default {
 
   computed: {
     NS () { return 'tagger' },
+
+    sectionsNames () {
+      return [
+        SELECTED_FOCUSED_SECTION_NAME,
+        UNSELECTED_FOCUSED_SECTION_NAME,
+      ];
+    },
 
     tagsMap () { return this.$store.getters[`${this.NS}/${TAGGER_G_TAGS}`] },
 
@@ -502,6 +524,7 @@ export default {
       }
 
       // TODO: ENH: if focused tag, move/update focused position.
+      // TODO: ENH: on select last tag from a section, set focus on upper section.
       if (this.focused.pos === this.unselectedTagIds.length) {
         this.focused.pos -= 2;
       } else {
@@ -632,7 +655,9 @@ export default {
     },
 
     resetFocus () {
-      [this.focused.id] = this.unselectedTagIds;
+      const sectionName = this.focused.section;
+      const sectionTagIds = this.getTagIdsFromSectionName(sectionName);
+      [this.focused.id] = sectionTagIds;
       this.focused.pos = 0;
     },
 
@@ -640,20 +665,115 @@ export default {
       this.$set(this, 'filters', deepClone(DEFAULT_FILTERS));
     },
 
+    checkSectionName (name) {
+      this.$set(this.shake, name, true);
+      setTimeout(() => {
+        this.$set(this.shake, name, false);
+      }, SHAKE_ANIMATION_TIME);
+    },
+
+    getTagIdsFromSectionName (name) {
+      let tagsIds = [];
+      if (name === UNSELECTED_FOCUSED_SECTION_NAME) {
+        tagsIds = this.unselectedTagIds;
+      } else if (name === SELECTED_FOCUSED_SECTION_NAME) {
+        tagsIds = this.selectedTagIds;
+      }
+      return tagsIds;
+    },
+
+    getUpperSectionFrom (name) {
+      let upperSectionName = '';
+      let sectionTagIds;
+      let index = 0;
+      const { sectionsNames } = this;
+      const indexSectionFrom = sectionsNames.indexOf(name);
+
+      for (let i = 1; i <= sectionsNames.length; i += 1) {
+        index = indexSectionFrom - i;
+        if (index < 0) {
+          index = sectionsNames.length + indexSectionFrom - i;
+        }
+        upperSectionName = sectionsNames[index];
+        sectionTagIds = this.getTagIdsFromSectionName(upperSectionName);
+        if (sectionTagIds.length) { break }
+      }
+
+      return upperSectionName;
+    },
+
+    getDownerSectionFrom (name) {
+      let downerSectionName = '';
+      let sectionTagIds;
+      let index = 0;
+      const { sectionsNames } = this;
+      const indexSectionFrom = sectionsNames.indexOf(name);
+
+      for (let i = 1; i <= sectionsNames.length; i += 1) {
+        index = indexSectionFrom + i;
+        if (index >= sectionsNames.length) {
+          index = indexSectionFrom + i - sectionsNames.length;
+        }
+        downerSectionName = sectionsNames[index];
+        sectionTagIds = this.getTagIdsFromSectionName(downerSectionName);
+        if (sectionTagIds.length) { break }
+      }
+
+      return downerSectionName;
+    },
+
     setFocusRight () {
+      const sectionName = this.focused.section;
+      const sectionTagIds = this.getTagIdsFromSectionName(sectionName);
+
       this.focused.pos += 1;
-      if (this.focused.pos >= this.unselectedTagIds.length) {
+      if (this.focused.pos >= sectionTagIds.length) {
         this.focused.pos = 0;
       }
-      this.focused.id = this.unselectedTagIds[this.focused.pos];
+      this.focused.id = sectionTagIds[this.focused.pos];
     },
 
     setFocusLeft () {
+      const sectionName = this.focused.section;
+      const sectionTagIds = this.getTagIdsFromSectionName(sectionName);
+
       this.focused.pos -= 1;
       if (this.focused.pos < 0) {
-        this.focused.pos = this.unselectedTagIds.length - 1;
+        this.focused.pos = sectionTagIds.length - 1;
       }
-      this.focused.id = this.unselectedTagIds[this.focused.pos];
+      this.focused.id = sectionTagIds[this.focused.pos];
+    },
+
+    setFocusUp () {
+      const sectionName = this.focused.section;
+      let upperSectionName = this.getUpperSectionFrom(sectionName);
+
+      if (!upperSectionName) {
+        upperSectionName = UNSELECTED_FOCUSED_SECTION_NAME;
+      }
+
+      if (sectionName !== upperSectionName) {
+        this.focused.section = upperSectionName;
+        this.resetFocus();
+      } else {
+        this.checkSectionName(sectionName);
+      }
+    },
+
+    setFocusDown () {
+      const sectionName = this.focused.section;
+      let downerSectionName = this.getDownerSectionFrom(sectionName);
+
+      if (!downerSectionName) {
+        downerSectionName = UNSELECTED_FOCUSED_SECTION_NAME;
+      }
+
+      if (sectionName !== downerSectionName) {
+        this.focused.section = downerSectionName;
+        this.resetFocus();
+      } else {
+        this.checkSectionName(sectionName);
+      }
     },
 
     attachKeyboardShortcuts () {
@@ -700,6 +820,16 @@ export default {
 
             case 'ArrowLeft':
               this.setFocusLeft();
+              break;
+
+            case 'ArrowUp':
+              this.setFocusUp();
+              preventDefault = true;
+              break;
+
+            case 'ArrowDown':
+              this.setFocusDown();
+              preventDefault = true;
               break;
 
             case 'Control':
@@ -789,6 +919,10 @@ export default {
 
   .separator {
     margin: 8px 0;
+  }
+
+  .shake {
+    @include shake-animation;
   }
 }
 </style>

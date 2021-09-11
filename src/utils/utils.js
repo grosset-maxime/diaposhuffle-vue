@@ -1,3 +1,5 @@
+export const SHAKE_ANIMATION_TIME = 830;
+
 export const wait = (time) => new Promise((resolve) => {
   setTimeout(resolve, time);
 });
