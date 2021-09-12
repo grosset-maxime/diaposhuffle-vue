@@ -1,127 +1,13 @@
 <template>
   <v-container class="the-player-options">
-    <v-row align="center">
-      <v-col>
-        <span class="v-label theme--dark">
-          Folder(s)
-        </span>
-
-        <v-btn
-          class="secondary"
-          @click="showFolderBrowser"
-        >
-          Browse...
-        </v-btn>
-
-        <v-btn
-          v-if="nbSelectedFolders"
-          class="secondary unselect-all-folders-btn"
-          @click="onUnselectAllFolders"
-        >
-          Unselect All
-        </v-btn>
-
-        <span
-          class="v-label theme--dark nb-selected-folders"
-          v-if="nbSelectedFolders"
-        >
-          Selected: {{ nbSelectedFolders }}
-        </span>
-      </v-col>
-    </v-row>
-
-    <v-row
-      align="center"
-      v-if="nbSelectedFolders"
-    >
-      <v-col>
-        <v-chip
-          v-for="path in folderBrowser.selected"
-          :key="path"
-          class="mr-3 mt-0 mb-2"
-          outlined
-          close
-          color="blue"
-          @click:close="onUnselectFolder(path)"
-        >
-          {{ path }}
-        </v-chip>
-      </v-col>
-    </v-row>
-
-    <v-row align="center">
-      <v-col>
-        <span class="v-label theme--dark">
-          Tag(s)
-        </span>
-
-        <v-btn
-          class="secondary"
-          @click="showTaggerModal"
-        >
-          Select...
-        </v-btn>
-
-        <v-chip
-          v-if="nbSelectedTags"
-          class="tags-operator-chip ml-5 mr-5 mt-0 mb-0"
-          outlined
-          color="orange"
-          filter
-          @click="toggleTagsOperator"
-        >
-          {{ tagsOperatorText }}
-        </v-chip>
-
-        <v-btn
-          v-if="nbSelectedTags"
-          class="secondary unselect-all-tags-btn"
-          @click="onUnselectAllTags"
-        >
-          Unselect All
-        </v-btn>
-      </v-col>
-    </v-row>
-
-    <v-row
-      v-if="taggerModal.selectedTagIds.length"
-      align="center"
-      class="selected-tags"
-    >
-      <v-col>
-        <TagChip
-          v-for="tagId in taggerModal.selectedTagIds"
-          :key="tagId"
-          :tag-id="tagId"
-          close
-          @click:close="onUnselectTag"
-        />
-      </v-col>
-    </v-row>
-
-    <v-row align="center">
-      <v-col class="flex-col">
-        <span class="v-label theme--dark">
-          Type(s)
-        </span>
-        <span>
-          <v-chip-group
-            v-model="filterFileTypes"
-            multiple
-          >
-            <v-chip
-              v-for="(type, i) in availableFilterFileTypes"
-              :key="type"
-              class="mr-3 mt-0 mb-0"
-              outlined
-              :color="filterFileTypes.includes(i) ? 'orange' : undefined"
-              filter
-            >
-              {{ type }}
-            </v-chip>
-          </v-chip-group>
-        </span>
-      </v-col>
+    <v-row>
+      <SourceOptions
+        ref="sourceOptions"
+        @showFolderBrowser="onShowFolderBrowser"
+        @hideFolderBrowser="onHideFolderBrowser"
+        @showTaggerModal="onShowTaggerModal"
+        @hideTaggerModal="onHideTaggerModal"
+      />
     </v-row>
 
     <v-row
@@ -220,57 +106,33 @@
         />
       </v-col>
     </v-row>
-
-    <FolderBrowser
-      :show="folderBrowser.show"
-      :selected="folderBrowser.selected"
-      @close="onCloseFolderBrowser"
-      @save="onSaveFolderBrowser"
-    />
-
-    <TaggerModal
-      :show="taggerModal.show"
-      :selected-tag-ids="taggerModal.selectedTagIds"
-      @close="onCloseTaggerModal"
-      @save="onSaveTaggerModal"
-    />
   </v-container>
 </template>
 
 <script>
 // TODO: Feature: save in user preferences (bdd or localstorage) the choosen options.
 // TODO: Feature: Add an option to play in infinite loop for video item.
-// TODO: Feature: Add a component to create custom tags operator (aaa AND bbb OR ccc)
 // TODO: Feature: Add play pined items feature
 // TODO: Feature: Seperate filters from options at UI side and at component side too, to be able to show options in player view. Create sections.
 // TODO: Feature: Add an option to force pin the player UI. Should propound an option to allow to pin all pinable elements ?
-// TODO: Feature: Add a filter by: image or video types. DONE ?
 import {
   INDEX_G_SHOW_THE_PLAYER,
   INDEX_G_SHOW_THE_HELP,
   INDEX_A_PLAYER_START,
 
-  PLAYER_G_FILTER_FILE_TYPES,
-  PLAYER_G_FILTERS,
   PLAYER_G_OPTIONS,
 
-  PLAYER_M_FILTERS,
   PLAYER_M_OPTIONS,
   PLAYER_M_RESET_INTERVAL,
-  PLAYER_M_TOGGLE_TAGS_OPERATOR,
 } from '../store/types';
 import { getKey } from '../utils/utils';
-import FolderBrowser from './FolderBrowser/FolderBrowser.vue';
-import TaggerModal from './Tagger/TaggerModal.vue';
-import TagChip from './TagChip.vue';
+import SourceOptions from './ThePlayerOptions/SourceOptions.vue';
 
 export default {
   name: 'ThePlayerOptions',
 
   components: {
-    FolderBrowser,
-    TaggerModal,
-    TagChip,
+    SourceOptions,
   },
 
   emits: {
@@ -278,16 +140,6 @@ export default {
   },
 
   data: () => ({
-    folderBrowser: {
-      show: false,
-      selected: [],
-    },
-
-    taggerModal: {
-      show: false,
-      selectedTagIds: [],
-    },
-
     keyboardShortcuts: {
       main: () => {},
     },
@@ -295,32 +147,6 @@ export default {
 
   computed: {
     NS () { return 'player' },
-
-    availableFilterFileTypes () {
-      return this.$store.getters[`${this.NS}/${PLAYER_G_FILTER_FILE_TYPES}`];
-    },
-
-    tags: {
-      get () { return this.$store.getters[`${this.NS}/${PLAYER_G_FILTERS}`].tags },
-      set (tags) { this.$store.commit(`${this.NS}/${PLAYER_M_FILTERS}`, { tags }) },
-    },
-
-    tagsOperator () {
-      return this.$store.getters[`${this.NS}/${PLAYER_G_FILTERS}`].tagsOperator;
-    },
-
-    tagsOperatorText () { return this.tagsOperator },
-
-    filterFileTypes: {
-      get () {
-        return this.$store.getters[`${this.NS}/${PLAYER_G_FILTERS}`].fileTypes
-          .map((type) => this.availableFilterFileTypes.indexOf(type));
-      },
-      set (typesIndex) {
-        const fileTypes = typesIndex.map((index) => this.availableFilterFileTypes[index]);
-        this.$store.commit(`${this.NS}/${PLAYER_M_FILTERS}`, { fileTypes });
-      },
-    },
 
     interval: {
       get () { return this.$store.getters[`${this.NS}/${PLAYER_G_OPTIONS}`].interval },
@@ -367,10 +193,6 @@ export default {
     thePlayer () { return this.$store.getters[INDEX_G_SHOW_THE_PLAYER] },
 
     theHelp () { return this.$store.getters[INDEX_G_SHOW_THE_HELP] },
-
-    nbSelectedFolders () { return this.folderBrowser.selected.length },
-
-    nbSelectedTags () { return this.taggerModal.selectedTagIds.length },
   },
 
   watch: {
@@ -397,68 +219,27 @@ export default {
 
   methods: {
     showFolderBrowser () {
+      this.$refs.sourceOptions.showFolderBrowser();
+    },
+
+    onShowFolderBrowser () {
       this.removeKeyboardShortcuts();
-      this.folderBrowser.show = true;
     },
 
-    onCloseFolderBrowser () {
-      this.folderBrowser.show = false;
+    onHideFolderBrowser () {
       this.attachKeyboardShortcuts();
-    },
-
-    onSaveFolderBrowser (selectedFolders) {
-      this.folderBrowser.selected = selectedFolders;
-      this.setFolders(selectedFolders);
-    },
-
-    onUnselectAllFolders () {
-      this.folderBrowser.selected = [];
-      this.setFolders([]);
-    },
-
-    onUnselectFolder (path) {
-      this.folderBrowser.selected = this.folderBrowser.selected.filter((p) => p !== path);
-      this.setFolders(this.folderBrowser.selected);
-    },
-
-    setFolders (selectedFolders) {
-      const folders = [...selectedFolders];
-      this.$store.commit(`${this.NS}/${PLAYER_M_FILTERS}`, { folders });
     },
 
     showTaggerModal () {
+      this.$refs.sourceOptions.showTaggerModal();
+    },
+
+    onShowTaggerModal () {
       this.removeKeyboardShortcuts();
-      this.taggerModal.show = true;
     },
 
-    onCloseTaggerModal () {
-      this.taggerModal.show = false;
+    onHideTaggerModal () {
       this.attachKeyboardShortcuts();
-    },
-
-    onSaveTaggerModal (selectedTagIds) {
-      this.taggerModal.selectedTagIds = selectedTagIds;
-      this.setTags(selectedTagIds);
-    },
-
-    onUnselectAllTags () {
-      this.taggerModal.selectedTagIds = [];
-      this.setTags([]);
-    },
-
-    onUnselectTag (tagId) {
-      this.taggerModal.selectedTagIds = this.taggerModal.selectedTagIds.filter(
-        (id) => id !== tagId,
-      );
-      this.setTags(this.taggerModal.selectedTagIds);
-    },
-
-    setTags (selectedTagIds) {
-      this.$store.commit(`${this.NS}/${PLAYER_M_FILTERS}`, { tags: [...selectedTagIds] });
-    },
-
-    toggleTagsOperator () {
-      this.$store.commit(`${this.NS}/${PLAYER_M_TOGGLE_TAGS_OPERATOR}`);
     },
 
     resetInterval () { this.$store.commit(`${this.NS}/${PLAYER_M_RESET_INTERVAL}`) },
@@ -513,18 +294,5 @@ export default {
 
 .interval-col {
   padding-right: 20%;
-}
-
-.unselect-all-folders-btn {
-  text-transform: none;
-  margin-left: 60px;
-}
-
-.unselect-all-tags-btn {
-  text-transform: none;
-}
-
-.nb-selected-folders {
-  margin-left: 20px;
 }
 </style>
