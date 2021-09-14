@@ -124,6 +124,20 @@
       </v-col>
     </v-row>
 
+    <v-row
+      align="center"
+    >
+      <v-col>
+        <v-switch
+          v-model="showFromPined"
+          label="Pined items (0)"
+          class="ma-0 pa-0"
+          disabled
+          hide-details
+        />
+      </v-col>
+    </v-row>
+
     <FolderBrowser
       :show="folderBrowser.show"
       :selected="folderBrowser.selected"
@@ -141,14 +155,16 @@
 </template>
 
 <script>
-// TODO: Feature: save in user preferences (bdd or localstorage) the choosen options.
 // TODO: Feature: Add a component to create custom tags operator (aaa AND bbb OR ccc)
 // TODO: Feature: Add a filter by: image or video types. DONE ?
+// TODO: Feature: Add play pined items feature
 import {
   PLAYER_G_FILTER_FILE_TYPES,
   PLAYER_G_FILTERS,
+  PLAYER_G_OPTIONS,
 
   PLAYER_M_FILTERS,
+  PLAYER_M_OPTIONS,
   PLAYER_M_TOGGLE_TAGS_OPERATOR,
 } from '../../store/types';
 import FolderBrowser from '../FolderBrowser/FolderBrowser.vue';
@@ -180,10 +196,6 @@ export default {
     taggerModal: {
       show: false,
       selectedTagIds: [],
-    },
-
-    keyboardShortcuts: {
-      main: () => {},
     },
   }),
 
@@ -219,6 +231,13 @@ export default {
     nbSelectedFolders () { return this.folderBrowser.selected.length },
 
     nbSelectedTags () { return this.taggerModal.selectedTagIds.length },
+
+    showFromPined: {
+      get () { return this.$store.getters[`${this.NS}/${PLAYER_G_OPTIONS}`].showFromPined },
+      set (showFromPined) {
+        this.$store.commit(`${this.NS}/${PLAYER_M_OPTIONS}`, { showFromPined });
+      },
+    },
   },
 
   watch: {},
@@ -309,6 +328,10 @@ export default {
 
   .nb-selected-folders {
     margin-left: 20px;
+  }
+
+  .v-label {
+    margin-right: 20px;
   }
 }
 </style>
