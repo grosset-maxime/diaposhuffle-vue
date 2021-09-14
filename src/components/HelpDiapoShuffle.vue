@@ -42,7 +42,7 @@ const panels = [{
     shortcut: 'h',
     description: 'Show DiapoShuffle help.',
   }, {
-    shortcut: 'SPACE / p',
+    shortcut: 'SPACE / ENTER',
     description: 'Start playing.',
   }, {
     shortcut: 'b',
@@ -72,7 +72,7 @@ const panels = [{
                   current item is a video).`,
   }, {
     shortcut: 'i / up arrow',
-    description: 'Open Inside folder of current picture/video modal.',
+    description: 'Open Inside folder of current picture/video modal. (TODO)',
   }, {
     shortcut: 'a',
     description: 'Open Add the folder\'s picture/video to the random list folder modal.',
@@ -81,10 +81,10 @@ const panels = [{
     description: 'Delete the current picture/video.',
   }, {
     shortcut: 'p',
-    description: 'Pin the current picture/video.',
+    description: 'Pin the current picture/video (TODO).',
   }, {
     shortcut: 'm',
-    description: 'Toggle playing method between "Random" and "Normal".',
+    description: 'Toggle playing method between "Random" and "Normal". (TODO)',
   }, {
     shortcut: 'left arrow',
     description: 'Show previous picture/video.',
@@ -93,16 +93,16 @@ const panels = [{
     description: 'Show next picture/video.',
   }, {
     shortcut: '/',
-    description: 'Reset to original picture/video size.',
+    description: 'Reset to original picture/video size. (TODO)',
   }, {
     shortcut: '*',
-    description: 'Scale picture/video size to window size.',
+    description: 'Scale picture/video size to window size. (TODO)',
   }, {
     shortcut: '+',
-    description: 'Zoom in picture/video size.',
+    description: 'Zoom in picture/video size. (TODO)',
   }, {
     shortcut: '-',
-    description: 'Zoom out picture/video size.',
+    description: 'Zoom out picture/video size. (TODO)',
   }],
 }, {
   // Folder browser - shortucts
@@ -147,7 +147,7 @@ const panels = [{
     description: 'Navigate into current tags section. Set focus on previous/next tag.',
   }, {
     shortcut: 'up/downs arrow',
-    description: 'TODO: Navigate through tags section. Set focus on above/below tags section.',
+    description: 'Navigate through tags section. Set focus on above/below tags section (TODO).',
   }],
 }];
 
