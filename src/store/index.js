@@ -15,6 +15,9 @@ import {
 } from './types';
 
 import diaposhuffle from './modules/diaposhuffle';
+import playerOptionsSource from './modules/playerOptions/sourceOptions';
+import playerOptionsPlayer from './modules/playerOptions/playerOptions';
+import playerOptionsUI from './modules/playerOptions/uiOptions';
 import player from './modules/player';
 import folderBrowser from './modules/folderBrowser';
 import tagger from './modules/tagger';
@@ -55,6 +58,9 @@ const store = new Vuex.Store({
 
   modules: {
     diaposhuffle,
+    playerOptionsSource,
+    playerOptionsPlayer,
+    playerOptionsUI,
     player,
     folderBrowser,
     tagger,

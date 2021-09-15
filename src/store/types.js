@@ -11,12 +11,41 @@ export const INDEX_M_SHOW_THE_PLAYER = 'Show The Player';
 export const INDEX_A_PLAYER_START = 'Player Start';
 export const INDEX_A_PLAYER_STOP = 'Player Stop';
 
+/* === PlayerOptionsSource === */
+/* =========================== */
+export const PLAYER_OPTS_SRC_G_AVAILABLE_FILE_TYPES = 'Get Available File Types';
+export const PLAYER_OPTS_SRC_G_FOLDERS = 'Get Selected Folders';
+export const PLAYER_OPTS_SRC_G_TAGS = 'Get Selected Tags Ids';
+export const PLAYER_OPTS_SRC_G_HAS_TAGS = 'Get Has Selected Tags';
+export const PLAYER_OPTS_SRC_G_TAGS_OPERATOR = 'Get Chosen Tags Operator';
+export const PLAYER_OPTS_SRC_G_FILE_TYPES = 'Get Selected File Types';
+export const PLAYER_OPTS_SRC_G_HAS_FILE_TYPES = 'Get Has Selected File Types';
+export const PLAYER_OPTS_SRC_G_FROM_PINED = 'Get From Pined';
+
+export const PLAYER_OPTS_SRC_M_SOURCE_OPTIONS = 'Set Source Options';
+export const PLAYER_OPTS_SRC_M_TOGGLE_TAGS_OPERATOR = 'Toggle Tags Operator';
+
+/* === PlayerOptionsPlayer === */
+/* =========================== */
+export const PLAYER_OPTS_PLAYER_G_INTERVAL = 'Get Interval';
+export const PLAYER_OPTS_PLAYER_G_ZOOM = 'Get Zoom';
+export const PLAYER_OPTS_PLAYER_G_MUTE_VIDEO = 'Get Mute Video';
+export const PLAYER_OPTS_PLAYER_G_FETCH_ITEM_RANDOMLY = 'Get Fetch Item Randomly';
+
+export const PLAYER_OPTS_PLAYER_M_PLAYER_OPTIONS = 'Set Player Options';
+export const PLAYER_OPTS_PLAYER_M_RESET_INTERVAL = 'Reset Interval';
+
+/* === PlayerOptionsUI === */
+/* ======================= */
+export const PLAYER_OPTS_UI_G_SHOW_PATH = 'Get Show Path';
+export const PLAYER_OPTS_UI_G_PIN_PATH = 'Get Pin Path';
+export const PLAYER_OPTS_UI_G_SHOW_TAGS = 'Get Show Tags';
+export const PLAYER_OPTS_UI_G_PIN_TAGS = 'Get Pin Tags';
+
+export const PLAYER_OPTS_UI_M_UI_OPTIONS = 'Set UI Options';
+
 /* === Player === */
 /* ============== */
-export const PLAYER_G_FILTER_FILE_TYPES = 'Get Available Filter file types';
-export const PLAYER_G_FILTERS = 'Get Filters';
-export const PLAYER_G_OPTIONS = 'Get Options';
-
 export const PLAYER_G_HISTORY = 'Get History';
 export const PLAYER_G_HISTORY_LENGTH = 'Get History - Items length';
 export const PLAYER_G_HISTORY_INDEX = 'Get History - Index';
@@ -27,15 +56,11 @@ export const PLAYER_G_ITEMS_LENGTH = 'Get Items - Items length';
 export const PLAYER_G_CURRENT_ITEM_INDEX = 'Get Items - Get Current Item Index';
 export const PLAYER_G_CURRENT_ITEM = 'Get Items - Get Current Item';
 
-export const PLAYER_M_FILTERS = 'Filters';
-export const PLAYER_M_OPTIONS = 'Options';
-export const PLAYER_M_RESET_INTERVAL = 'Reset Options - Interval';
 export const PLAYER_M_SET_HISTORY_INDEX = 'Set History - Index';
 export const PLAYER_M_ADD_HISTORY_ITEM = 'Add History - Item';
 export const PLAYER_M_EDIT_HISTORY_ITEM = 'Edit History - Item';
 export const PLAYER_M_DELETE_HISTORY_ITEM = 'Delete History - Item';
 export const PLAYER_M_ADD_ERROR = 'Add Error';
-export const PLAYER_M_TOGGLE_TAGS_OPERATOR = 'Toggle Tags Operator';
 
 export const PLAYER_A_FETCH_NEXT = 'Fetch Next Item';
 export const PLAYER_A_FETCH_ITEMS_FROM_RANDOM = 'Fetch Items From Random';

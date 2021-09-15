@@ -43,8 +43,12 @@
 <script>
 // TODO: Feature: Add an option to force pin the player UI. Should propound an option to allow to pin all pinable elements ?
 import {
-  PLAYER_G_OPTIONS,
-  PLAYER_M_OPTIONS,
+  PLAYER_OPTS_UI_G_SHOW_PATH,
+  PLAYER_OPTS_UI_G_PIN_PATH,
+  PLAYER_OPTS_UI_G_SHOW_TAGS,
+  PLAYER_OPTS_UI_G_PIN_TAGS,
+
+  PLAYER_OPTS_UI_M_UI_OPTIONS,
 } from '../../store/types';
 
 export default {
@@ -57,26 +61,34 @@ export default {
   data: () => ({}),
 
   computed: {
-    NS () { return 'player' },
+    NS () { return 'playerOptionsUI' },
 
     showPath: {
-      get () { return this.$store.getters[`${this.NS}/${PLAYER_G_OPTIONS}`].showPath },
-      set (showPath) { this.$store.commit(`${this.NS}/${PLAYER_M_OPTIONS}`, { showPath }) },
+      get () { return this.$store.getters[`${this.NS}/${PLAYER_OPTS_UI_G_SHOW_PATH}`] },
+      set (showPath) {
+        this.$store.commit(`${this.NS}/${PLAYER_OPTS_UI_M_UI_OPTIONS}`, { showPath });
+      },
     },
 
     pinPath: {
-      get () { return this.$store.getters[`${this.NS}/${PLAYER_G_OPTIONS}`].pinPath },
-      set (pinPath) { this.$store.commit(`${this.NS}/${PLAYER_M_OPTIONS}`, { pinPath }) },
+      get () { return this.$store.getters[`${this.NS}/${PLAYER_OPTS_UI_G_PIN_PATH}`] },
+      set (pinPath) {
+        this.$store.commit(`${this.NS}/${PLAYER_OPTS_UI_M_UI_OPTIONS}`, { pinPath });
+      },
     },
 
     showTags: {
-      get () { return this.$store.getters[`${this.NS}/${PLAYER_G_OPTIONS}`].showTags },
-      set (showTags) { this.$store.commit(`${this.NS}/${PLAYER_M_OPTIONS}`, { showTags }) },
+      get () { return this.$store.getters[`${this.NS}/${PLAYER_OPTS_UI_G_SHOW_TAGS}`] },
+      set (showTags) {
+        this.$store.commit(`${this.NS}/${PLAYER_OPTS_UI_M_UI_OPTIONS}`, { showTags });
+      },
     },
 
     pinTags: {
-      get () { return this.$store.getters[`${this.NS}/${PLAYER_G_OPTIONS}`].pinTags },
-      set (pinTags) { this.$store.commit(`${this.NS}/${PLAYER_M_OPTIONS}`, { pinTags }) },
+      get () { return this.$store.getters[`${this.NS}/${PLAYER_OPTS_UI_G_PIN_TAGS}`] },
+      set (pinTags) {
+        this.$store.commit(`${this.NS}/${PLAYER_OPTS_UI_M_UI_OPTIONS}`, { pinTags });
+      },
     },
   },
 

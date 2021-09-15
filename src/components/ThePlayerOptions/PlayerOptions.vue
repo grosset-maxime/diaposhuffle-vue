@@ -49,9 +49,14 @@
 <script>
 // TODO: Feature: Add an option to play in infinite loop for video item.
 import {
-  PLAYER_G_OPTIONS,
-  PLAYER_M_OPTIONS,
-  PLAYER_M_RESET_INTERVAL,
+  PLAYER_OPTS_PLAYER_G_FETCH_ITEM_RANDOMLY,
+
+  PLAYER_OPTS_PLAYER_G_INTERVAL,
+
+  PLAYER_OPTS_PLAYER_G_MUTE_VIDEO,
+
+  PLAYER_OPTS_PLAYER_M_PLAYER_OPTIONS,
+  PLAYER_OPTS_PLAYER_M_RESET_INTERVAL,
 } from '../../store/types';
 
 export default {
@@ -64,22 +69,31 @@ export default {
   data: () => ({}),
 
   computed: {
-    NS () { return 'player' },
+    NS () { return 'playerOptionsPlayer' },
 
     interval: {
-      get () { return this.$store.getters[`${this.NS}/${PLAYER_G_OPTIONS}`].interval },
-      set (interval) { this.$store.commit(`${this.NS}/${PLAYER_M_OPTIONS}`, { interval }) },
+      get () { return this.$store.getters[`${this.NS}/${PLAYER_OPTS_PLAYER_G_INTERVAL}`] },
+      set (interval) {
+        this.$store.commit(`${this.NS}/${PLAYER_OPTS_PLAYER_M_PLAYER_OPTIONS}`, { interval });
+      },
     },
 
     muteVideo: {
-      get () { return this.$store.getters[`${this.NS}/${PLAYER_G_OPTIONS}`].muteVideo },
-      set (muteVideo) { this.$store.commit(`${this.NS}/${PLAYER_M_OPTIONS}`, { muteVideo }) },
+      get () { return this.$store.getters[`${this.NS}/${PLAYER_OPTS_PLAYER_G_MUTE_VIDEO}`] },
+      set (muteVideo) {
+        this.$store.commit(`${this.NS}/${PLAYER_OPTS_PLAYER_M_PLAYER_OPTIONS}`, { muteVideo });
+      },
     },
 
     fetchItemRandomly: {
-      get () { return this.$store.getters[`${this.NS}/${PLAYER_G_OPTIONS}`].fetchItemRandomly },
+      get () {
+        return this.$store.getters[`${this.NS}/${PLAYER_OPTS_PLAYER_G_FETCH_ITEM_RANDOMLY}`];
+      },
       set (fetchItemRandomly) {
-        this.$store.commit(`${this.NS}/${PLAYER_M_OPTIONS}`, { fetchItemRandomly });
+        this.$store.commit(
+          `${this.NS}/${PLAYER_OPTS_PLAYER_M_PLAYER_OPTIONS}`,
+          { fetchItemRandomly },
+        );
       },
     },
   },
@@ -89,7 +103,7 @@ export default {
   // mounted () {},
 
   methods: {
-    resetInterval () { this.$store.commit(`${this.NS}/${PLAYER_M_RESET_INTERVAL}`) },
+    resetInterval () { this.$store.commit(`${this.NS}/${PLAYER_OPTS_PLAYER_M_RESET_INTERVAL}`) },
   },
 
   // beforeDestroy () {},

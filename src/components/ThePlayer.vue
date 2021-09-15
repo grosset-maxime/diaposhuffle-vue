@@ -104,7 +104,7 @@
       @mouseout="onMouseOutUI"
     >
       <TagsList
-        v-if="options.showTags"
+        v-if="showTagsUI"
         v-show="showTheTagsList"
         :tags-ids="playingItemTags"
         class="the-tags-list"
@@ -165,7 +165,7 @@
     >
       <!-- TODO: FEATURE: add a dense/contracted mode which will expand on mouse hover -->
       <ItemPathChip
-        v-if="options.showPath"
+        v-if="showPathUI"
         v-show="showTheItemPathChip"
         class="the-item-path-chip"
         :path-start="playingItemSelectedPath"
@@ -200,9 +200,6 @@ import {
   INDEX_M_SHOW_THE_HELP,
   INDEX_A_PLAYER_STOP,
 
-  PLAYER_G_OPTIONS,
-  PLAYER_G_FILTERS,
-
   PLAYER_G_HISTORY,
   PLAYER_G_HISTORY_INDEX,
   PLAYER_G_HISTORY_LENGTH,
@@ -223,6 +220,17 @@ import {
 
   TAGGER_A_FETCH_TAGS,
   TAGGER_A_FETCH_CATEGORIES,
+
+  PLAYER_OPTS_SRC_G_HAS_FILE_TYPES,
+  PLAYER_OPTS_SRC_G_HAS_TAGS,
+
+  PLAYER_OPTS_PLAYER_G_MUTE_VIDEO,
+  PLAYER_OPTS_PLAYER_G_INTERVAL,
+
+  PLAYER_OPTS_UI_G_SHOW_PATH,
+  PLAYER_OPTS_UI_G_PIN_PATH,
+  PLAYER_OPTS_UI_G_SHOW_TAGS,
+  PLAYER_OPTS_UI_G_PIN_TAGS,
 } from '../store/types';
 import TheLoop from './TheLoop.vue';
 import PauseBtn from './PauseBtn.vue';
@@ -327,17 +335,51 @@ export default {
 
     TAGGER_NS () { return 'tagger' },
 
+    PLAYER_OPTS_SRC_NS () { return 'playerOptionsSource' },
+
+    PLAYER_OPTS_PLAYER_NS () { return 'playerOptionsPlayer' },
+
+    PLAYER_OPTS_UI_NS () { return 'playerOptionsUI' },
+
     TheLoop () { return this.$refs.TheLoop },
 
     ItemsPlayer () { return this.$refs.ItemsPlayer },
 
-    options () { return this.$store.getters[`${this.NS}/${PLAYER_G_OPTIONS}`] },
+    showPathUI () {
+      return this.$store.getters[`${this.PLAYER_OPTS_UI_NS}/${PLAYER_OPTS_UI_G_SHOW_PATH}`];
+    },
 
-    filters () { return this.$store.getters[`${this.NS}/${PLAYER_G_FILTERS}`] },
+    pinPathUI () {
+      return this.$store.getters[`${this.PLAYER_OPTS_UI_NS}/${PLAYER_OPTS_UI_G_PIN_PATH}`];
+    },
 
-    muteVideoOption () { return this.options.muteVideo },
+    showTagsUI () {
+      return this.$store.getters[`${this.PLAYER_OPTS_UI_NS}/${PLAYER_OPTS_UI_G_SHOW_TAGS}`];
+    },
 
-    intervalOptions () { return this.options.interval * 1000 },
+    pinTagsUI () {
+      return this.$store.getters[`${this.PLAYER_OPTS_UI_NS}/${PLAYER_OPTS_UI_G_PIN_TAGS}`];
+    },
+
+    hasFileTypesSource () {
+      return this.$store.getters[`${this.PLAYER_OPTS_SRC_NS}/${PLAYER_OPTS_SRC_G_HAS_FILE_TYPES}`];
+    },
+
+    hasTagsSource () {
+      return this.$store.getters[`${this.PLAYER_OPTS_SRC_NS}/${PLAYER_OPTS_SRC_G_HAS_TAGS}`];
+    },
+
+    muteVideoOption () {
+      return this.$store.getters[
+        `${this.PLAYER_OPTS_PLAYER_NS}/${PLAYER_OPTS_PLAYER_G_MUTE_VIDEO}`
+      ];
+    },
+
+    intervalOptions () {
+      return this.$store.getters[
+        `${this.PLAYER_OPTS_PLAYER_NS}/${PLAYER_OPTS_PLAYER_G_INTERVAL}`
+      ] * 1000;
+    },
 
     loopDuration () { return this.loop.duration },
 
@@ -392,13 +434,13 @@ export default {
     this.stop = false;
     this.pause = false;
 
-    // Init pined states from options.
-    this.itemPathChip.pined = this.options.pinPath;
-    this.tagsList.pined = this.options.pinTags;
+    // Init pined states from UI options.
+    this.itemPathChip.pined = this.pinPathUI;
+    this.tagsList.pined = this.pinTagsUI;
 
     const fetchTagsAndCategoriesPromise = this.fetchTagsAndCategories();
 
-    if (this.filters.tags.length || this.filters.fileTypes.length) {
+    if (this.hasTagsSource || this.hasFileTypesSource) {
       this.setLoopIndeterminate(true);
       try {
         await this.$store.dispatch(`${this.NS}/${PLAYER_A_FETCH_ITEMS_FROM_BDD}`);

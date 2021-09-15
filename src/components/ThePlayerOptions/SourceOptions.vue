@@ -129,7 +129,7 @@
     >
       <v-col>
         <v-switch
-          v-model="showFromPined"
+          v-model="fromPined"
           label="Pined items (0)"
           class="ma-0 pa-0"
           disabled
@@ -159,13 +159,14 @@
 // TODO: Feature: Add a filter by: image or video types. DONE ?
 // TODO: Feature: Add play pined items feature
 import {
-  PLAYER_G_FILTER_FILE_TYPES,
-  PLAYER_G_FILTERS,
-  PLAYER_G_OPTIONS,
+  PLAYER_OPTS_SRC_G_AVAILABLE_FILE_TYPES,
+  PLAYER_OPTS_SRC_G_TAGS,
+  PLAYER_OPTS_SRC_G_TAGS_OPERATOR,
+  PLAYER_OPTS_SRC_G_FILE_TYPES,
+  PLAYER_OPTS_SRC_G_FROM_PINED,
 
-  PLAYER_M_FILTERS,
-  PLAYER_M_OPTIONS,
-  PLAYER_M_TOGGLE_TAGS_OPERATOR,
+  PLAYER_OPTS_SRC_M_TOGGLE_TAGS_OPERATOR,
+  PLAYER_OPTS_SRC_M_SOURCE_OPTIONS,
 } from '../../store/types';
 import FolderBrowser from '../FolderBrowser/FolderBrowser.vue';
 import TaggerModal from '../Tagger/TaggerModal.vue';
@@ -200,31 +201,31 @@ export default {
   }),
 
   computed: {
-    NS () { return 'player' },
+    NS () { return 'playerOptionsSource' },
 
     availableFilterFileTypes () {
-      return this.$store.getters[`${this.NS}/${PLAYER_G_FILTER_FILE_TYPES}`];
+      return this.$store.getters[`${this.NS}/${PLAYER_OPTS_SRC_G_AVAILABLE_FILE_TYPES}`];
     },
 
     tags: {
-      get () { return this.$store.getters[`${this.NS}/${PLAYER_G_FILTERS}`].tags },
-      set (tags) { this.$store.commit(`${this.NS}/${PLAYER_M_FILTERS}`, { tags }) },
+      get () { return this.$store.getters[`${this.NS}/${PLAYER_OPTS_SRC_G_TAGS}`] },
+      set (tags) { this.$store.commit(`${this.NS}/${PLAYER_OPTS_SRC_M_SOURCE_OPTIONS}`, { tags }) },
     },
 
     tagsOperator () {
-      return this.$store.getters[`${this.NS}/${PLAYER_G_FILTERS}`].tagsOperator;
+      return this.$store.getters[`${this.NS}/${PLAYER_OPTS_SRC_G_TAGS_OPERATOR}`];
     },
 
     tagsOperatorText () { return this.tagsOperator },
 
     filterFileTypes: {
       get () {
-        return this.$store.getters[`${this.NS}/${PLAYER_G_FILTERS}`].fileTypes
+        return this.$store.getters[`${this.NS}/${PLAYER_OPTS_SRC_G_FILE_TYPES}`]
           .map((type) => this.availableFilterFileTypes.indexOf(type));
       },
       set (typesIndex) {
         const fileTypes = typesIndex.map((index) => this.availableFilterFileTypes[index]);
-        this.$store.commit(`${this.NS}/${PLAYER_M_FILTERS}`, { fileTypes });
+        this.$store.commit(`${this.NS}/${PLAYER_OPTS_SRC_M_SOURCE_OPTIONS}`, { fileTypes });
       },
     },
 
@@ -232,10 +233,10 @@ export default {
 
     nbSelectedTags () { return this.taggerModal.selectedTagIds.length },
 
-    showFromPined: {
-      get () { return this.$store.getters[`${this.NS}/${PLAYER_G_OPTIONS}`].showFromPined },
-      set (showFromPined) {
-        this.$store.commit(`${this.NS}/${PLAYER_M_OPTIONS}`, { showFromPined });
+    fromPined: {
+      get () { return this.$store.getters[`${this.NS}/${PLAYER_OPTS_SRC_G_FROM_PINED}`] },
+      set (fromPined) {
+        this.$store.commit(`${this.NS}/${PLAYER_OPTS_SRC_M_SOURCE_OPTIONS}`, { fromPined });
       },
     },
   },
@@ -272,7 +273,7 @@ export default {
 
     setFolders (selectedFolders) {
       const folders = [...selectedFolders];
-      this.$store.commit(`${this.NS}/${PLAYER_M_FILTERS}`, { folders });
+      this.$store.commit(`${this.NS}/${PLAYER_OPTS_SRC_M_SOURCE_OPTIONS}`, { folders });
     },
 
     showTaggerModal () {
@@ -303,11 +304,14 @@ export default {
     },
 
     setTags (selectedTagIds) {
-      this.$store.commit(`${this.NS}/${PLAYER_M_FILTERS}`, { tags: [...selectedTagIds] });
+      this.$store.commit(
+        `${this.NS}/${PLAYER_OPTS_SRC_M_SOURCE_OPTIONS}`,
+        { tags: [...selectedTagIds] },
+      );
     },
 
     toggleTagsOperator () {
-      this.$store.commit(`${this.NS}/${PLAYER_M_TOGGLE_TAGS_OPERATOR}`);
+      this.$store.commit(`${this.NS}/${PLAYER_OPTS_SRC_M_TOGGLE_TAGS_OPERATOR}`);
     },
   },
 

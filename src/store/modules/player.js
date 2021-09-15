@@ -10,10 +10,6 @@ import {
   setItemTags,
 } from '../../api/items';
 import {
-  PLAYER_G_FILTER_FILE_TYPES,
-  PLAYER_G_FILTERS,
-  PLAYER_G_OPTIONS,
-
   PLAYER_G_HISTORY,
   PLAYER_G_HISTORY_LENGTH,
   PLAYER_G_HISTORY_INDEX,
@@ -24,53 +20,33 @@ import {
   PLAYER_G_CURRENT_ITEM_INDEX,
   PLAYER_G_CURRENT_ITEM,
 
-  PLAYER_M_FILTERS,
-  PLAYER_M_OPTIONS,
-  PLAYER_M_RESET_INTERVAL,
   PLAYER_M_SET_HISTORY_INDEX,
   PLAYER_M_ADD_HISTORY_ITEM,
   PLAYER_M_EDIT_HISTORY_ITEM,
   PLAYER_M_DELETE_HISTORY_ITEM,
   PLAYER_M_ADD_ERROR,
-  PLAYER_M_TOGGLE_TAGS_OPERATOR,
 
   PLAYER_A_FETCH_NEXT,
   PLAYER_A_FETCH_ITEMS_FROM_RANDOM,
   PLAYER_A_FETCH_ITEMS_FROM_BDD,
   PLAYER_A_DELETE_ITEM,
   PLAYER_A_SET_ITEM_TAGS,
+
+  PLAYER_OPTS_SRC_G_FOLDERS,
+  PLAYER_OPTS_SRC_G_TAGS,
+  PLAYER_OPTS_SRC_G_TAGS_OPERATOR,
+  PLAYER_OPTS_SRC_G_FILE_TYPES,
+
+  PLAYER_OPTS_PLAYER_G_FETCH_ITEM_RANDOMLY,
 } from '../types';
 
-const INTERVAL_DEFAULT = 3; // seconds
 const FETCH_FROM_RANDOM = 'random';
 const FETCH_FROM_ITEMS = 'items';
-const TAGS_OPERATOR_OR = 'OR';
-const TAGS_OPERATOR_AND = 'AND';
+
+const PLAYER_OPTS_SRC_NS = 'playerOptionsSource';
+const PLAYER_OPTS_PLAYER_NS = 'playerOptionsPlayer';
 
 const state = () => ({
-  filterFileTypes: ['JPG', 'GIF', 'PNG', 'WEBM', 'MP4', 'MKV'],
-
-  filters: {
-    folders: [],
-    tags: [], // List of tags ids.
-    tagsOperator: TAGS_OPERATOR_AND,
-    fileTypes: [],
-  },
-
-  // TODO: Enh: create sections to separate easily options.
-  options: {
-    interval: INTERVAL_DEFAULT,
-    zoom: 1,
-    scale: true,
-    showPath: true,
-    pinPath: false,
-    showFromPined: false,
-    showTags: true,
-    pinTags: true,
-    muteVideo: true,
-    fetchItemRandomly: true,
-  },
-
   history: {
     items: [],
     index: 0,
@@ -86,12 +62,6 @@ const state = () => ({
 });
 
 const getters = {
-  [PLAYER_G_FILTER_FILE_TYPES]: (state) => state.filterFileTypes,
-
-  [PLAYER_G_FILTERS]: (state) => state.filters,
-
-  [PLAYER_G_OPTIONS]: (state) => state.options,
-
   [PLAYER_G_HISTORY]: (state) => state.history,
   [PLAYER_G_HISTORY_LENGTH]: (state) => state.history.items.length,
   [PLAYER_G_HISTORY_INDEX]: (state) => state.history.index,
@@ -104,22 +74,6 @@ const getters = {
 };
 
 const mutations = {
-  [PLAYER_M_FILTERS] (state, filters) {
-    Object.keys(filters).forEach((keys) => {
-      Vue.set(state.filters, keys, filters[keys]);
-    });
-  },
-
-  [PLAYER_M_OPTIONS] (state, options) {
-    Object.keys(options).forEach((keys) => {
-      Vue.set(state.options, keys, options[keys]);
-    });
-  },
-
-  [PLAYER_M_RESET_INTERVAL] (state) {
-    Vue.set(state.options, 'interval', INTERVAL_DEFAULT);
-  },
-
   [PLAYER_M_SET_HISTORY_INDEX] (state, index) {
     Vue.set(state.history, 'index', index);
   },
@@ -147,14 +101,6 @@ const mutations = {
     console.error(`Error from "${actionName}":`, error);
   },
 
-  [PLAYER_M_TOGGLE_TAGS_OPERATOR] (state) {
-    const operator = state.filters.tagsOperator === TAGS_OPERATOR_OR
-      ? TAGS_OPERATOR_AND
-      : TAGS_OPERATOR_OR;
-
-    Vue.set(state.filters, 'tagsOperator', operator);
-  },
-
   setItems (state, items) { state.items = items },
 
   clearItems (state) { state.items = [] },
@@ -165,21 +111,23 @@ const mutations = {
 };
 
 const actions = {
-
-  // TODO: Feature: Add fetch items from bdd with tags and types.
-  // TODO: Bug: Backend: getimagesize raize warning in call response body that trigger json.parse to fail. Should be added to the response object as error.
-  async [PLAYER_A_FETCH_NEXT] ({ state, commit, getters }) {
+  // TODO: Feature: Add fetch items from bdd with tags and types. DONE ?
+  // TODO: Bug: Backend: getimagesize raize warning in call response body that
+  //                     trigger json.parse to fail. Should be added to the
+  //                     response object as error.
+  async [PLAYER_A_FETCH_NEXT] ({ state, rootGetters, commit }) {
     let result;
 
-    const filters = getters[PLAYER_G_FILTERS];
-    const options = getters[PLAYER_G_OPTIONS];
+    const fetchItemRandomly = rootGetters[
+      `${PLAYER_OPTS_PLAYER_NS}/${PLAYER_OPTS_PLAYER_G_FETCH_ITEM_RANDOMLY}`
+    ];
 
     try {
       if (state.fetchNextFrom === FETCH_FROM_ITEMS) {
         let index;
         let el;
 
-        if (options.fetchItemRandomly) {
+        if (fetchItemRandomly) {
           const obj = getRandomElementWithIndex(state.items);
           el = obj.el;
           index = obj.index;
@@ -195,7 +143,7 @@ const actions = {
         commit('setItemIndex', index);
       } else if (state.fetchNextFrom === FETCH_FROM_RANDOM) {
         result = await fetchRandomItem({
-          folders: filters.folders,
+          folders: rootGetters[`${PLAYER_OPTS_SRC_NS}/${PLAYER_OPTS_SRC_G_FOLDERS}`],
         });
       } else {
         throw new Error(`Invalid state.fetchNextFrom:"${state.fetchNextFrom}"`);
@@ -215,10 +163,13 @@ const actions = {
     return Promise.resolve();
   },
 
-  async [PLAYER_A_FETCH_ITEMS_FROM_BDD] ({ commit, getters }) {
+  async [PLAYER_A_FETCH_ITEMS_FROM_BDD] ({ rootGetters, commit }) {
     let items;
+    const playerOptsSrcGetter = (g) => rootGetters[`${PLAYER_OPTS_SRC_NS}/${g}`];
 
-    const { tags, tagsOperator, fileTypes } = getters[PLAYER_G_FILTERS];
+    const tags = playerOptsSrcGetter(PLAYER_OPTS_SRC_G_TAGS);
+    const tagsOperator = playerOptsSrcGetter(PLAYER_OPTS_SRC_G_TAGS_OPERATOR);
+    const fileTypes = playerOptsSrcGetter(PLAYER_OPTS_SRC_G_FILE_TYPES);
 
     try {
       items = await fetchItemsFromBdd({
@@ -226,11 +177,13 @@ const actions = {
         tagsOperator,
         types: fileTypes,
       });
+
       commit('setItems', items);
       commit('setFetchNextFrom', FETCH_FROM_ITEMS);
     } catch (e) {
       const error = buildError(e);
       commit(PLAYER_M_ADD_ERROR, { actionName: PLAYER_A_FETCH_ITEMS_FROM_BDD, error });
+
       throw error;
     }
 
@@ -245,6 +198,7 @@ const actions = {
     } catch (e) {
       const error = buildError(e);
       commit(PLAYER_M_ADD_ERROR, { actionName: PLAYER_A_DELETE_ITEM, error });
+
       throw error;
     }
 
@@ -259,6 +213,7 @@ const actions = {
     } catch (e) {
       const error = buildError(e);
       commit(PLAYER_M_ADD_ERROR, { actionName: PLAYER_A_SET_ITEM_TAGS, error });
+
       throw error;
     }
 
