@@ -19,6 +19,7 @@
     >
       <TheLoop
         ref="TheLoop"
+        v-show="showLoopUI"
         :duration="loopDuration"
         :dense="!loop.pined && !shouldShowUI"
         :show-duration-time="playingItem.isVideo"
@@ -60,6 +61,8 @@
     </v-alert>
 
     <PinWrapper
+      v-if="showHistoryUI"
+      v-show="showTheHistoryChip"
       :class="['the-history-chip-pin-wrapper', {
         pined: historyChip.pined
       }]"
@@ -70,14 +73,13 @@
       @mouseout="onMouseOutUI"
     >
       <HistoryChip
-        v-show="showTheHistoryChip"
         class="the-history-chip"
         @click="pausePlaying"
       />
     </PinWrapper>
 
     <PinWrapper
-      v-if="hasItems"
+      v-if="showListIndexUI && hasItems"
       :class="['the-items-info-chip-pin-wrapper', {
         pined: itemsInfoChip.pined
       }]"
@@ -94,6 +96,8 @@
     </PinWrapper>
 
     <PinWrapper
+      v-if="showTagsUI"
+      v-show="showTheTagsList"
       :class="['the-tags-list-pin-wrapper', {
         pined: tagsList.pined
       }]"
@@ -104,8 +108,6 @@
       @mouseout="onMouseOutUI"
     >
       <TagsList
-        v-if="showTagsUI"
-        v-show="showTheTagsList"
         :tags-ids="playingItemTags"
         class="the-tags-list"
         @click="showTaggerModal"
@@ -154,6 +156,8 @@
     />
 
     <PinWrapper
+      v-if="showPathUI"
+      v-show="showTheItemPathChip"
       :class="['the-item-path-chip-pin-wrapper', {
         pined: itemPathChip.pined
       }]"
@@ -165,8 +169,6 @@
     >
       <!-- TODO: FEATURE: add a dense/contracted mode which will expand on mouse hover -->
       <ItemPathChip
-        v-if="showPathUI"
-        v-show="showTheItemPathChip"
         class="the-item-path-chip"
         :path-start="playingItemSelectedPath"
         :path-end="playingItemRandomPath"
@@ -188,8 +190,9 @@
 <script>
 // TODO: Enh: Display duration time for video at bottom corner?
 // TODO: Feature: For small video try to not fit the screen and apply a scale instead.
-// TODO: Feature: Show nb items and index of current item on playing from bdd items.
+// TODO: Enh: update index of current item on playing from bdd items when displaying an item from history.
 // TODO: Feature: Add options to play items not randomly but in row into a folder.
+// TODO: Bug: On playing from bdd not randomly, the seconde item is shown instead of the first one.
 import {
   ERROR_SEVERITY_INFO,
   buildError,
@@ -235,6 +238,12 @@ import {
   PLAYER_OPTS_UI_G_PIN_PATH,
   PLAYER_OPTS_UI_G_SHOW_TAGS,
   PLAYER_OPTS_UI_G_PIN_TAGS,
+  PLAYER_OPTS_UI_G_SHOW_HISTORY,
+  PLAYER_OPTS_UI_G_PIN_HISTORY,
+  PLAYER_OPTS_UI_G_SHOW_LIST_INDEX,
+  PLAYER_OPTS_UI_G_PIN_LIST_INDEX,
+  PLAYER_OPTS_UI_G_SHOW_LOOP,
+  PLAYER_OPTS_UI_G_PIN_LOOP,
 } from '../store/types';
 import TheLoop from './TheLoop.vue';
 import PauseBtn from './PauseBtn.vue';
@@ -353,7 +362,8 @@ export default {
     },
 
     pinPathUI () {
-      return this.$store.getters[`${this.PLAYER_OPTS_UI_NS}/${PLAYER_OPTS_UI_G_PIN_PATH}`];
+      return this.showPathUI
+        && this.$store.getters[`${this.PLAYER_OPTS_UI_NS}/${PLAYER_OPTS_UI_G_PIN_PATH}`];
     },
 
     showTagsUI () {
@@ -361,7 +371,35 @@ export default {
     },
 
     pinTagsUI () {
-      return this.$store.getters[`${this.PLAYER_OPTS_UI_NS}/${PLAYER_OPTS_UI_G_PIN_TAGS}`];
+      return this.showTagsUI
+        && this.$store.getters[`${this.PLAYER_OPTS_UI_NS}/${PLAYER_OPTS_UI_G_PIN_TAGS}`];
+    },
+
+    showHistoryUI () {
+      return this.$store.getters[`${this.PLAYER_OPTS_UI_NS}/${PLAYER_OPTS_UI_G_SHOW_HISTORY}`];
+    },
+
+    pinHistoryUI () {
+      return this.showHistoryUI
+        && this.$store.getters[`${this.PLAYER_OPTS_UI_NS}/${PLAYER_OPTS_UI_G_PIN_HISTORY}`];
+    },
+
+    showListIndexUI () {
+      return this.$store.getters[`${this.PLAYER_OPTS_UI_NS}/${PLAYER_OPTS_UI_G_SHOW_LIST_INDEX}`];
+    },
+
+    pinListIndexUI () {
+      return this.showListIndexUI
+        && this.$store.getters[`${this.PLAYER_OPTS_UI_NS}/${PLAYER_OPTS_UI_G_PIN_LIST_INDEX}`];
+    },
+
+    showLoopUI () {
+      return this.$store.getters[`${this.PLAYER_OPTS_UI_NS}/${PLAYER_OPTS_UI_G_SHOW_LOOP}`];
+    },
+
+    pinLoopUI () {
+      return this.showLoopUI
+        && this.$store.getters[`${this.PLAYER_OPTS_UI_NS}/${PLAYER_OPTS_UI_G_PIN_LOOP}`];
     },
 
     hasFileTypesSource () {
@@ -448,6 +486,9 @@ export default {
     // Init pined states from UI options.
     this.itemPathChip.pined = this.pinPathUI;
     this.tagsList.pined = this.pinTagsUI;
+    this.historyChip.pined = this.pinHistoryUI;
+    this.itemsInfoChip.pined = this.pinListIndexUI;
+    this.loop.pined = this.pinLoopUI;
 
     const fetchTagsAndCategoriesPromise = this.fetchTagsAndCategories();
 

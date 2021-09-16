@@ -41,6 +41,12 @@ export const PLAYER_OPTS_UI_G_SHOW_PATH = 'Get Show Path';
 export const PLAYER_OPTS_UI_G_PIN_PATH = 'Get Pin Path';
 export const PLAYER_OPTS_UI_G_SHOW_TAGS = 'Get Show Tags';
 export const PLAYER_OPTS_UI_G_PIN_TAGS = 'Get Pin Tags';
+export const PLAYER_OPTS_UI_G_SHOW_HISTORY = 'Get Show History';
+export const PLAYER_OPTS_UI_G_PIN_HISTORY = 'Get Pin History';
+export const PLAYER_OPTS_UI_G_SHOW_LIST_INDEX = 'Get Show List Index';
+export const PLAYER_OPTS_UI_G_PIN_LIST_INDEX = 'Get Pin List Index';
+export const PLAYER_OPTS_UI_G_SHOW_LOOP = 'Get Show Loop';
+export const PLAYER_OPTS_UI_G_PIN_LOOP = 'Get Pin Loop';
 
 export const PLAYER_OPTS_UI_M_UI_OPTIONS = 'Set UI Options';
 
