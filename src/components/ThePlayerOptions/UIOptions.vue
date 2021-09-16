@@ -3,10 +3,44 @@
     <v-row align="center">
       <v-col>
         <v-switch
+          v-model="showHideAll"
+          :label="showHideAllLabel"
+          class="ma-0 pa-0"
+          hide-details
+          inset
+          @change="toggleShowHideAll"
+        />
+      </v-col>
+      <v-col>
+        <v-switch
+          v-model="pinUnpinAll"
+          :label="pinUnpinAllLabel"
+          class="ma-0 pa-0"
+          hide-details
+          inset
+          @change="togglePinUnpinAll"
+        />
+      </v-col>
+    </v-row>
+
+    <v-row align="center">
+      <v-col>
+        <v-divider class="all-separator" />
+      </v-col>
+      <v-col>
+        <v-divider class="all-separator" />
+      </v-col>
+    </v-row>
+
+    <v-row align="center">
+      <v-col>
+        <v-switch
           v-model="showPath"
           label="Show path"
           class="ma-0 pa-0"
           hide-details
+          inset
+          @change="onSwitchShowChange"
         />
       </v-col>
       <v-col>
@@ -15,6 +49,8 @@
           label="Pin path"
           class="ma-0 pa-0"
           hide-details
+          inset
+          @change="onSwitchPinChange"
         />
       </v-col>
     </v-row>
@@ -26,6 +62,8 @@
           label="Show tags"
           class="ma-0 pa-0"
           hide-details
+          inset
+          @change="onSwitchShowChange"
         />
       </v-col>
       <v-col>
@@ -34,6 +72,8 @@
           label="Pin tags"
           class="ma-0 pa-0"
           hide-details
+          inset
+          @change="onSwitchPinChange"
         />
       </v-col>
     </v-row>
@@ -45,6 +85,8 @@
           label="Show history"
           class="ma-0 pa-0"
           hide-details
+          inset
+          @change="onSwitchShowChange"
         />
       </v-col>
       <v-col>
@@ -53,6 +95,8 @@
           label="Pin history"
           class="ma-0 pa-0"
           hide-details
+          inset
+          @change="onSwitchPinChange"
         />
       </v-col>
     </v-row>
@@ -64,6 +108,8 @@
           label="Show list index"
           class="ma-0 pa-0"
           hide-details
+          inset
+          @change="onSwitchShowChange"
         />
       </v-col>
       <v-col>
@@ -72,6 +118,8 @@
           label="Pin list index"
           class="ma-0 pa-0"
           hide-details
+          inset
+          @change="onSwitchPinChange"
         />
       </v-col>
     </v-row>
@@ -83,6 +131,8 @@
           label="Show loop"
           class="ma-0 pa-0"
           hide-details
+          inset
+          @change="onSwitchShowChange"
         />
       </v-col>
       <v-col>
@@ -91,6 +141,8 @@
           label="Pin loop"
           class="ma-0 pa-0"
           hide-details
+          inset
+          @change="onSwitchPinChange"
         />
       </v-col>
     </v-row>
@@ -98,7 +150,6 @@
 </template>
 
 <script>
-// TODO: Feature: Add an option to force pin the player UI. Should propound an option to allow to pin all pinable elements ?
 import {
   PLAYER_OPTS_UI_G_SHOW_PATH,
   PLAYER_OPTS_UI_G_PIN_PATH,
@@ -112,6 +163,8 @@ import {
   PLAYER_OPTS_UI_G_PIN_LOOP,
 
   PLAYER_OPTS_UI_M_UI_OPTIONS,
+  PLAYER_OPTS_UI_M_TOGGLE_SHOW_HIDE_ALL,
+  PLAYER_OPTS_UI_M_TOGGLE_PIN_UNPIN_ALL,
 } from '../../store/types';
 
 export default {
@@ -121,7 +174,10 @@ export default {
 
   emits: {},
 
-  data: () => ({}),
+  data: () => ({
+    showHideAll: false,
+    pinUnpinAll: false,
+  }),
 
   computed: {
     NS () { return 'playerOptionsUI' },
@@ -195,13 +251,43 @@ export default {
         this.$store.commit(`${this.NS}/${PLAYER_OPTS_UI_M_UI_OPTIONS}`, { pinLoop });
       },
     },
+
+    showHideAllLabel () { return this.showHideAll ? 'Hide all' : 'Show all' },
+    pinUnpinAllLabel () { return this.pinUnpinAll ? 'Unpin all' : 'Pin all' },
   },
 
   // watch: {},
 
-  // mounted () {},
+  mounted () {
+    this.onSwitchShowChange();
+    this.onSwitchPinChange();
+  },
 
-  // methods: {},
+  methods: {
+    toggleShowHideAll (value) {
+      this.$store.commit(`${this.NS}/${PLAYER_OPTS_UI_M_TOGGLE_SHOW_HIDE_ALL}`, value);
+    },
+
+    togglePinUnpinAll (value) {
+      this.$store.commit(`${this.NS}/${PLAYER_OPTS_UI_M_TOGGLE_PIN_UNPIN_ALL}`, value);
+    },
+
+    onSwitchShowChange () {
+      this.showHideAll = this.showPath
+        && this.showTags
+        && this.showHistory
+        && this.showListIndex
+        && this.showLoop;
+    },
+
+    onSwitchPinChange () {
+      this.pinUnpinAll = this.pinPath
+        && this.pinTags
+        && this.pinHistory
+        && this.pinListIndex
+        && this.pinLoop;
+    },
+  },
 
   // beforeDestroy () {},
 };
@@ -209,6 +295,9 @@ export default {
 
 <style lang="scss" scoped>
 .ui-options {
+  .all-separator {
+    opacity: 0.4;
+  }
   .v-label {
     margin-right: 20px;
   }

@@ -134,6 +134,7 @@
           class="ma-0 pa-0"
           disabled
           hide-details
+          inset
         />
       </v-col>
     </v-row>

@@ -14,6 +14,8 @@ import {
   PLAYER_OPTS_UI_G_PIN_LOOP,
 
   PLAYER_OPTS_UI_M_UI_OPTIONS,
+  PLAYER_OPTS_UI_M_TOGGLE_SHOW_HIDE_ALL,
+  PLAYER_OPTS_UI_M_TOGGLE_PIN_UNPIN_ALL,
 } from '../../types';
 
 const state = () => ({
@@ -55,6 +57,22 @@ const mutations = {
     Object.keys(options).forEach((key) => {
       Vue.set(state, key, options[key]);
     });
+  },
+
+  [PLAYER_OPTS_UI_M_TOGGLE_SHOW_HIDE_ALL] (state, value) {
+    Vue.set(state, 'showPath', value);
+    Vue.set(state, 'showTags', value);
+    Vue.set(state, 'showHistory', value);
+    Vue.set(state, 'showListIndex', value);
+    Vue.set(state, 'showLoop', value);
+  },
+
+  [PLAYER_OPTS_UI_M_TOGGLE_PIN_UNPIN_ALL] (state, value) {
+    Vue.set(state, 'pinPath', value);
+    Vue.set(state, 'pinTags', value);
+    Vue.set(state, 'pinHistory', value);
+    Vue.set(state, 'pinListIndex', value);
+    Vue.set(state, 'pinLoop', value);
   },
 };
 

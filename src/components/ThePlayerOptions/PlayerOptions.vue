@@ -29,6 +29,7 @@
           label="Mute video"
           class="ma-0 pa-0"
           hide-details
+          inset
         />
       </v-col>
     </v-row>
@@ -40,6 +41,7 @@
           label="Fetch Item Randomly"
           class="ma-0 pa-0"
           hide-details
+          inset
         />
       </v-col>
     </v-row>

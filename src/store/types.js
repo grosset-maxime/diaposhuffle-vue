@@ -49,6 +49,8 @@ export const PLAYER_OPTS_UI_G_SHOW_LOOP = 'Get Show Loop';
 export const PLAYER_OPTS_UI_G_PIN_LOOP = 'Get Pin Loop';
 
 export const PLAYER_OPTS_UI_M_UI_OPTIONS = 'Set UI Options';
+export const PLAYER_OPTS_UI_M_TOGGLE_SHOW_HIDE_ALL = 'Toggle Show Hide All';
+export const PLAYER_OPTS_UI_M_TOGGLE_PIN_UNPIN_ALL = 'Toggle Pin Unpin All';
 
 /* === Player === */
 /* ============== */
