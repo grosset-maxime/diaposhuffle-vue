@@ -207,12 +207,15 @@ import {
 
   PLAYER_G_ITEMS_LENGTH,
 
+  PLAYER_G_FETCH_NEXT_FROM,
+
   PLAYER_M_SET_HISTORY_INDEX,
   PLAYER_M_ADD_HISTORY_ITEM,
   PLAYER_M_EDIT_HISTORY_ITEM,
   PLAYER_M_DELETE_HISTORY_ITEM,
 
   PLAYER_A_FETCH_NEXT,
+  PLAYER_A_FETCH_PREVIOUS,
   PLAYER_A_DELETE_ITEM,
   PLAYER_A_FETCH_ITEMS_FROM_BDD,
   PLAYER_A_FETCH_ITEMS_FROM_RANDOM,
@@ -226,6 +229,7 @@ import {
 
   PLAYER_OPTS_PLAYER_G_MUTE_VIDEO,
   PLAYER_OPTS_PLAYER_G_INTERVAL,
+  PLAYER_OPTS_PLAYER_G_FETCH_ITEM_RANDOMLY,
 
   PLAYER_OPTS_UI_G_SHOW_PATH,
   PLAYER_OPTS_UI_G_PIN_PATH,
@@ -242,9 +246,6 @@ import TagsList from './ThePlayer/TagsList.vue';
 import HistoryChip from './ThePlayer/HistoryChip.vue';
 import ItemsInfoChip from './ThePlayer/ItemsInfoChipChip.vue';
 import PinWrapper from './ThePlayer/PinWrapper.vue';
-
-const HISTORY_GO_NEXT = 'next';
-const HISTORY_GO_PREVIOUS = 'previous';
 
 export default {
   name: 'ThePlayer',
@@ -323,6 +324,8 @@ export default {
       onClose: () => {},
     },
 
+    fetchPreviousItem: false,
+
     fetchNextItemPromise: undefined,
 
     shouldShowUI: false,
@@ -381,6 +384,12 @@ export default {
       ] * 1000;
     },
 
+    fetchItemRandomlyOptions () {
+      return this.$store.getters[
+        `${this.PLAYER_OPTS_PLAYER_NS}/${PLAYER_OPTS_PLAYER_G_FETCH_ITEM_RANDOMLY}`
+      ];
+    },
+
     loopDuration () { return this.loop.duration },
 
     playingItemData () { return this.playingItem.data },
@@ -408,9 +417,11 @@ export default {
 
     hasItems () { return !!this.$store.getters[`${this.NS}/${PLAYER_G_ITEMS_LENGTH}`] },
 
-    deleteSrcText () {
-      return `Src: ${this.deleteModal.itemData?.src}`;
+    fetchNextFromItems () {
+      return this.$store.getters[`${this.NS}/${PLAYER_G_FETCH_NEXT_FROM}`] === 'items';
     },
+
+    deleteSrcText () { return `Src: ${this.deleteModal.itemData?.src}` },
 
     theHelp () { return this.$store.getters[INDEX_G_SHOW_THE_HELP] },
   },
@@ -630,7 +641,7 @@ export default {
 
       try {
         item = await this.$store.dispatch(
-          `${this.NS}/${PLAYER_A_FETCH_NEXT}`,
+          `${this.NS}/${this.fetchPreviousItem ? PLAYER_A_FETCH_PREVIOUS : PLAYER_A_FETCH_NEXT}`,
         );
       } catch (e) {
         error = buildError(e);
@@ -665,13 +676,59 @@ export default {
       return this.fetchNextItemPromise;
     },
 
+    async goToLoopEnd ({ addToHistory = false } = {}) {
+      try {
+        await this.onLoopEnd();
+
+        if (this.stop) { return Promise.resolve() }
+
+        if (addToHistory) {
+          this.addHistoryItem(this.playingItemData);
+          this.historyIndex = this.historyLength - 1;
+        }
+      } catch (e) {
+        const error = buildError(e);
+
+        this.pausePlaying();
+        this.showAlert(error);
+
+        throw error;
+      }
+      return Promise.resolve();
+    },
+
+    async goToItem (itemData, nextItemData) {
+      if (nextItemData) {
+        this.$set(this.nextItem, 'isSet', false);
+        this.$set(this.nextItem, 'data', nextItemData);
+      } else {
+        this.fetchNextItem();
+      }
+
+      return this.showAndPlayNextItem(itemData);
+    },
+
     async goToNextItem ({ pausePlayingIfStillInHistory = false } = {}) {
       if (this.isLoadingItem) { return Promise.resolve() }
 
       this.isLoadingItem = true;
 
-      return this.goToHistoryItem(HISTORY_GO_NEXT, { pausePlayingIfStillInHistory })
-        .finally(() => { this.isLoadingItem = false });
+      this.fetchPreviousItem = false;
+
+      // If requested history's index is greater than history length,
+      // call onLoopEnd to fetch next item and then add it to the history list.
+      if (this.historyIndex + 1 >= this.historyLength) {
+        // Set stop and pause to false.
+        this.resumePlaying({ resumeItem: false, resumeLooping: false });
+
+        await this.goToLoopEnd({ addToHistory: true });
+      } else {
+        await this.goToNextHistoryItem({ pausePlayingIfStillInHistory });
+      }
+
+      this.isLoadingItem = false;
+
+      return Promise.resolve();
     },
 
     async goToPreviousItem () {
@@ -681,45 +738,53 @@ export default {
 
       this.pausePlaying();
 
-      return this.goToHistoryItem(HISTORY_GO_PREVIOUS)
-        .finally(() => { this.isLoadingItem = false });
+      this.fetchPreviousItem = true;
+
+      if (!this.fetchItemRandomlyOptions && this.fetchNextFromItems) {
+        await this.goToLoopEnd();
+      } else {
+        await this.goToPreviousHistoryItem();
+      }
+
+      this.isLoadingItem = false;
+
+      return Promise.resolve();
     },
 
-    async goToHistoryItem (direction, { pausePlayingIfStillInHistory = false } = {}) {
+    async goToNextHistoryItem ({ pausePlayingIfStillInHistory = false } = {}) {
       if (this.stop) { return Promise.resolve() }
 
       this.pausePlayingItem();
 
-      const historyIndex = this.historyIndex + (direction === HISTORY_GO_NEXT ? 1 : -1);
+      const historyIndex = this.historyIndex + 1;
+
+      if (pausePlayingIfStillInHistory) {
+        this.pausePlaying({ pauseItem: false, pauseLooping: false });
+      }
+
+      await this.TheLoop.stopLooping();
+
+      if (this.stop) { return Promise.resolve() }
+
+      this.historyIndex = historyIndex;
+
+      // Get item data.
+      const itemData = this.getHistoryItem(this.historyIndex);
+      const nextItemData = this.getHistoryItem(this.historyIndex + 1);
+
+      return this.goToItem(itemData, nextItemData);
+    },
+
+    async goToPreviousHistoryItem ({ pausePlayingIfStillInHistory = false } = {}) {
+      if (this.stop) { return Promise.resolve() }
+
+      this.pausePlayingItem();
+
+      const historyIndex = this.historyIndex - 1;
 
       if (historyIndex < 0) {
         this.historyIndex = 0;
         return Promise.resolve();
-      }
-
-      // If requested history's index is greater than history length,
-      // call onLoopEnd to fetch next item and then add it to the history list.
-      if (historyIndex >= this.historyLength) {
-        // Set stop and pause to false.
-        this.resumePlaying({ resumeItem: false, resumeLooping: false });
-
-        this.historyIndex = this.historyLength - 1;
-
-        return this.onLoopEnd()
-          .then(() => {
-            if (this.stop) { return }
-
-            this.addHistoryItem(this.playingItemData);
-            this.historyIndex = this.historyLength - 1;
-          })
-          .catch((e) => {
-            const error = buildError(e);
-
-            this.pausePlaying();
-            this.showAlert(error);
-
-            throw error;
-          });
       }
 
       if (pausePlayingIfStillInHistory) {
@@ -734,16 +799,9 @@ export default {
 
       // Get item data.
       const itemData = this.getHistoryItem(this.historyIndex);
+      const nextItemData = this.getHistoryItem(this.historyIndex - 1);
 
-      const nextItemData = this.getHistoryItem(this.historyIndex + 1);
-      if (nextItemData) {
-        this.$set(this.nextItem, 'isSet', false);
-        this.$set(this.nextItem, 'data', nextItemData);
-      } else {
-        this.fetchNextItem();
-      }
-
-      return this.showAndPlayNextItem(itemData);
+      return this.goToItem(itemData, nextItemData);
     },
 
     getHistoryItem (index) {

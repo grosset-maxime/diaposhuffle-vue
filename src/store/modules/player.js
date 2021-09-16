@@ -20,6 +20,8 @@ import {
   PLAYER_G_CURRENT_ITEM_INDEX,
   PLAYER_G_CURRENT_ITEM,
 
+  PLAYER_G_FETCH_NEXT_FROM,
+
   PLAYER_M_SET_HISTORY_INDEX,
   PLAYER_M_ADD_HISTORY_ITEM,
   PLAYER_M_EDIT_HISTORY_ITEM,
@@ -27,6 +29,7 @@ import {
   PLAYER_M_ADD_ERROR,
 
   PLAYER_A_FETCH_NEXT,
+  PLAYER_A_FETCH_PREVIOUS,
   PLAYER_A_FETCH_ITEMS_FROM_RANDOM,
   PLAYER_A_FETCH_ITEMS_FROM_BDD,
   PLAYER_A_DELETE_ITEM,
@@ -71,6 +74,8 @@ const getters = {
   [PLAYER_G_ITEMS_LENGTH]: (state) => state.items.length,
   [PLAYER_G_CURRENT_ITEM_INDEX]: (state) => state.itemIndex,
   [PLAYER_G_CURRENT_ITEM]: (state) => (index) => state.items[index],
+
+  [PLAYER_G_FETCH_NEXT_FROM]: (state) => state.fetchNextFrom,
 };
 
 const mutations = {
@@ -101,20 +106,20 @@ const mutations = {
     console.error(`Error from "${actionName}":`, error);
   },
 
-  setItems (state, items) { state.items = items },
+  setItems (state, items) { Vue.set(state, 'items', items) },
 
-  clearItems (state) { state.items = [] },
+  clearItems (state) { Vue.set(state, 'items', []) },
 
-  setItemIndex (state, index) { state.itemIndex = index },
+  setItemIndex (state, index) { Vue.set(state, 'itemIndex', index) },
 
-  setFetchNextFrom (state, value) { state.fetchNextFrom = value },
+  setFetchNextFrom (state, value) { Vue.set(state, 'fetchNextFrom', value) },
 };
 
+// TODO: Feature: Add fetch items from bdd with tags and types. DONE ?
+// TODO: Bug: Backend: getimagesize raize warning in call response body that
+//                     trigger json.parse to fail. Should be added to the
+//                     response object as error.
 const actions = {
-  // TODO: Feature: Add fetch items from bdd with tags and types. DONE ?
-  // TODO: Bug: Backend: getimagesize raize warning in call response body that
-  //                     trigger json.parse to fail. Should be added to the
-  //                     response object as error.
   async [PLAYER_A_FETCH_NEXT] ({ state, rootGetters, commit }) {
     let result;
 
@@ -151,6 +156,38 @@ const actions = {
     } catch (e) {
       const error = buildError(e);
       commit(PLAYER_M_ADD_ERROR, { actionName: PLAYER_A_FETCH_NEXT, error });
+      throw error;
+    }
+
+    return result.item;
+  },
+
+  async [PLAYER_A_FETCH_PREVIOUS] ({
+    state, rootGetters, commit, dispatch,
+  }) {
+    let result;
+
+    const fetchItemRandomly = rootGetters[
+      `${PLAYER_OPTS_PLAYER_NS}/${PLAYER_OPTS_PLAYER_G_FETCH_ITEM_RANDOMLY}`
+    ];
+
+    try {
+      if (state.fetchNextFrom === FETCH_FROM_ITEMS && !fetchItemRandomly) {
+        let index;
+
+        index = state.itemIndex - 1;
+        if (index < 0) {
+          index = state.items.length - 1;
+        }
+
+        result = state.items[index];
+        commit('setItemIndex', index);
+      } else {
+        result.item = await dispatch(PLAYER_A_FETCH_NEXT);
+      }
+    } catch (e) {
+      const error = buildError(e);
+      commit(PLAYER_M_ADD_ERROR, { actionName: PLAYER_A_FETCH_PREVIOUS, error });
       throw error;
     }
 
