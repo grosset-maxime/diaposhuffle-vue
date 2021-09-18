@@ -66,6 +66,8 @@ export const PLAYER_G_CURRENT_ITEM = 'Get Items - Get Current Item';
 
 export const PLAYER_G_FETCH_NEXT_FROM = 'Get Fetch Next From';
 
+export const PLAYER_M_SET_CURRENT_ITEM_INDEX = 'Set Current Item Index';
+
 export const PLAYER_M_SET_HISTORY_INDEX = 'Set History - Index';
 export const PLAYER_M_ADD_HISTORY_ITEM = 'Add History - Item';
 export const PLAYER_M_EDIT_HISTORY_ITEM = 'Edit History - Item';

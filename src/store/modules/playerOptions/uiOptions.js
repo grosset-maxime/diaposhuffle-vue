@@ -29,7 +29,7 @@ const state = () => ({
   pinHistory: false,
 
   showListIndex: true,
-  pinListIndex: false,
+  pinListIndex: true,
 
   showLoop: true,
   pinLoop: false,

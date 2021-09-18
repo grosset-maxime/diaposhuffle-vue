@@ -22,6 +22,8 @@ import {
 
   PLAYER_G_FETCH_NEXT_FROM,
 
+  PLAYER_M_SET_CURRENT_ITEM_INDEX,
+
   PLAYER_M_SET_HISTORY_INDEX,
   PLAYER_M_ADD_HISTORY_ITEM,
   PLAYER_M_EDIT_HISTORY_ITEM,
@@ -79,6 +81,8 @@ const getters = {
 };
 
 const mutations = {
+  [PLAYER_M_SET_CURRENT_ITEM_INDEX] (state, index) { Vue.set(state, 'itemIndex', index) },
+
   [PLAYER_M_SET_HISTORY_INDEX] (state, index) {
     Vue.set(state.history, 'index', index);
   },
@@ -110,7 +114,10 @@ const mutations = {
 
   clearItems (state) { Vue.set(state, 'items', []) },
 
-  setItemIndex (state, index) { Vue.set(state, 'itemIndex', index) },
+  /**
+   * Set index of the item (item model)
+   */
+  setItemIndex (state, index) { Vue.set(state.items[index].item, 'index', index) },
 
   setFetchNextFrom (state, value) { Vue.set(state, 'fetchNextFrom', value) },
 };
@@ -183,6 +190,7 @@ const actions = {
         result = state.items[index];
         commit('setItemIndex', index);
       } else {
+        result = {};
         result.item = await dispatch(PLAYER_A_FETCH_NEXT);
       }
     } catch (e) {

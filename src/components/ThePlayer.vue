@@ -192,7 +192,6 @@
 // TODO: Feature: For small video try to not fit the screen and apply a scale instead.
 // TODO: Enh: update index of current item on playing from bdd items when displaying an item from history.
 // TODO: Feature: Add options to play items not randomly but in row into a folder.
-// TODO: Bug: On playing from bdd not randomly, the seconde item is shown instead of the first one.
 import {
   ERROR_SEVERITY_INFO,
   buildError,
@@ -211,6 +210,8 @@ import {
   PLAYER_G_ITEMS_LENGTH,
 
   PLAYER_G_FETCH_NEXT_FROM,
+
+  PLAYER_M_SET_CURRENT_ITEM_INDEX,
 
   PLAYER_M_SET_HISTORY_INDEX,
   PLAYER_M_ADD_HISTORY_ITEM,
@@ -562,6 +563,12 @@ export default {
 
     setLoopIndeterminate (state) { this.TheLoop.setIndeterminate(state) },
 
+    setCurrentItemIndex (index) {
+      if (typeof index === 'number') {
+        this.$store.commit(`${this.NS}/${PLAYER_M_SET_CURRENT_ITEM_INDEX}`, index);
+      }
+    },
+
     async onLoopEnd () {
       await this.TheLoop.stopLooping();
 
@@ -585,6 +592,8 @@ export default {
       }
 
       if (this.stop) { return Promise.resolve() }
+
+      this.setCurrentItemIndex(itemData.index);
 
       this.fetchNextItem();
 
@@ -638,6 +647,12 @@ export default {
     setNextItemData (itemData) {
       this.ItemsPlayer.setNextItemData(itemData);
       this.$set(this.nextItem, 'isSet', true);
+    },
+
+    resetNextItemData () {
+      this.$set(this.nextItem, 'isSet', false);
+      this.$set(this.nextItem, 'data', undefined);
+      this.fetchNextItemPromise = undefined;
     },
 
     async showAndPlayNextItem (itemData, { isNextItemSet = false, animate = false } = {}) {
@@ -696,8 +711,7 @@ export default {
 
     fetchNextItem () {
       // Start fetching the next item of the current next item.
-      this.$set(this.nextItem, 'data', undefined);
-      this.$set(this.nextItem, 'isSet', false);
+      this.resetNextItemData();
 
       this.fetchNextItemPromise = this.fetchItem()
         .then((nextItemData) => {
@@ -739,6 +753,8 @@ export default {
     },
 
     async goToItem (itemData, nextItemData) {
+      this.setCurrentItemIndex(itemData.index);
+
       if (nextItemData) {
         this.$set(this.nextItem, 'isSet', false);
         this.$set(this.nextItem, 'data', nextItemData);
@@ -754,7 +770,10 @@ export default {
 
       this.isLoadingItem = true;
 
-      this.fetchPreviousItem = false;
+      if (this.fetchPreviousItem) {
+        this.resetNextItemData();
+        this.fetchPreviousItem = false;
+      }
 
       // If requested history's index is greater than history length,
       // call onLoopEnd to fetch next item and then add it to the history list.
@@ -779,7 +798,10 @@ export default {
 
       this.pausePlaying();
 
-      this.fetchPreviousItem = true;
+      if (!this.fetchPreviousItem) {
+        this.resetNextItemData();
+        this.fetchPreviousItem = true;
+      }
 
       if (!this.fetchItemRandomlyOptions && this.fetchNextFromItems) {
         await this.goToLoopEnd();

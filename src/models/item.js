@@ -25,6 +25,7 @@ export class Item {
     useCache = false,
     isImage = undefined,
     isVideo = undefined,
+    index = undefined,
   } = {}) {
     if (!src) {
       throw new Error(`Invalid item, item has no src. Item src: ${src}`);
@@ -55,6 +56,8 @@ export class Item {
       console.error('Item:', this);
       throw new Error(`Invalid item, not an image and not a video. Item extension: ${extension}`);
     }
+
+    this.index = index;
   }
 }
 
