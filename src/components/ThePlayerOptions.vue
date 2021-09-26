@@ -6,7 +6,7 @@
     >
       <v-tab href="#source">
         <v-icon left>
-          mdi-apple-airplay
+          mdi-file-tree
         </v-icon>
         Source
       </v-tab>
