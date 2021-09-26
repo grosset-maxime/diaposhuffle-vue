@@ -100,7 +100,9 @@ const getters = {
   [PLAYER_G_CURRENT_PINED_ITEM_INDEX]: (state) => state.pinedIndex,
   [PLAYER_G_CURRENT_PINED_ITEM]: (state) => (index) => state.pineds[index],
 
-  [PLAYER_G_PINED_INDEX]: (state) => (item) => state.pineds.findIndex((p) => p.item.src === item.src),
+  [PLAYER_G_PINED_INDEX]: (state) => (item) => state.pineds.findIndex(
+    (p) => p.item.src === item.src,
+  ),
 
   [PLAYER_G_FETCH_NEXT_FROM]: (state) => state.fetchNextFrom,
 
