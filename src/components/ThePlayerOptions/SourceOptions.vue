@@ -124,18 +124,26 @@
       </v-col>
     </v-row>
 
-    <v-row
-      align="center"
-    >
-      <v-col>
+    <v-row align="center">
+      <v-col class="pineds-col">
         <v-switch
-          v-model="fromPined"
-          label="Pined items (0)"
           class="ma-0 pa-0"
-          disabled
+          v-model="fromPined"
+          :label="`Pined items - ${pinedsLength}`"
+          :disabled="!pinedsLength"
           hide-details
           inset
         />
+        <v-btn
+          :class="['ml-2', {
+            'clear-pineds-hide': !pinedsLength
+          }]"
+          :disabled="!pinedsLength"
+          icon
+          @click="clearPineds"
+        >
+          <v-icon>mdi-close-circle-outline</v-icon>
+        </v-btn>
       </v-col>
     </v-row>
 
@@ -158,7 +166,6 @@
 <script>
 // TODO: Feature: Add a component to create custom tags operator (aaa AND bbb OR ccc)
 // TODO: Feature: Add a filter by: image or video types. DONE ?
-// TODO: Feature: Add play pined items feature
 import {
   PLAYER_OPTS_SRC_G_AVAILABLE_FILE_TYPES,
   PLAYER_OPTS_SRC_G_TAGS,
@@ -168,6 +175,9 @@ import {
 
   PLAYER_OPTS_SRC_M_TOGGLE_TAGS_OPERATOR,
   PLAYER_OPTS_SRC_M_SOURCE_OPTIONS,
+
+  PLAYER_G_PINEDS_LENGTH,
+  PLAYER_M_CLEAR_PINEDS,
 } from '../../store/types';
 import FolderBrowser from '../FolderBrowser/FolderBrowser.vue';
 import TaggerModal from '../Tagger/TaggerModal.vue';
@@ -203,6 +213,8 @@ export default {
 
   computed: {
     NS () { return 'playerOptionsSource' },
+
+    PLAYER_NS () { return 'player' },
 
     availableFilterFileTypes () {
       return this.$store.getters[`${this.NS}/${PLAYER_OPTS_SRC_G_AVAILABLE_FILE_TYPES}`];
@@ -240,6 +252,8 @@ export default {
         this.$store.commit(`${this.NS}/${PLAYER_OPTS_SRC_M_SOURCE_OPTIONS}`, { fromPined });
       },
     },
+
+    pinedsLength () { return this.$store.getters[`${this.PLAYER_NS}/${PLAYER_G_PINEDS_LENGTH}`] },
   },
 
   watch: {},
@@ -314,6 +328,11 @@ export default {
     toggleTagsOperator () {
       this.$store.commit(`${this.NS}/${PLAYER_OPTS_SRC_M_TOGGLE_TAGS_OPERATOR}`);
     },
+
+    clearPineds () {
+      this.fromPined = false;
+      this.$store.commit(`${this.PLAYER_NS}/${PLAYER_M_CLEAR_PINEDS}`);
+    },
   },
 
   beforeDestroy () {},
@@ -333,6 +352,15 @@ export default {
 
   .nb-selected-folders {
     margin-left: 20px;
+  }
+
+  .pineds-col {
+    display: flex;
+    align-items: center;
+  }
+
+  .clear-pineds-hide {
+    opacity: 0;
   }
 
   .v-label {

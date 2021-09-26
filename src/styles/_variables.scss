@@ -29,3 +29,27 @@ $category-margin: 5px 8px 5px 0;
     transform: translate3d(4px, 0, 0);
   }
 }
+
+@keyframes pined {
+  0% {
+    opacity: 1;
+    transform: scale(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(100);
+  }
+}
+
+@keyframes unpined {
+  0% {
+    opacity: 1;
+    transform: scale(100);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+}

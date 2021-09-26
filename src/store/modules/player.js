@@ -20,15 +20,28 @@ import {
   PLAYER_G_CURRENT_ITEM_INDEX,
   PLAYER_G_CURRENT_ITEM,
 
+  PLAYER_G_PINEDS,
+  PLAYER_G_PINEDS_LENGTH,
+  PLAYER_G_CURRENT_PINED_ITEM,
+  PLAYER_G_CURRENT_PINED_ITEM_INDEX,
+
   PLAYER_G_FETCH_NEXT_FROM,
+  PLAYER_G_IS_FETCH_NEXT_FROM_ITEMS,
+  PLAYER_G_IS_FETCH_NEXT_FROM_PINEDS,
+  PLAYER_G_PINED_INDEX,
 
   PLAYER_M_SET_CURRENT_ITEM_INDEX,
+  PLAYER_M_SET_CURRENT_PINED_INDEX,
 
   PLAYER_M_SET_HISTORY_INDEX,
   PLAYER_M_ADD_HISTORY_ITEM,
   PLAYER_M_EDIT_HISTORY_ITEM,
   PLAYER_M_DELETE_HISTORY_ITEM,
   PLAYER_M_ADD_ERROR,
+
+  PLAYER_M_ADD_ITEM_TO_PINEDS,
+  PLAYER_M_REMOVE_ITEM_TO_PINEDS,
+  PLAYER_M_CLEAR_PINEDS,
 
   PLAYER_A_FETCH_NEXT,
   PLAYER_A_FETCH_PREVIOUS,
@@ -43,10 +56,12 @@ import {
   PLAYER_OPTS_SRC_G_FILE_TYPES,
 
   PLAYER_OPTS_PLAYER_G_FETCH_ITEM_RANDOMLY,
+  PLAYER_A_FETCH_ITEMS_FROM_PINEDS,
 } from '../types';
 
 const FETCH_FROM_RANDOM = 'random';
 const FETCH_FROM_ITEMS = 'items';
+const FETCH_FROM_PINEDS = 'pineds';
 
 const PLAYER_OPTS_SRC_NS = 'playerOptionsSource';
 const PLAYER_OPTS_PLAYER_NS = 'playerOptionsPlayer';
@@ -62,7 +77,10 @@ const state = () => ({
   items: [],
   itemIndex: -1,
 
-  // Possible values: FETCH_FROM_RANDOM, FETCH_FROM_ITEMS.
+  pineds: [],
+  pinedIndex: -1,
+
+  // Possible values: FETCH_FROM_RANDOM, FETCH_FROM_ITEMS, FETCH_FROM_PINEDS.
   fetchNextFrom: FETCH_FROM_RANDOM,
 });
 
@@ -77,11 +95,24 @@ const getters = {
   [PLAYER_G_CURRENT_ITEM_INDEX]: (state) => state.itemIndex,
   [PLAYER_G_CURRENT_ITEM]: (state) => (index) => state.items[index],
 
+  [PLAYER_G_PINEDS]: (state) => state.pineds,
+  [PLAYER_G_PINEDS_LENGTH]: (state) => state.pineds.length,
+  [PLAYER_G_CURRENT_PINED_ITEM_INDEX]: (state) => state.pinedIndex,
+  [PLAYER_G_CURRENT_PINED_ITEM]: (state) => (index) => state.pineds[index],
+
+  [PLAYER_G_PINED_INDEX]: (state) => (item) => state.pineds.findIndex((p) => p.item.src === item.src),
+
   [PLAYER_G_FETCH_NEXT_FROM]: (state) => state.fetchNextFrom,
+
+  [PLAYER_G_IS_FETCH_NEXT_FROM_ITEMS]: (state) => state.fetchNextFrom === FETCH_FROM_ITEMS,
+  [PLAYER_G_IS_FETCH_NEXT_FROM_PINEDS]: (state) => state.fetchNextFrom === FETCH_FROM_PINEDS,
+
 };
 
 const mutations = {
   [PLAYER_M_SET_CURRENT_ITEM_INDEX] (state, index) { Vue.set(state, 'itemIndex', index) },
+
+  [PLAYER_M_SET_CURRENT_PINED_INDEX] (state, index) { Vue.set(state, 'pinedIndex', index) },
 
   [PLAYER_M_SET_HISTORY_INDEX] (state, index) {
     Vue.set(state.history, 'index', index);
@@ -110,14 +141,36 @@ const mutations = {
     console.error(`Error from "${actionName}":`, error);
   },
 
-  setItems (state, items) { Vue.set(state, 'items', items) },
+  [PLAYER_M_ADD_ITEM_TO_PINEDS] (state, item) {
+    state.pineds.push({ item });
+  },
 
-  clearItems (state) { Vue.set(state, 'items', []) },
+  [PLAYER_M_REMOVE_ITEM_TO_PINEDS] (state, index) {
+    const pineds = state.pineds.filter((v, i) => i !== index);
+    Vue.set(state, 'pineds', pineds);
+  },
+
+  [PLAYER_M_CLEAR_PINEDS] (state) {
+    Vue.set(state, 'pineds', []);
+    Vue.set(state, 'pinedIndex', -1);
+  },
+
+  setItems (state, items) {
+    Vue.set(state, 'items', items);
+    Vue.set(state, 'itemIndex', -1);
+  },
+
+  clearItems (state) {
+    Vue.set(state, 'items', []);
+    Vue.set(state, 'itemIndex', -1);
+  },
 
   /**
    * Set index of the item (item model)
    */
-  setItemIndex (state, index) { Vue.set(state.items[index].item, 'index', index) },
+  setItemIndex (state, { index, arrayName }) {
+    Vue.set(state[arrayName][index].item, 'index', index);
+  },
 
   setFetchNextFrom (state, value) { Vue.set(state, 'fetchNextFrom', value) },
 };
@@ -128,6 +181,7 @@ const mutations = {
 //                     response object as error.
 const actions = {
   async [PLAYER_A_FETCH_NEXT] ({ state, rootGetters, commit }) {
+    const { fetchNextFrom } = state;
     let result;
 
     const fetchItemRandomly = rootGetters[
@@ -135,30 +189,46 @@ const actions = {
     ];
 
     try {
-      if (state.fetchNextFrom === FETCH_FROM_ITEMS) {
+      if (fetchNextFrom === FETCH_FROM_ITEMS
+        || fetchNextFrom === FETCH_FROM_PINEDS
+      ) {
         let index;
         let el;
+        let items;
+        let itemIndex;
+        let arrayName;
+
+        if (fetchNextFrom === FETCH_FROM_ITEMS) {
+          items = state.items;
+          itemIndex = state.itemIndex;
+          arrayName = 'items';
+        } else if (fetchNextFrom === FETCH_FROM_PINEDS) {
+          items = state.pineds;
+          itemIndex = state.pinedIndex;
+          arrayName = 'pineds';
+        }
 
         if (fetchItemRandomly) {
-          const obj = getRandomElementWithIndex(state.items);
+          const obj = getRandomElementWithIndex(items);
           el = obj.el;
           index = obj.index;
         } else {
-          index = state.itemIndex + 1;
-          if (index >= state.items.length) {
+          index = itemIndex + 1;
+          if (index >= items.length) {
             index = 0;
           }
-          el = state.items[index];
+          el = items[index];
         }
 
         result = el;
-        commit('setItemIndex', index);
-      } else if (state.fetchNextFrom === FETCH_FROM_RANDOM) {
+        // Set the index of the item into the items list.
+        commit('setItemIndex', { index, arrayName });
+      } else if (fetchNextFrom === FETCH_FROM_RANDOM) {
         result = await fetchRandomItem({
           folders: rootGetters[`${PLAYER_OPTS_SRC_NS}/${PLAYER_OPTS_SRC_G_FOLDERS}`],
         });
       } else {
-        throw new Error(`Invalid state.fetchNextFrom:"${state.fetchNextFrom}"`);
+        throw new Error(`Invalid state.fetchNextFrom:"${fetchNextFrom}"`);
       }
     } catch (e) {
       const error = buildError(e);
@@ -172,6 +242,7 @@ const actions = {
   async [PLAYER_A_FETCH_PREVIOUS] ({
     state, rootGetters, commit, dispatch,
   }) {
+    const { fetchNextFrom } = state;
     let result;
 
     const fetchItemRandomly = rootGetters[
@@ -179,16 +250,33 @@ const actions = {
     ];
 
     try {
-      if (state.fetchNextFrom === FETCH_FROM_ITEMS && !fetchItemRandomly) {
+      if ((fetchNextFrom === FETCH_FROM_ITEMS
+          || fetchNextFrom === FETCH_FROM_PINEDS)
+        && !fetchItemRandomly
+      ) {
         let index;
+        let items;
+        let itemIndex;
+        let arrayName;
 
-        index = state.itemIndex - 1;
-        if (index < 0) {
-          index = state.items.length - 1;
+        if (fetchNextFrom === FETCH_FROM_ITEMS) {
+          items = state.items;
+          itemIndex = state.itemIndex;
+          arrayName = 'items';
+        } else if (fetchNextFrom === FETCH_FROM_PINEDS) {
+          items = state.pineds;
+          itemIndex = state.pinedIndex;
+          arrayName = 'pineds';
         }
 
-        result = state.items[index];
-        commit('setItemIndex', index);
+        index = itemIndex - 1;
+        if (index < 0) {
+          index = items.length - 1;
+        }
+
+        result = items[index];
+        // Set the index of the item into the items list.
+        commit('setItemIndex', { index, arrayName });
       } else {
         result = {};
         result.item = await dispatch(PLAYER_A_FETCH_NEXT);
@@ -233,6 +321,12 @@ const actions = {
     }
 
     return items;
+  },
+
+  [PLAYER_A_FETCH_ITEMS_FROM_PINEDS] ({ commit }) {
+    commit('setFetchNextFrom', FETCH_FROM_PINEDS);
+    commit(PLAYER_M_SET_CURRENT_PINED_INDEX, -1);
+    return Promise.resolve();
   },
 
   async [PLAYER_A_DELETE_ITEM] ({ commit }, { itemSrc, fromBddOnly, ignoreIfNotExist }) {

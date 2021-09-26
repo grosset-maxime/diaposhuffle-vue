@@ -81,7 +81,7 @@ const panels = [{
     description: 'Delete the current picture/video.',
   }, {
     shortcut: 'p',
-    description: 'Pin the current picture/video (TODO).',
+    description: 'Pin/Unpin the current picture/video.',
   }, {
     shortcut: 'm',
     description: 'Toggle playing method between "Random" and "Normal". (TODO)',

@@ -8,6 +8,8 @@ import {
   PLAYER_OPTS_UI_G_PIN_TAGS,
   PLAYER_OPTS_UI_G_SHOW_HISTORY,
   PLAYER_OPTS_UI_G_PIN_HISTORY,
+  PLAYER_OPTS_UI_G_SHOW_PINED,
+  PLAYER_OPTS_UI_G_PIN_PINED,
   PLAYER_OPTS_UI_G_SHOW_LIST_INDEX,
   PLAYER_OPTS_UI_G_PIN_LIST_INDEX,
   PLAYER_OPTS_UI_G_SHOW_LOOP,
@@ -28,6 +30,9 @@ const state = () => ({
   showHistory: true,
   pinHistory: false,
 
+  showPined: true,
+  pinPined: false,
+
   showListIndex: true,
   pinListIndex: true,
 
@@ -44,6 +49,9 @@ const getters = {
 
   [PLAYER_OPTS_UI_G_SHOW_HISTORY]: (state) => state.showHistory,
   [PLAYER_OPTS_UI_G_PIN_HISTORY]: (state) => state.pinHistory,
+
+  [PLAYER_OPTS_UI_G_SHOW_PINED]: (state) => state.showPined,
+  [PLAYER_OPTS_UI_G_PIN_PINED]: (state) => state.pinPined,
 
   [PLAYER_OPTS_UI_G_SHOW_LIST_INDEX]: (state) => state.showListIndex,
   [PLAYER_OPTS_UI_G_PIN_LIST_INDEX]: (state) => state.pinListIndex,
@@ -63,6 +71,7 @@ const mutations = {
     Vue.set(state, 'showPath', value);
     Vue.set(state, 'showTags', value);
     Vue.set(state, 'showHistory', value);
+    Vue.set(state, 'showPined', value);
     Vue.set(state, 'showListIndex', value);
     Vue.set(state, 'showLoop', value);
   },
@@ -71,6 +80,7 @@ const mutations = {
     Vue.set(state, 'pinPath', value);
     Vue.set(state, 'pinTags', value);
     Vue.set(state, 'pinHistory', value);
+    Vue.set(state, 'pinPined', value);
     Vue.set(state, 'pinListIndex', value);
     Vue.set(state, 'pinLoop', value);
   },

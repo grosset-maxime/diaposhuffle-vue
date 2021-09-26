@@ -13,6 +13,9 @@
 import {
   PLAYER_G_CURRENT_ITEM_INDEX,
   PLAYER_G_ITEMS_LENGTH,
+  PLAYER_G_CURRENT_PINED_ITEM_INDEX,
+  PLAYER_G_PINEDS_LENGTH,
+  PLAYER_G_IS_FETCH_NEXT_FROM_PINEDS,
 } from '../../store/types';
 
 export default {
@@ -29,9 +32,27 @@ export default {
   computed: {
     NS () { return 'player' },
 
-    itemsLength () { return this.$store.getters[`${this.NS}/${PLAYER_G_ITEMS_LENGTH}`] },
+    PLAYER_OPTS_SRC_NS () { return 'playerOptionsSource' },
 
-    currentItemIndex () { return this.$store.getters[`${this.NS}/${PLAYER_G_CURRENT_ITEM_INDEX}`] },
+    itemsLength () {
+      return this.$store.getters[
+        this.isFromPinedSource
+          ? `${this.NS}/${PLAYER_G_PINEDS_LENGTH}`
+          : `${this.NS}/${PLAYER_G_ITEMS_LENGTH}`
+      ];
+    },
+
+    currentItemIndex () {
+      return this.$store.getters[
+        this.isFromPinedSource
+          ? `${this.NS}/${PLAYER_G_CURRENT_PINED_ITEM_INDEX}`
+          : `${this.NS}/${PLAYER_G_CURRENT_ITEM_INDEX}`
+      ];
+    },
+
+    isFromPinedSource () {
+      return this.$store.getters[`${this.NS}/${PLAYER_G_IS_FETCH_NEXT_FROM_PINEDS}`];
+    },
   },
 };
 </script>

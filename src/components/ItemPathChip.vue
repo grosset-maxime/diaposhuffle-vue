@@ -18,7 +18,6 @@
 
 <script>
 // TODO: Feature: On click add to clipboard the path of the item.
-// TODO: Feature: Add a very small icon in order to allow to pin the cmp to force show even if the ui is hidden.
 export default {
   name: 'ItemPathChip',
 

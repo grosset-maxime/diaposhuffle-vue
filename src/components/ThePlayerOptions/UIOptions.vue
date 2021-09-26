@@ -104,6 +104,29 @@
     <v-row align="center">
       <v-col>
         <v-switch
+          v-model="showPined"
+          label="Show pined"
+          class="ma-0 pa-0"
+          hide-details
+          inset
+          @change="onSwitchShowChange"
+        />
+      </v-col>
+      <v-col>
+        <v-switch
+          v-model="pinPined"
+          label="Pin pined"
+          class="ma-0 pa-0"
+          hide-details
+          inset
+          @change="onSwitchPinChange"
+        />
+      </v-col>
+    </v-row>
+
+    <v-row align="center">
+      <v-col>
+        <v-switch
           v-model="showListIndex"
           label="Show list index"
           class="ma-0 pa-0"
@@ -157,6 +180,8 @@ import {
   PLAYER_OPTS_UI_G_PIN_TAGS,
   PLAYER_OPTS_UI_G_SHOW_HISTORY,
   PLAYER_OPTS_UI_G_PIN_HISTORY,
+  PLAYER_OPTS_UI_G_SHOW_PINED,
+  PLAYER_OPTS_UI_G_PIN_PINED,
   PLAYER_OPTS_UI_G_SHOW_LIST_INDEX,
   PLAYER_OPTS_UI_G_PIN_LIST_INDEX,
   PLAYER_OPTS_UI_G_SHOW_LOOP,
@@ -224,6 +249,20 @@ export default {
       },
     },
 
+    showPined: {
+      get () { return this.$store.getters[`${this.NS}/${PLAYER_OPTS_UI_G_SHOW_PINED}`] },
+      set (showPined) {
+        this.$store.commit(`${this.NS}/${PLAYER_OPTS_UI_M_UI_OPTIONS}`, { showPined });
+      },
+    },
+
+    pinPined: {
+      get () { return this.$store.getters[`${this.NS}/${PLAYER_OPTS_UI_G_PIN_PINED}`] },
+      set (pinPined) {
+        this.$store.commit(`${this.NS}/${PLAYER_OPTS_UI_M_UI_OPTIONS}`, { pinPined });
+      },
+    },
+
     showListIndex: {
       get () { return this.$store.getters[`${this.NS}/${PLAYER_OPTS_UI_G_SHOW_LIST_INDEX}`] },
       set (showListIndex) {
@@ -276,6 +315,7 @@ export default {
       this.showHideAll = this.showPath
         && this.showTags
         && this.showHistory
+        && this.showPined
         && this.showListIndex
         && this.showLoop;
     },
@@ -284,6 +324,7 @@ export default {
       this.pinUnpinAll = this.pinPath
         && this.pinTags
         && this.pinHistory
+        && this.pinPined
         && this.pinListIndex
         && this.pinLoop;
     },

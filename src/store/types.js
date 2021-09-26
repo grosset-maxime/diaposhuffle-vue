@@ -43,6 +43,8 @@ export const PLAYER_OPTS_UI_G_SHOW_TAGS = 'Get Show Tags';
 export const PLAYER_OPTS_UI_G_PIN_TAGS = 'Get Pin Tags';
 export const PLAYER_OPTS_UI_G_SHOW_HISTORY = 'Get Show History';
 export const PLAYER_OPTS_UI_G_PIN_HISTORY = 'Get Pin History';
+export const PLAYER_OPTS_UI_G_SHOW_PINED = 'Get Show Pined';
+export const PLAYER_OPTS_UI_G_PIN_PINED = 'Get Pin Pined';
 export const PLAYER_OPTS_UI_G_SHOW_LIST_INDEX = 'Get Show List Index';
 export const PLAYER_OPTS_UI_G_PIN_LIST_INDEX = 'Get Pin List Index';
 export const PLAYER_OPTS_UI_G_SHOW_LOOP = 'Get Show Loop';
@@ -64,9 +66,18 @@ export const PLAYER_G_ITEMS_LENGTH = 'Get Items - Items length';
 export const PLAYER_G_CURRENT_ITEM_INDEX = 'Get Items - Get Current Item Index';
 export const PLAYER_G_CURRENT_ITEM = 'Get Items - Get Current Item';
 
+export const PLAYER_G_PINEDS_LENGTH = 'Get Pineds - Pineds length';
+export const PLAYER_G_PINEDS = 'Get Pineds';
+export const PLAYER_G_CURRENT_PINED_ITEM_INDEX = 'Get Pineds - Index';
+export const PLAYER_G_CURRENT_PINED_ITEM = 'Get Pineds - Get Current Pined Item';
+export const PLAYER_G_PINED_INDEX = 'Get Pined item\'s index';
+
 export const PLAYER_G_FETCH_NEXT_FROM = 'Get Fetch Next From';
+export const PLAYER_G_IS_FETCH_NEXT_FROM_ITEMS = 'Is Fetching Next From Items';
+export const PLAYER_G_IS_FETCH_NEXT_FROM_PINEDS = 'Is Fetching Next From Pineds';
 
 export const PLAYER_M_SET_CURRENT_ITEM_INDEX = 'Set Current Item Index';
+export const PLAYER_M_SET_CURRENT_PINED_INDEX = 'Set Current Pined Index';
 
 export const PLAYER_M_SET_HISTORY_INDEX = 'Set History - Index';
 export const PLAYER_M_ADD_HISTORY_ITEM = 'Add History - Item';
@@ -74,10 +85,15 @@ export const PLAYER_M_EDIT_HISTORY_ITEM = 'Edit History - Item';
 export const PLAYER_M_DELETE_HISTORY_ITEM = 'Delete History - Item';
 export const PLAYER_M_ADD_ERROR = 'Add Error';
 
+export const PLAYER_M_ADD_ITEM_TO_PINEDS = 'Add Item To Pineds';
+export const PLAYER_M_REMOVE_ITEM_TO_PINEDS = 'Remove Item To Pineds';
+export const PLAYER_M_CLEAR_PINEDS = 'Clear Pineds';
+
 export const PLAYER_A_FETCH_NEXT = 'Fetch Next Item';
 export const PLAYER_A_FETCH_PREVIOUS = 'Fetch Previous Item';
 export const PLAYER_A_FETCH_ITEMS_FROM_RANDOM = 'Fetch Items From Random';
 export const PLAYER_A_FETCH_ITEMS_FROM_BDD = 'Fetch Items From BDD';
+export const PLAYER_A_FETCH_ITEMS_FROM_PINEDS = 'Fetch Items From Pineds';
 export const PLAYER_A_DELETE_ITEM = 'Delete Item';
 export const PLAYER_A_SET_ITEM_TAGS = 'Set Item Tags';
 

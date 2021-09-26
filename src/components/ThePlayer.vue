@@ -36,6 +36,36 @@
       @mouseout="onMouseOutUI"
     />
 
+    <PinWrapper
+      v-if="showPinedUI && isPinedPlayingItem"
+      :class="['the-pined-chip-pin-wrapper', {
+        pined: pinedChip.pined
+      }]"
+      :is-pined="pinedChip.pined"
+      icon-position="top left"
+      @click="togglePinUI('pinedChip')"
+      @mouseover="onMouseOverUI"
+      @mouseout="onMouseOutUI"
+    >
+      <v-chip
+        class="is-pined-item pl-1 pr-1"
+        color="orange"
+        outlined
+        x-small
+        label
+        @click="togglePinItem({ itemData: playingItemData })"
+      >
+        Pined
+      </v-chip>
+    </PinWrapper>
+
+    <div
+      :class="['pined-unpined-anim', {
+        'pined-anim': showPinedAnim,
+        'unpined-anim': showUnpinedAnim
+      }]"
+    />
+
     <v-alert
       class="alert"
       :value="alert.show"
@@ -79,7 +109,7 @@
     </PinWrapper>
 
     <PinWrapper
-      v-if="showListIndexUI && hasItems"
+      v-if="showListIndexUI && (isFromPinedsSource || isFromItemsSource)"
       :class="['the-items-info-chip-pin-wrapper', {
         pined: itemsInfoChip.pined
       }]"
@@ -207,22 +237,27 @@ import {
   PLAYER_G_HISTORY_LENGTH,
   PLAYER_G_HISTORY_ITEM,
 
-  PLAYER_G_ITEMS_LENGTH,
+  PLAYER_G_PINED_INDEX,
 
-  PLAYER_G_FETCH_NEXT_FROM,
+  PLAYER_G_IS_FETCH_NEXT_FROM_ITEMS,
 
   PLAYER_M_SET_CURRENT_ITEM_INDEX,
+  PLAYER_M_SET_CURRENT_PINED_INDEX,
 
   PLAYER_M_SET_HISTORY_INDEX,
   PLAYER_M_ADD_HISTORY_ITEM,
   PLAYER_M_EDIT_HISTORY_ITEM,
   PLAYER_M_DELETE_HISTORY_ITEM,
 
+  PLAYER_M_ADD_ITEM_TO_PINEDS,
+  PLAYER_M_REMOVE_ITEM_TO_PINEDS,
+
   PLAYER_A_FETCH_NEXT,
   PLAYER_A_FETCH_PREVIOUS,
   PLAYER_A_DELETE_ITEM,
   PLAYER_A_FETCH_ITEMS_FROM_BDD,
   PLAYER_A_FETCH_ITEMS_FROM_RANDOM,
+  PLAYER_A_FETCH_ITEMS_FROM_PINEDS,
   PLAYER_A_SET_ITEM_TAGS,
 
   TAGGER_A_FETCH_TAGS,
@@ -230,6 +265,7 @@ import {
 
   PLAYER_OPTS_SRC_G_HAS_FILE_TYPES,
   PLAYER_OPTS_SRC_G_HAS_TAGS,
+  PLAYER_OPTS_SRC_G_FROM_PINED,
 
   PLAYER_OPTS_PLAYER_G_MUTE_VIDEO,
   PLAYER_OPTS_PLAYER_G_INTERVAL,
@@ -241,6 +277,8 @@ import {
   PLAYER_OPTS_UI_G_PIN_TAGS,
   PLAYER_OPTS_UI_G_SHOW_HISTORY,
   PLAYER_OPTS_UI_G_PIN_HISTORY,
+  PLAYER_OPTS_UI_G_SHOW_PINED,
+  PLAYER_OPTS_UI_G_PIN_PINED,
   PLAYER_OPTS_UI_G_SHOW_LIST_INDEX,
   PLAYER_OPTS_UI_G_PIN_LIST_INDEX,
   PLAYER_OPTS_UI_G_SHOW_LOOP,
@@ -256,6 +294,9 @@ import TagsList from './ThePlayer/TagsList.vue';
 import HistoryChip from './ThePlayer/HistoryChip.vue';
 import ItemsInfoChip from './ThePlayer/ItemsInfoChipChip.vue';
 import PinWrapper from './ThePlayer/PinWrapper.vue';
+
+const PINED_ANIMATION_DURATION = 1000;
+const UNPINED_ANIMATION_DURATION = 1000;
 
 export default {
   name: 'ThePlayer',
@@ -285,6 +326,7 @@ export default {
     playingItem: {
       data: undefined,
       isVideo: false,
+      pinedIndex: -1,
     },
 
     nextItem: {
@@ -311,6 +353,10 @@ export default {
     },
 
     historyChip: {
+      pined: false,
+    },
+
+    pinedChip: {
       pined: false,
     },
 
@@ -341,6 +387,9 @@ export default {
     shouldShowUI: false,
     showUITimeout: undefined,
     preventHideUI: false,
+
+    showPinedAnim: false,
+    showUnpinedAnim: false,
   }),
 
   computed: {
@@ -385,6 +434,14 @@ export default {
         && this.$store.getters[`${this.PLAYER_OPTS_UI_NS}/${PLAYER_OPTS_UI_G_PIN_HISTORY}`];
     },
 
+    showPinedUI () {
+      return this.$store.getters[`${this.PLAYER_OPTS_UI_NS}/${PLAYER_OPTS_UI_G_SHOW_PINED}`];
+    },
+
+    pinPinedUI () {
+      return this.$store.getters[`${this.PLAYER_OPTS_UI_NS}/${PLAYER_OPTS_UI_G_PIN_PINED}`];
+    },
+
     showListIndexUI () {
       return this.$store.getters[`${this.PLAYER_OPTS_UI_NS}/${PLAYER_OPTS_UI_G_SHOW_LIST_INDEX}`];
     },
@@ -409,6 +466,14 @@ export default {
 
     hasTagsSource () {
       return this.$store.getters[`${this.PLAYER_OPTS_SRC_NS}/${PLAYER_OPTS_SRC_G_HAS_TAGS}`];
+    },
+
+    isFromPinedsSource () {
+      return this.$store.getters[`${this.PLAYER_OPTS_SRC_NS}/${PLAYER_OPTS_SRC_G_FROM_PINED}`];
+    },
+
+    isFromItemsSource () {
+      return this.$store.getters[`${this.NS}/${PLAYER_G_IS_FETCH_NEXT_FROM_ITEMS}`];
     },
 
     muteVideoOption () {
@@ -439,6 +504,10 @@ export default {
 
     playingItemTags () { return this.playingItemData?.tags || [] },
 
+    playingItemPinedIndex () { return this.playingItem.pinedIndex },
+
+    isPinedPlayingItem () { return this.playingItemPinedIndex >= 0 },
+
     showTheItemPathChip () { return !!this.playingItemData },
 
     showTheTagsList () { return !!this.playingItemData },
@@ -452,12 +521,6 @@ export default {
     historyIndex: {
       get () { return this.$store.getters[`${this.NS}/${PLAYER_G_HISTORY_INDEX}`] },
       set (index) { this.$store.commit(`${this.NS}/${PLAYER_M_SET_HISTORY_INDEX}`, index) },
-    },
-
-    hasItems () { return !!this.$store.getters[`${this.NS}/${PLAYER_G_ITEMS_LENGTH}`] },
-
-    fetchNextFromItems () {
-      return this.$store.getters[`${this.NS}/${PLAYER_G_FETCH_NEXT_FROM}`] === 'items';
     },
 
     deleteSrcText () { return `Src: ${this.deleteModal.itemData?.src}` },
@@ -488,12 +551,15 @@ export default {
     this.itemPathChip.pined = this.pinPathUI;
     this.tagsList.pined = this.pinTagsUI;
     this.historyChip.pined = this.pinHistoryUI;
+    this.pinedChip.pined = this.pinPinedUI;
     this.itemsInfoChip.pined = this.pinListIndexUI;
     this.loop.pined = this.pinLoopUI;
 
     const fetchTagsAndCategoriesPromise = this.fetchTagsAndCategories();
 
-    if (this.hasTagsSource || this.hasFileTypesSource) {
+    if (this.isFromPinedsSource) {
+      await this.$store.dispatch(`${this.NS}/${PLAYER_A_FETCH_ITEMS_FROM_PINEDS}`);
+    } else if (this.hasTagsSource || this.hasFileTypesSource) {
       this.setLoopIndeterminate(true);
       try {
         await this.$store.dispatch(`${this.NS}/${PLAYER_A_FETCH_ITEMS_FROM_BDD}`);
@@ -565,7 +631,17 @@ export default {
 
     setCurrentItemIndex (index) {
       if (typeof index === 'number') {
-        this.$store.commit(`${this.NS}/${PLAYER_M_SET_CURRENT_ITEM_INDEX}`, index);
+        let commit;
+
+        if (this.isFromItemsSource) {
+          commit = `${this.NS}/${PLAYER_M_SET_CURRENT_ITEM_INDEX}`;
+        } else if (this.isFromPinedsSource) {
+          commit = `${this.NS}/${PLAYER_M_SET_CURRENT_PINED_INDEX}`;
+        }
+
+        if (commit) {
+          this.$store.commit(commit, index);
+        }
       }
     },
 
@@ -670,6 +746,7 @@ export default {
 
       this.$set(this.playingItem, 'data', itemData);
       this.$set(this.playingItem, 'isVideo', this.ItemsPlayer.isItemVideo());
+      this.$set(this.playingItem, 'pinedIndex', this.getPinedIndex(itemData));
 
       if (this.stop) { return Promise.resolve() }
 
@@ -803,7 +880,9 @@ export default {
         this.fetchPreviousItem = true;
       }
 
-      if (!this.fetchItemRandomlyOptions && this.fetchNextFromItems) {
+      if (!this.fetchItemRandomlyOptions
+        && (this.isFromItemsSource || this.isFromPinedsSource)
+      ) {
         await this.goToLoopEnd();
       } else {
         await this.goToPreviousHistoryItem();
@@ -977,6 +1056,54 @@ export default {
       return response;
     },
 
+    getPinedIndex (itemData) {
+      return itemData
+        ? this.$store.getters[`${this.NS}/${PLAYER_G_PINED_INDEX}`](itemData)
+        : -1;
+    },
+
+    togglePinItem ({ itemData }) {
+      let index;
+
+      if (this.isPinedPlayingItem) {
+        this.$store.commit(
+          `${this.NS}/${PLAYER_M_REMOVE_ITEM_TO_PINEDS}`,
+          this.playingItemPinedIndex,
+        );
+        this.triggerUnpinedAnim();
+        index = -1;
+      } else {
+        this.$store.commit(
+          `${this.NS}/${PLAYER_M_ADD_ITEM_TO_PINEDS}`,
+          deepClone(itemData),
+        );
+        index = this.getPinedIndex(itemData);
+        this.triggerPinedAnim();
+      }
+
+      this.$set(this.playingItem, 'pinedIndex', index);
+    },
+
+    triggerPinedAnim () {
+      if (this.showPinedAnim) { return }
+
+      this.showPinedAnim = true;
+
+      setTimeout(() => {
+        this.showPinedAnim = false;
+      }, PINED_ANIMATION_DURATION);
+    },
+
+    triggerUnpinedAnim () {
+      if (this.showUnpinedAnim) { return }
+
+      this.showUnpinedAnim = true;
+
+      setTimeout(() => {
+        this.showUnpinedAnim = false;
+      }, UNPINED_ANIMATION_DURATION);
+    },
+
     showTheHelp () { this.$store.commit(INDEX_M_SHOW_THE_HELP, true) },
 
     showAlert ({
@@ -1042,6 +1169,12 @@ export default {
           case 'h':
             this.pausePlaying();
             this.showTheHelp();
+            break;
+
+          case 'p':
+            this.pausePlaying();
+            this.togglePinItem({ itemData: this.playingItemData });
+            this.showUIDuring(3000);
             break;
 
           case 't':
@@ -1124,11 +1257,52 @@ export default {
     .the-item-path-chip-pin-wrapper {
       transform: translateX(0);
     }
+
+    .the-pined-chip-pin-wrapper {
+      transform: translateY(0);
+    }
   }
 
   &.video-item {
     .the-item-path-chip-pin-wrapper {
       bottom: 80px; // To not cover the video controls.
+    }
+  }
+
+  .the-pined-chip-pin-wrapper {
+    position: absolute;
+    top: 10px;
+    right: 40px;
+    z-index: 1000;
+    transform: translateY(-150%);
+    transition: transform 0.3s ease;
+
+    &.pined {
+      transform: none;
+    }
+  }
+
+  .is-pined-item {
+    opacity: 0.7;
+  }
+
+  .pined-unpined-anim {
+    position: absolute;
+    top: 16px;
+    right: 51px;
+    z-index: 1000;
+    width: 14px;
+    height: 14px;
+    opacity: 0;
+    background-color: transparent;
+    border: 4px solid #aaa;
+    border-radius: 12px;
+
+    &.pined-anim {
+      animation: pined 0.8s;
+    }
+    &.unpined-anim {
+      animation: unpined 0.8s;
     }
   }
 

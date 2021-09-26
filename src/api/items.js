@@ -58,13 +58,14 @@ export const fetchItemsFromBdd = async ({ tags, tagsOperator, types } = {}) => {
 
     const json = await fetchJson(url, opts);
     items = json.results;
-    items = items.map((item) => ({
+    items = items.map((item, index) => ({
       ...item,
       item: createItem({
         src: item.path,
         path: item.path,
         tags: item.tags.split(';').filter((tag) => tag),
         extension: item.extension,
+        index,
         // TODO: set type (file type) ?
       }),
     }));
