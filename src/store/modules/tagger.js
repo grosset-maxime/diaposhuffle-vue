@@ -17,11 +17,15 @@ import {
   TAGGER_G_TAGS,
   TAGGER_G_TAG,
   TAGGER_G_TAGS_LIST,
+  TAGGER_G_LAST_USED_TAG_IDS,
   TAGGER_G_CATEGORIES,
   TAGGER_G_CATEGORIES_LIST,
   TAGGER_G_CATEGORY,
   TAGGER_G_CATEGORY_COLOR,
+
   TAGGER_M_ADD_ERROR,
+  TAGGER_M_ADD_LAST_USED_TAG_ID,
+
   TAGGER_A_FETCH_TAGS,
   TAGGER_A_ADD_TAG,
   TAGGER_A_UPDATE_TAG,
@@ -39,6 +43,8 @@ const state = () => ({
   categoriesFetched: false,
   categories: {},
 
+  lastUsedTagIds: [],
+
   errors: [],
 });
 
@@ -48,6 +54,8 @@ const getters = {
   [TAGGER_G_TAG]: (state) => (id) => state.tags[id],
 
   [TAGGER_G_TAGS_LIST]: (state) => Object.values(state.tags),
+
+  [TAGGER_G_LAST_USED_TAG_IDS]: (state) => state.lastUsedTagIds,
 
   [TAGGER_G_CATEGORIES]: (state) => state.categories,
 
@@ -70,6 +78,12 @@ const mutations = {
     state.errors.push(e);
     // eslint-disable-next-line no-console
     console.error(actionName, error);
+  },
+
+  [TAGGER_M_ADD_LAST_USED_TAG_ID] (state, id) {
+    const ids = state.lastUsedTagIds.filter((tagId) => tagId !== id);
+    ids.unshift(id);
+    state.lastUsedTagIds = ids.slice(0, 10);
   },
 
   _setTagsFetched (state, value) { state.tagsFetched = value },

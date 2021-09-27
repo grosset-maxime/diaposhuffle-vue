@@ -110,12 +110,14 @@ export const FOLDER_BROWSER_A_FETCH_FOLDERS = 'Fetch Folders';
 export const TAGGER_G_TAGS = 'Get Tags';
 export const TAGGER_G_TAG = 'Get Tag';
 export const TAGGER_G_TAGS_LIST = 'Get Tags List';
+export const TAGGER_G_LAST_USED_TAG_IDS = 'Get Last Used Tag Ids';
 export const TAGGER_G_CATEGORIES = 'Get Categories';
 export const TAGGER_G_CATEGORIES_LIST = 'Get Categories List';
 export const TAGGER_G_CATEGORY = 'Get Category';
 export const TAGGER_G_CATEGORY_COLOR = 'Get Tag Color';
 
 export const TAGGER_M_ADD_ERROR = 'Add Tagger Error';
+export const TAGGER_M_ADD_LAST_USED_TAG_ID = 'Add Last Used Tag Id';
 
 export const TAGGER_A_FETCH_TAGS = 'Fetch Tags';
 export const TAGGER_A_ADD_TAG = 'Add New Tag';

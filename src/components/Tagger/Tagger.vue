@@ -7,7 +7,7 @@
     >
       <TagsList
         :tag-ids="selectedTagIds"
-        :focused="focused"
+        :focused="focused.section === SELECTED_FOCUSED_SECTION_NAME ? focused : undefined"
         :edit-mode="editMode"
         :no-tags-text="noSelectedTagsText"
         :masked="notFilteredSelectedTagIdsMap"
@@ -86,6 +86,26 @@
 
     <v-divider class="separator" />
 
+    <div
+      :class="['last-used-unselected-tags', {
+        shake: shake.lastUsedUnselectedTags
+      }]"
+    >
+      <TagsList
+        ref="lastUsedTagsList"
+        :tag-ids="lastUsedTagIds"
+        :focused="focused.section === LAST_USED_FOCUSED_SECTION_NAME ? focused : undefined"
+        :masked="notFilteredLastUsedTagIdsMap"
+        :edit-mode="editMode"
+        :no-tags-text="noLastUsedTagsText"
+        @clickTag="onTagClick"
+        @addTag="showAddTagModal"
+        @editTag="showEditTagModal"
+      />
+    </div>
+
+    <v-divider class="separator" />
+
     <!-- TODO: Feature: Highlight matching text with filtering text -->
     <div
       :class="['unselected-tags', {
@@ -95,7 +115,7 @@
       <TagsList
         ref="unselectedTagsList"
         :tag-ids="unselectedTagIds"
-        :focused="focused"
+        :focused="focused.section === UNSELECTED_FOCUSED_SECTION_NAME ? focused : undefined"
         :masked="notFilteredUnselectedTagIdsMap"
         :edit-mode="editMode"
         :no-tags-text="noUnselectedTagsText"
@@ -136,11 +156,14 @@
 // TODO: Enh: On sort update focused tag position.
 // TODO: Feature: On up/down keydown, focus above/below tags section.
 // TODO: Enh: On up/down left/right keydown set tag focus to right tag.
-// TODO: Feature: Add last used tag section, display it last 10 used tags and focus first tag on tagger opening.
 import Fuse from 'fuse.js';
 import {
   TAGGER_G_TAGS,
+  TAGGER_G_LAST_USED_TAG_IDS,
   TAGGER_G_CATEGORIES,
+
+  TAGGER_M_ADD_LAST_USED_TAG_ID,
+
   TAGGER_A_FETCH_TAGS,
   TAGGER_A_ADD_TAG,
   TAGGER_A_UPDATE_TAG,
@@ -170,6 +193,7 @@ const DEFAULT_FILTERS = {
 
 const SELECTED_FOCUSED_SECTION_NAME = 'selectedTags';
 const UNSELECTED_FOCUSED_SECTION_NAME = 'unselectedTags';
+const LAST_USED_FOCUSED_SECTION_NAME = 'lastUsedTags';
 
 export default {
   name: 'Tagger',
@@ -250,6 +274,10 @@ export default {
       add: false,
       categoryId: undefined,
     },
+
+    SELECTED_FOCUSED_SECTION_NAME,
+    UNSELECTED_FOCUSED_SECTION_NAME,
+    LAST_USED_FOCUSED_SECTION_NAME,
   }),
 
   computed: {
@@ -258,6 +286,7 @@ export default {
     sectionsNames () {
       return [
         SELECTED_FOCUSED_SECTION_NAME,
+        LAST_USED_FOCUSED_SECTION_NAME,
         UNSELECTED_FOCUSED_SECTION_NAME,
       ];
     },
@@ -328,6 +357,30 @@ export default {
       return tagsIds;
     },
 
+    /**
+     * @returns {string[]} - List of last used tags ids.
+     */
+    lastUsedTagIds () {
+      let tagsIds = this.$store.getters[`${this.NS}/${TAGGER_G_LAST_USED_TAG_IDS}`];
+
+      if (this.isFiltering) {
+        const filteredTagsIds = this.filteredTags
+          .filter((tag) => tagsIds.includes(tag.id))
+          .map((tag) => tag.id);
+
+        const filteredTagsIdsMap = Object.fromEntries(filteredTagsIds.map((id) => [id, true]));
+
+        tagsIds = tagsIds.filter((id) => !filteredTagsIdsMap[id]);
+
+        tagsIds = filteredTagsIds.concat(tagsIds);
+      }
+
+      return tagsIds.filter((tagId) => !this.selectedTagIdsMap[tagId]);
+    },
+
+    /**
+     * @returns {string[]} - List of unselected tags ids.
+     */
     unselectedTagIds () {
       let { sortedTags } = this;
 
@@ -395,14 +448,24 @@ export default {
       return Object.fromEntries(notFilteredTagIds.map((tagId) => [tagId, true]));
     },
 
-    notFilteredUnselectedTagIdsMap () {
+    notFilteredLastUsedTagIdsMap () {
       if (!this.isFiltering) { return {} }
 
-      const notFilteredTag = this.unselectedTagIds.filter(
+      const notFilteredTagIds = this.lastUsedTagIds.filter(
         (tagId) => !(tagId in this.filteredTagsMap),
       );
 
-      return Object.fromEntries(notFilteredTag.map((tagId) => [tagId, true]));
+      return Object.fromEntries(notFilteredTagIds.map((tagId) => [tagId, true]));
+    },
+
+    notFilteredUnselectedTagIdsMap () {
+      if (!this.isFiltering) { return {} }
+
+      const notFilteredTagIds = this.unselectedTagIds.filter(
+        (tagId) => !(tagId in this.filteredTagsMap),
+      );
+
+      return Object.fromEntries(notFilteredTagIds.map((tagId) => [tagId, true]));
     },
 
     nbTagsMap () {
@@ -460,6 +523,12 @@ export default {
       return this.isFiltering && !isEmptyObj(this.selectedTagIdsMap)
         ? 'No tags results'
         : 'No tags selected';
+    },
+
+    noLastUsedTagsText () {
+      return this.isFiltering
+        ? 'No tags results'
+        : 'No last used tags';
     },
 
     noUnselectedTagsText () { return this.isFiltering ? 'No tags results' : '' },
@@ -521,6 +590,8 @@ export default {
       } else {
         this.$set(this.selectedTagIdsMap, tagId, true);
         this.$emit('select', tagId);
+
+        this.addLastUsedTagId(tagId);
       }
 
       // TODO: ENH: if focused tag, move/update focused position.
@@ -626,6 +697,10 @@ export default {
       this.setFilterTextFocus();
     },
 
+    addLastUsedTagId (tagId) {
+      this.$store.commit(`${this.NS}/${TAGGER_M_ADD_LAST_USED_TAG_ID}`, tagId);
+    },
+
     applyCategoriesFilter (tags) {
       return tags.filter((tag) => !!this.filters.categories[tag.category]);
     },
@@ -678,6 +753,8 @@ export default {
         tagsIds = this.unselectedTagIds;
       } else if (name === SELECTED_FOCUSED_SECTION_NAME) {
         tagsIds = this.selectedTagIds;
+      } else if (name === LAST_USED_FOCUSED_SECTION_NAME) {
+        tagsIds = this.lastUsedTagIds;
       }
       return tagsIds;
     },
