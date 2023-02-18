@@ -42,7 +42,7 @@ export class Item {
     this.height = height;
 
     this.customFolderPath = customFolderPath;
-    this.randomPublicPath = randomPublicPath ?? path;
+    this.randomPublicPath = randomPublicPath ?? this.path;
 
     this.tags = tags;
 

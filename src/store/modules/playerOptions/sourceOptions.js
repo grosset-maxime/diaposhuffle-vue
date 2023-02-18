@@ -58,11 +58,11 @@ const mutations = {
   },
 
   [PLAYER_OPTS_SRC_M_TOGGLE_TAGS_OPERATOR] (state) {
-    const operator = state.filters.tagsOperator === TAGS_OPERATOR_OR
+    const operator = state.tagsOperator === TAGS_OPERATOR_OR
       ? TAGS_OPERATOR_AND
       : TAGS_OPERATOR_OR;
 
-    Vue.set(state.filters, 'tagsOperator', operator);
+    Vue.set(state, 'tagsOperator', operator);
   },
 };
 

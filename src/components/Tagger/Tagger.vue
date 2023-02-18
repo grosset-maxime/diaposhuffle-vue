@@ -96,7 +96,7 @@
         :tag-ids="lastUsedTagIds"
         :focused="focused.section === LAST_USED_FOCUSED_SECTION_NAME ? focused : undefined"
         :masked="notFilteredLastUsedTagIdsMap"
-        :edit-mode="editMode"
+        :edit-mode="false"
         :no-tags-text="noLastUsedTagsText"
         @clickTag="onTagClick"
         @addTag="showAddTagModal"
@@ -156,6 +156,7 @@
 // TODO: Enh: On sort update focused tag position.
 // TODO: Feature: On up/down keydown, focus above/below tags section.
 // TODO: Enh: On up/down left/right keydown set tag focus to right tag.
+// TODO: Bug: Error on set tag when items come from the bdd.
 import Fuse from 'fuse.js';
 import {
   TAGGER_G_TAGS,

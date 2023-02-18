@@ -166,6 +166,7 @@
 <script>
 // TODO: Feature: Add a component to create custom tags operator (aaa AND bbb OR ccc)
 // TODO: Feature: Add a filter by: image or video types. DONE ?
+// TODO: Enh: dispable tag operator chip if only one tag is selected.
 import {
   PLAYER_OPTS_SRC_G_AVAILABLE_FILE_TYPES,
   PLAYER_OPTS_SRC_G_TAGS,

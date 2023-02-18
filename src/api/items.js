@@ -62,7 +62,6 @@ export const fetchItemsFromBdd = async ({ tags, tagsOperator, types } = {}) => {
       ...item,
       item: createItem({
         src: item.path,
-        path: item.path,
         tags: item.tags.split(';').filter((tag) => tag),
         extension: item.extension,
         index,

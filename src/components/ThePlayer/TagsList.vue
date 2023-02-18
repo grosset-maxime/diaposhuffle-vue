@@ -23,6 +23,7 @@
 </template>
 
 <script>
+// TODO: Enh: display beautifull scroll when a lot of tags (instead of the native scroll bar)
 import {
   TAGGER_G_TAGS,
   TAGGER_G_TAGS_LIST,

@@ -998,7 +998,7 @@ export default {
     },
 
     showTaggerModal () {
-      this.pausePlaying();
+      this.pausePlaying({ pauseItem: false });
       this.removeKeyboardPlayerShortcuts();
       this.$set(this.taggerModal, 'show', true);
     },
@@ -1173,7 +1173,7 @@ export default {
             break;
 
           case 'p':
-            this.pausePlaying();
+            this.pausePlaying({ pauseItem: false });
             this.togglePinItem({ itemData: this.playingItemData });
             this.showUIDuring(3000);
             break;

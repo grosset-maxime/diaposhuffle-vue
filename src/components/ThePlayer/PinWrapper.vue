@@ -28,6 +28,7 @@
 </template>
 
 <script>
+// TODO: Enh: Show pin icon when mouse is moving, else hide them.
 export default {
   name: 'PinWrapper',
 

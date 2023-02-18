@@ -22,7 +22,7 @@ import {
 
 const state = () => ({
   showPath: true,
-  pinPath: false,
+  pinPath: true,
 
   showTags: true,
   pinTags: true,
@@ -31,7 +31,7 @@ const state = () => ({
   pinHistory: false,
 
   showPined: true,
-  pinPined: false,
+  pinPined: true,
 
   showListIndex: true,
   pinListIndex: true,

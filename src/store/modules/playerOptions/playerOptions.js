@@ -20,7 +20,7 @@ const state = () => ({
 
   scale: true,
 
-  muteVideo: true,
+  muteVideo: false,
 
   fetchItemRandomly: true,
 });
