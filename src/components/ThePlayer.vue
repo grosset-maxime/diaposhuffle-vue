@@ -155,7 +155,7 @@
     >
       <template
         v-if="!!deleteModal.itemData"
-        v-slot:preview
+        #preview
       >
         <img
           v-if="!!deleteModal.itemData.isImage"
@@ -168,10 +168,10 @@
           :src="deleteModal.itemData.src"
         />
       </template>
-      <template v-slot:message>
+      <template #message>
         Delete this item?
       </template>
-      <template v-slot:src>
+      <template #src>
         {{ deleteSrcText }}
       </template>
     </DeleteModal>
@@ -1018,7 +1018,8 @@ export default {
       this.editHistoryItem(this.historyIndex, item);
 
       this.$store.dispatch(
-        `${this.NS}/${PLAYER_A_SET_ITEM_TAGS}`, { item: deepClone(item) },
+        `${this.NS}/${PLAYER_A_SET_ITEM_TAGS}`,
+        { item: deepClone(item) },
       ).catch((e) => {
         const error = buildError(e);
 

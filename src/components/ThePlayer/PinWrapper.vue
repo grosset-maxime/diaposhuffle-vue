@@ -126,19 +126,19 @@ export default {
     }
 
     &.pos-top {
-      top: -$pin-icon-size / 2;
+      top: math.div(-$pin-icon-size, 2);
     }
 
     &.pos-bottom {
-      bottom: -$pin-icon-size / 2;
+      bottom: math.div(-$pin-icon-size, 2);
     }
 
     &.pos-right {
-      right: -$pin-icon-size / 2;
+      right: math.div(-$pin-icon-size, 2);
     }
 
     &.pos-left {
-      left: -$pin-icon-size / 2;
+      left: math.div(-$pin-icon-size, 2);
     }
 
     &.pos-top.pos-right .icon {

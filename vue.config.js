@@ -7,15 +7,16 @@ module.exports = {
   css: {
     loaderOptions: {
       scss: {
-        prependData: [
+        prependData: `@use 'sass:math';${[
           '@/styles/_variables.uikit',
           '@/styles/_mixins.uikit',
           '@/styles/_variables',
           '@/styles/_mixins',
-        ].map((v) => `@import "${v}.scss";`).join(''),
+        ].map((v) => `@import "${v}.scss";`).join('')}`,
       },
     },
   },
+
   // configureWebpack: {
   //   plugins: [new VuetifyLoaderPlugin()],
   // },

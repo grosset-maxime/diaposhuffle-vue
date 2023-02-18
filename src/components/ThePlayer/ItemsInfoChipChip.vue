@@ -64,7 +64,7 @@ export default {
   transition: color 0.3 ease;
 
   &.v-chip {
-    background-color: $grey-7#{80};
+    background-color: #{$grey-7 + '80'};
   }
 
   &:hover {

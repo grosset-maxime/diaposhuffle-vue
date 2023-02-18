@@ -47,7 +47,7 @@ export default {
 .item-path-chip {
   word-break: break-all;
   color: $grey-3;
-  background-color: $grey-7#{80};
+  background-color: #{$grey-7 + '80'};
   padding: 0 3px;
   border-radius: 5px;
   cursor: text;

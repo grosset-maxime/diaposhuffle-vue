@@ -175,7 +175,7 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: $grey-7#{CC};
+  background: #{$grey-7 + 'CC'};
   padding: 15px;
   width: 600px;
 
